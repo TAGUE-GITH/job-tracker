@@ -19,9 +19,9 @@ Application pour suivre ses candidatures : l'offre (lien, texte, entreprise), le
 |---|---|
 | Frontend | React 19, Vite, React Router, Recharts, react-markdown |
 | Backend | Java 21, Spring Boot 4, Spring Data JPA, Spring Security (JWT), Bean Validation |
-| Base de données | PostgreSQL (Docker), H2 en développement et pour les tests |
+| Base de données | PostgreSQL (Docker, Neon en production), H2 en développement et pour les tests |
 | IA | Toute API compatible OpenAI : Groq (gratuit, par défaut), OpenRouter, Ollama (local)… |
-| DevOps | Docker multi-stage, docker-compose, GitHub Actions (tests, build, images sur GHCR) |
+| DevOps | Docker multi-stage, docker-compose, GitHub Actions (tests, build, images sur GHCR), Render (Blueprint) |
 
 ## Démarrage rapide avec Docker
 
@@ -77,6 +77,24 @@ Le workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) s'exécute à c
 2. **frontend** : lint (oxlint) et build Vite
 3. **docker** (push sur `main` uniquement) : build des images et publication sur GitHub Container Registry (`ghcr.io/tague-gith/job-tracker-backend` et `ghcr.io/tague-gith/job-tracker-frontend`)
 
+## Déploiement gratuit : Render + Neon
+
+L'infrastructure est décrite dans [render.yaml](render.yaml) :
+- **job-tracker-api** : le backend, un service web Docker gratuit ;
+- **job-tracker** : le frontend, un site statique gratuit.
+
+Render ne déploie que lorsque la CI GitHub Actions est verte (`autoDeployTrigger: checksPass`).
+
+1. **Base de données Neon** : crée un projet sur https://neon.tech (région Frankfurt), puis récupère la *connection string*, de la forme `postgresql://UTILISATEUR:MOTDEPASSE@HOTE/neondb?sslmode=require`.
+2. **Render** : sur https://render.com, connecte-toi avec GitHub, puis *New > Blueprint* et choisis ce dépôt. Render demande alors :
+   - `DB_URL` = `jdbc:postgresql://HOTE/neondb?sslmode=require`
+   - `DB_USER` = `UTILISATEUR`
+   - `DB_PASSWORD` = `MOTDEPASSE`
+   - `AI_API_KEY` = ta clé Groq
+3. Le site est ensuite disponible sur `https://job-tracker.onrender.com` (l'URL exacte s'affiche dans Render).
+
+> Sur l'offre gratuite, le backend s'endort après 15 min d'inactivité : la première requête prend alors environ 1 min. Les CV et lettres sont stockés dans PostgreSQL, car le disque de Render est effacé à chaque déploiement.
+
 ## API REST
 
 Toutes les routes, sauf `/api/auth/**`, demandent l'en-tête `Authorization: Bearer <token>`.
@@ -126,10 +144,13 @@ document
 - id : Long, obligatoire
 - nomFichier : String, obligatoire
 - type : TypeDocument (CV, LETTRE), obligatoire
-- chemin : String, obligatoire
 - contentType : String, facultatif
 - dateAjout : LocalDate, obligatoire
 - user_id : FK -> users, obligatoire
+
+document_contenu   (table à part pour ne pas charger les fichiers dans les listes)
+- document_id : PK et FK -> document
+- donnees : bytea, obligatoire
 
 enum StatutCandidature : EN_ATTENTE, EN_COURS, OFFRE_RECUE, REFUSEE, ABANDONNEE
 enum TypeEtape : CANDIDATURE_ENVOYEE, ECHANGE_RH, TEST_TECHNIQUE,

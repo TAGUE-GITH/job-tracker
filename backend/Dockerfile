@@ -10,8 +10,8 @@ RUN ./mvnw -B -q package -DskipTests
 # Etape 2 : image d'execution legere (JRE seulement)
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-RUN useradd --system --uid 1001 app && mkdir -p /app/uploads && chown app /app/uploads
+RUN useradd --system --uid 1001 app
 COPY --from=build /app/target/*.jar app.jar
 USER app
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]

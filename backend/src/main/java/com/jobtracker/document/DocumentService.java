@@ -5,12 +5,8 @@ import com.jobtracker.common.NotFoundException;
 import com.jobtracker.user.UserRepository;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.UUID;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.PathResource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,16 +17,16 @@ import org.springframework.web.multipart.MultipartFile;
 public class DocumentService {
 
     private final DocumentRepository documentRepository;
+    private final DocumentContenuRepository contenuRepository;
     private final CandidatureRepository candidatureRepository;
     private final UserRepository userRepository;
-    private final Path storageDir;
 
-    public DocumentService(DocumentRepository documentRepository, CandidatureRepository candidatureRepository,
-            UserRepository userRepository, @Value("${app.storage.dir}") String storageDir) {
+    public DocumentService(DocumentRepository documentRepository, DocumentContenuRepository contenuRepository,
+            CandidatureRepository candidatureRepository, UserRepository userRepository) {
         this.documentRepository = documentRepository;
+        this.contenuRepository = contenuRepository;
         this.candidatureRepository = candidatureRepository;
         this.userRepository = userRepository;
-        this.storageDir = Path.of(storageDir).toAbsolutePath().normalize();
     }
 
     public List<DocumentResponse> lister(Long userId) {
@@ -44,19 +40,21 @@ public class DocumentService {
         if (fichier == null || fichier.isEmpty()) {
             throw new IllegalArgumentException("Le fichier est vide");
         }
+        if (fichier.getSize() > DocumentContenu.TAILLE_MAX) {
+            throw new IllegalArgumentException("Le fichier depasse 10 Mo");
+        }
         String nomOriginal = StringUtils.cleanPath(
                 fichier.getOriginalFilename() == null ? "document" : fichier.getOriginalFilename());
-        String extension = StringUtils.getFilenameExtension(nomOriginal);
-        String nomStocke = UUID.randomUUID() + (extension == null ? "" : "." + extension);
+        byte[] donnees;
         try {
-            Files.createDirectories(storageDir);
-            fichier.transferTo(storageDir.resolve(nomStocke));
+            donnees = fichier.getBytes();
         } catch (IOException e) {
-            throw new UncheckedIOException("Impossible d'enregistrer le fichier", e);
+            throw new UncheckedIOException("Impossible de lire le fichier", e);
         }
-        Document doc = new Document(nomOriginal, type, nomStocke, fichier.getContentType(),
-                userRepository.getReferenceById(userId));
-        return DocumentResponse.from(documentRepository.save(doc));
+        Document doc = documentRepository.save(new Document(nomOriginal, type, fichier.getContentType(),
+                userRepository.getReferenceById(userId)));
+        contenuRepository.save(new DocumentContenu(doc, donnees));
+        return DocumentResponse.from(doc);
     }
 
     public Document trouver(Long userId, Long documentId) {
@@ -64,12 +62,11 @@ public class DocumentService {
                 .orElseThrow(() -> new NotFoundException("Document introuvable"));
     }
 
+    @Transactional(readOnly = true)
     public Resource fichier(Document doc) {
-        Path path = storageDir.resolve(doc.getChemin()).normalize();
-        if (!path.startsWith(storageDir) || !Files.exists(path)) {
-            throw new NotFoundException("Fichier introuvable sur le disque");
-        }
-        return new PathResource(path);
+        return contenuRepository.findById(doc.getId())
+                .map(c -> new ByteArrayResource(c.getDonnees()))
+                .orElseThrow(() -> new NotFoundException("Contenu du document introuvable"));
     }
 
     @Transactional
@@ -77,11 +74,7 @@ public class DocumentService {
         Document doc = trouver(userId, documentId);
         candidatureRepository.detacherCv(doc);
         candidatureRepository.detacherLettre(doc);
+        contenuRepository.deleteById(doc.getId());
         documentRepository.delete(doc);
-        try {
-            Files.deleteIfExists(storageDir.resolve(doc.getChemin()).normalize());
-        } catch (IOException ignored) {
-            // le document est supprime en base, un fichier orphelin n'est pas bloquant
-        }
     }
 }

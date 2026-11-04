@@ -20,12 +20,9 @@ services:
       DB_USER: jobtracker
       DB_PASSWORD: ${DB_PASSWORD:-jobtracker}
       JWT_SECRET: ${JWT_SECRET:-change-moi-avec-une-longue-chaine-aleatoire-0123456789}
-      STORAGE_DIR: /app/uploads
       AI_BASE_URL: ${AI_BASE_URL:-https://api.groq.com/openai/v1}
       AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-llama-3.3-70b-versatile}
-    volumes:
-      - uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -39,4 +36,3 @@ services:
 
 volumes:
   db-data:
-  uploads:

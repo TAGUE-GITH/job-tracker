@@ -3,6 +3,7 @@ package com.jobtracker;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -19,7 +20,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
-        "app.storage.dir=target/test-uploads",
         "app.ia.api-key="
 })
 @AutoConfigureMockMvc
@@ -88,6 +88,10 @@ class JobTrackerApplicationTests {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         String docId = extraire(body, "id");
+
+        mvc.perform(get("/api/documents/" + docId + "/fichier").header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().string("contenu"));
 
         mvc.perform(post("/api/candidatures").header("Authorization", token)
                         .contentType(MediaType.APPLICATION_JSON)

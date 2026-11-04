@@ -27,10 +27,6 @@ public class Document {
     @Column(nullable = false)
     private TypeDocument type;
 
-    /** Nom du fichier stocke sur le disque (dans app.storage.dir). */
-    @Column(nullable = false)
-    private String chemin;
-
     private String contentType;
 
     @Column(nullable = false)
@@ -43,10 +39,9 @@ public class Document {
     protected Document() {
     }
 
-    public Document(String nomFichier, TypeDocument type, String chemin, String contentType, User user) {
+    public Document(String nomFichier, TypeDocument type, String contentType, User user) {
         this.nomFichier = nomFichier;
         this.type = type;
-        this.chemin = chemin;
         this.contentType = contentType;
         this.user = user;
         this.dateAjout = LocalDate.now();
@@ -62,10 +57,6 @@ public class Document {
 
     public TypeDocument getType() {
         return type;
-    }
-
-    public String getChemin() {
-        return chemin;
     }
 
     public String getContentType() {

@@ -1,5 +1,10 @@
 const TOKEN_KEY = 'jt_token'
 
+// En local et avec Docker, /api passe par le proxy (Vite ou nginx).
+// Sur Render, le backend a son propre domaine : VITE_API_HOST est injecte au build.
+const host = import.meta.env.VITE_API_HOST
+const API_URL = host ? `${host.startsWith('http') ? host : `https://${host}`}/api` : '/api'
+
 export const getToken = () => localStorage.getItem(TOKEN_KEY)
 export const setToken = (t) => (t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY))
 
@@ -9,7 +14,7 @@ async function request(path, { method = 'GET', body, raw = false } = {}) {
   if (token) headers.Authorization = `Bearer ${token}`
   if (body && !(body instanceof FormData)) headers['Content-Type'] = 'application/json'
 
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${API_URL}${path}`, {
     method,
     headers,
     body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,

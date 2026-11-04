@@ -1,0 +1,47 @@
+# Blueprint Render : decrit toute l'infrastructure (Infrastructure as Code).
+# Render > New > Blueprint > choisir ce depot. La base PostgreSQL est hebergee chez Neon (gratuit).
+services:
+  - type: web
+    name: job-tracker-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    # Deploie seulement quand la CI GitHub Actions est verte
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: DB_URL
+        sync: false # ex. jdbc:postgresql://ep-xxx.eu-central-1.aws.neon.tech/neondb?sslmode=require
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        fromService:
+          type: web
+          name: job-tracker
+          property: host
+
+  - type: web
+    name: job-tracker
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    autoDeployTrigger: checksPass
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_HOST
+        fromService:
+          type: web
+          name: job-tracker-api
+          property: host
