@@ -1,6 +1,103 @@
-** Model de Donnees **
+# Job Tracker
 
-user
+Application pour suivre ses candidatures : l'offre (lien, texte, entreprise), le CV et la lettre utilisés, l'évolution du processus (premier échange RH, entretien technique, offre ou refus), des statistiques visuelles et un **assistant IA gratuit** pour préparer les entretiens.
+
+![CI](https://github.com/TAGUE-GITH/job-tracker/actions/workflows/ci.yml/badge.svg)
+
+## Fonctionnalités
+
+- **Comptes utilisateurs** : inscription et connexion (JWT, mots de passe hachés avec BCrypt)
+- **Candidatures** : entreprise, poste, lien, texte de l'offre, date, CV et lettre de motivation (facultative), recherche et filtre par statut
+- **Évolution** : timeline des étapes (candidature envoyée, échange RH, test technique, entretiens, offre, refus) avec des notes. Le statut se met à jour automatiquement.
+- **CV et lettres** : import de fichiers (PDF, Word…) réutilisables d'une candidature à l'autre
+- **Tableau de bord** : candidatures par mois, répartition par statut, entonnoir de recrutement, taux de réponse, d'entretien et d'offre
+- **Assistant IA** : préparation d'un entretien (questions probables et réponses conseillées, questions à poser, points à réviser) et simulation d'entretien interactive, à partir du texte de l'offre et de tes notes
+
+## Stack technique
+
+| Partie | Technologies |
+|---|---|
+| Frontend | React 19, Vite, React Router, Recharts, react-markdown |
+| Backend | Java 21, Spring Boot 4, Spring Data JPA, Spring Security (JWT), Bean Validation |
+| Base de données | PostgreSQL (Docker), H2 en développement et pour les tests |
+| IA | Toute API compatible OpenAI : Groq (gratuit, par défaut), OpenRouter, Ollama (local)… |
+| DevOps | Docker multi-stage, docker-compose, GitHub Actions (tests, build, images sur GHCR) |
+
+## Démarrage rapide avec Docker
+
+```bash
+cp .env.example .env        # puis renseigne AI_API_KEY (et change JWT_SECRET)
+docker compose up --build
+```
+
+L'application est disponible sur http://localhost:3000.
+
+## Développement sans Docker
+
+Prérequis : JDK 21 et Node.js 24.
+
+```bash
+# Terminal 1 : backend sur http://localhost:8080 (base H2 enregistrée dans backend/data)
+cd backend
+./mvnw spring-boot:run        # Windows : mvnw.cmd spring-boot:run
+
+# Terminal 2 : frontend sur http://localhost:5173 (les appels /api sont redirigés vers le backend)
+cd frontend
+npm install
+npm run dev
+```
+
+Pour activer l'IA en local, définis `AI_API_KEY` avant de lancer le backend :
+
+```bash
+# PowerShell
+$env:AI_API_KEY="gsk_..."
+# Bash
+export AI_API_KEY="gsk_..."
+```
+
+### Obtenir une IA gratuite
+
+- **Groq** (par défaut) : crée une clé sur https://console.groq.com/keys
+- **Ollama** (100 % local, sans clé) : installe Ollama, lance `ollama pull llama3.2`, puis définis `AI_BASE_URL=http://localhost:11434/v1`, `AI_MODEL=llama3.2` et `AI_API_KEY=ollama`
+- **OpenRouter** : `AI_BASE_URL=https://openrouter.ai/api/v1`, avec un modèle `:free`
+
+## Tests
+
+```bash
+cd backend && ./mvnw test
+cd frontend && npm run lint && npm run build
+```
+
+## CI/CD (GitHub Actions)
+
+Le workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) s'exécute à chaque push et à chaque pull request sur `main` :
+
+1. **backend** : compilation et tests Maven
+2. **frontend** : lint (oxlint) et build Vite
+3. **docker** (push sur `main` uniquement) : build des images et publication sur GitHub Container Registry (`ghcr.io/tague-gith/job-tracker-backend` et `ghcr.io/tague-gith/job-tracker-frontend`)
+
+## API REST
+
+Toutes les routes, sauf `/api/auth/**`, demandent l'en-tête `Authorization: Bearer <token>`.
+
+| Méthode | Route | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Inscription |
+| POST | `/api/auth/login` | Connexion (renvoie le JWT) |
+| GET | `/api/candidatures?statut=&q=` | Liste filtrée |
+| POST / GET / PUT / DELETE | `/api/candidatures[/{id}]` | CRUD des candidatures |
+| POST / PUT / DELETE | `/api/candidatures/{id}/etapes[/{etapeId}]` | Étapes de la candidature |
+| POST | `/api/candidatures/{id}/ia` | Assistant IA (`{ typeEtape, messages }`) |
+| GET / POST | `/api/documents` | Liste et import (multipart : `fichier`, `type`) |
+| GET | `/api/documents/{id}/fichier` | Téléchargement |
+| DELETE | `/api/documents/{id}` | Suppression |
+| GET | `/api/stats` | Statistiques du tableau de bord |
+
+## Modèle de données
+
+```
+users
 - id : Long, obligatoire
 - nom : String, obligatoire
 - email : String, obligatoire, unique
@@ -14,7 +111,7 @@ candidature
 - texteOffre : TEXT, facultatif
 - dateCandidature : LocalDate, obligatoire
 - statut : StatutCandidature, obligatoire
-- user_id : FK -> user, obligatoire
+- user_id : FK -> users, obligatoire
 - cv_id : FK -> document, facultatif
 - lettre_id : FK -> document, facultatif
 
@@ -22,7 +119,7 @@ etape
 - id : Long, obligatoire
 - type : TypeEtape, obligatoire
 - date : LocalDate, obligatoire
-- notes : TEXT, facultatif   (questions posées, ressenti… l'IA s'en servira)
+- notes : TEXT, facultatif   (questions posées, ressenti… utilisés par l'IA)
 - candidature_id : FK -> candidature, obligatoire
 
 document
@@ -30,9 +127,14 @@ document
 - nomFichier : String, obligatoire
 - type : TypeDocument (CV, LETTRE), obligatoire
 - chemin : String, obligatoire
+- contentType : String, facultatif
 - dateAjout : LocalDate, obligatoire
+- user_id : FK -> users, obligatoire
 
 enum StatutCandidature : EN_ATTENTE, EN_COURS, OFFRE_RECUE, REFUSEE, ABANDONNEE
 enum TypeEtape : CANDIDATURE_ENVOYEE, ECHANGE_RH, TEST_TECHNIQUE,
                  ENTRETIEN_TECHNIQUE, ENTRETIEN_MANAGER, OFFRE, REFUS
 enum TypeDocument : CV, LETTRE
+```
+
+Le statut d'une candidature découle de sa dernière étape (par exemple `ECHANGE_RH` donne `EN_COURS` et `REFUS` donne `REFUSEE`), sauf si elle a été marquée comme abandonnée.

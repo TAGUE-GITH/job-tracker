@@ -1,0 +1,6 @@
+.env
+backend/data/
+backend/uploads/
+.idea/
+.vscode/
+.claude/
