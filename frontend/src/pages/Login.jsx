@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
+import Logo from '../components/Logo.jsx'
 
 export default function Login() {
   const { user, login, register } = useAuth()
   const navigate = useNavigate()
-  const [mode, setMode] = useState('login')
+  const [params] = useSearchParams()
+  const [mode, setMode] = useState(params.get('mode') === 'inscription' ? 'register' : 'login')
   const [form, setForm] = useState({ nom: '', email: '', password: '' })
   const [erreur, setErreur] = useState('')
   const [chargement, setChargement] = useState(false)
@@ -32,7 +34,7 @@ export default function Login() {
   return (
     <div className="auth-page">
       <form className="card auth-card" onSubmit={onSubmit}>
-        <h1>Job Tracker</h1>
+        <Link to="/accueil" className="auth-logo"><Logo size={40} /></Link>
         <p className="muted">Suis tes candidatures et prépare tes entretiens.</p>
 
         <div className="tabs">
