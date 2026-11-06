@@ -24,6 +24,8 @@ services:
       AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-openai/gpt-oss-120b}
       LBA_API_KEY: ${LBA_API_KEY:-}
+      JOOBLE_API_KEY: ${JOOBLE_API_KEY:-}
+      JOOBLE_HOST: ${JOOBLE_HOST:-jooble.org}
       FT_CLIENT_ID: ${FT_CLIENT_ID:-}
       FT_CLIENT_SECRET: ${FT_CLIENT_SECRET:-}
       ADZUNA_APP_ID: ${ADZUNA_APP_ID:-}

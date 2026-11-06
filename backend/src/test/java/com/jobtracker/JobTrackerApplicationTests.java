@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
         "app.ia.api-key=",
         "app.offres.france-travail.client-id=",
         "app.offres.lba.api-key=",
+        "app.offres.jooble.api-key=",
         "app.offres.adzuna.app-id="
 })
 @AutoConfigureMockMvc

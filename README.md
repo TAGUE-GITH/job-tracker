@@ -7,7 +7,7 @@
 ## Fonctionnalités
 
 - **Comptes utilisateurs** : inscription et connexion (JWT, mots de passe hachés avec BCrypt)
-- **Offres d'emploi** : recherche d'offres en direct (La bonne alternance, Adzuna) par mots-clés, lieu et contrat (alternance, stage, CDI, CDD), bouton « Postuler » vers l'annonce d'origine et ajout au suivi en un clic
+- **Offres d'emploi** : recherche d'offres en direct (La bonne alternance, Jooble) par mots-clés, lieu et contrat (alternance, stage, CDI, CDD), bouton « Postuler » vers l'annonce d'origine et ajout au suivi en un clic
 - **Candidatures** : entreprise, poste, lien, texte de l'offre, date, CV et lettre de motivation (facultative), recherche et filtre par statut
 - **Évolution** : timeline des étapes (candidature envoyée, échange RH, test technique, entretiens, offre, refus) avec des notes. Le statut se met à jour automatiquement.
 - **CV et lettres** : import de fichiers (PDF, Word…) réutilisables d'une candidature à l'autre
@@ -63,7 +63,8 @@ export AI_API_KEY="gsk_..."
 La page **Offres** a besoin d'au moins une de ces API (gratuites) :
 
 - **La bonne alternance** (offres d'alternance de toute la France, dont celles de France Travail) : crée un compte sur https://api.apprentissage.beta.gouv.fr, génère une clé d'API et renseigne `LBA_API_KEY`. Cette API cherche par métier (codes ROME) : Taguora traduit les mots-clés (développeur, data, réseau, RH, marketing…) en codes ROME, ou tu peux taper directement un code comme `M1805`. Le lieu est un département (`75`) ou une ville (rayon de 30 km).
-- **Adzuna** (tous contrats : stage, CDI, CDD) : crée une clé sur https://developer.adzuna.com et renseigne `ADZUNA_APP_ID` et `ADZUNA_APP_KEY`.
+- **Jooble** (tous contrats : stage, CDI, CDD) : demande une clé gratuite sur https://fr.jooble.org/api/about et renseigne `JOOBLE_API_KEY`. Une clé obtenue sur le site français donne surtout des offres françaises : mets alors `JOOBLE_HOST=fr.jooble.org` (par défaut `jooble.org`, le site international).
+- **Adzuna** (`ADZUNA_APP_ID`, `ADZUNA_APP_KEY`) : devenu payant (25 appels d'essai gratuits), le code reste disponible.
 - **France Travail** (`FT_CLIENT_ID`, `FT_CLIENT_SECRET`) : l'API « Offres d'emploi v2 » n'est plus en accès libre sur francetravail.io. Le code reste prêt si ton application y a accès.
 
 Avec plusieurs sources, l'application propose un onglet par source. La candidature se fait toujours sur le site d'origine de l'annonce (bouton « Postuler »).
@@ -103,7 +104,7 @@ Render ne déploie que lorsque la CI GitHub Actions est verte (`autoDeployTrigge
    - `DB_USER` = `UTILISATEUR`
    - `DB_PASSWORD` = `MOTDEPASSE`
    - `AI_API_KEY` = ta clé Groq
-   - `LBA_API_KEY` et/ou `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` pour les offres d'emploi
+   - `LBA_API_KEY` (alternance) et `JOOBLE_API_KEY` (stages, CDI, CDD) pour les offres d'emploi
 3. Le site est ensuite disponible sur `https://job-tracker.onrender.com` (l'URL exacte s'affiche dans Render).
 
 ### Variante : frontend sur Vercel
@@ -135,7 +136,7 @@ Toutes les routes, sauf `/api/auth/**`, demandent l'en-tête `Authorization: Bea
 | GET / POST | `/api/documents` | Liste et import (multipart : `fichier`, `type`) |
 | GET | `/api/documents/{id}/fichier` | Téléchargement |
 | DELETE | `/api/documents/{id}` | Suppression |
-| GET | `/api/offres?q=&lieu=&contrat=&source=&page=` | Recherche d'offres d'emploi (La bonne alternance, Adzuna, France Travail) |
+| GET | `/api/offres?q=&lieu=&contrat=&source=&page=` | Recherche d'offres d'emploi (La bonne alternance, Jooble, Adzuna, France Travail) |
 | GET | `/api/stats` | Statistiques du tableau de bord |
 
 ## Modèle de données

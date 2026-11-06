@@ -21,8 +21,8 @@ public class OffreService {
         List<SourceOffres> disponibles = sources.stream().filter(SourceOffres::configuree).toList();
         if (disponibles.isEmpty()) {
             throw new OffresIndisponiblesException("Aucune API d'offres configuree : definis LBA_API_KEY "
-                    + "(https://api.apprentissage.beta.gouv.fr, offres d'alternance) ou ADZUNA_APP_ID et "
-                    + "ADZUNA_APP_KEY (https://developer.adzuna.com)");
+                    + "(https://api.apprentissage.beta.gouv.fr, offres d'alternance) ou JOOBLE_API_KEY "
+                    + "(https://fr.jooble.org/api/about, tous contrats)");
         }
         List<SourceOffres> compatibles = disponibles.stream()
                 .filter(s -> s.supporte(recherche.contrat()))
@@ -30,7 +30,7 @@ public class OffreService {
         if (compatibles.isEmpty()) {
             throw new OffresIndisponiblesException("Aucune source configuree ne propose ce type de contrat : "
                     + "La bonne alternance ne publie que des offres en alternance. Pour les stages, CDI et CDD, "
-                    + "ajoute une cle Adzuna (ADZUNA_APP_ID et ADZUNA_APP_KEY).");
+                    + "ajoute une cle Jooble (JOOBLE_API_KEY).");
         }
         disponibles = compatibles;
         SourceOffres source = disponibles.stream()

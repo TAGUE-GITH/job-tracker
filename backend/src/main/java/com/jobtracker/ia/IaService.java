@@ -40,7 +40,7 @@ public class IaService {
             "Deconnexion" (sur telephone, ils sont dans le menu a trois traits en haut a droite).
             - Offres : recherche d'offres en direct par mots-cles, lieu (ville ou numero de departement) \
             et contrat. La bonne alternance fournit les offres d'alternance de toute la France (recherche \
-            par metier, codes ROME) ; Adzuna couvre les stages, CDI et CDD si sa cle est configuree. \
+            par metier, codes ROME) ; Jooble couvre les stages, CDI et CDD si sa cle est configuree. \
             "Postuler" ouvre l'annonce sur le site d'origine pour candidater ; "Ajouter au suivi" cree \
             automatiquement la candidature avec le texte de l'offre. On ne peut pas envoyer sa candidature \
             directement depuis Taguora : la candidature se fait toujours sur le site du recruteur.

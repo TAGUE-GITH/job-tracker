@@ -14,7 +14,7 @@ import org.springframework.web.client.RestClient;
  * API Adzuna (agregateur de nombreux sites d'emploi, gratuite avec une cle sur https://developer.adzuna.com).
  */
 @Component
-@Order(2)
+@Order(3)
 public class AdzunaSource implements SourceOffres {
 
     private static final String URL_API = "https://api.adzuna.com/v1/api/jobs/fr/search/";

@@ -28,7 +28,7 @@ import org.springframework.web.util.UriBuilder;
  * Authentification OAuth2 client_credentials, jeton mis en cache jusqu'a son expiration.
  */
 @Component
-@Order(3)
+@Order(4)
 public class FranceTravailSource implements SourceOffres {
 
     private static final String URL_JETON =
@@ -191,8 +191,7 @@ public class FranceTravailSource implements SourceOffres {
         if (j == null) {
             throw new OffresIndisponiblesException("France Travail refuse l'acces a l'API \"Offres d'emploi v2\", "
                     + "qui n'est plus en acces libre sur francetravail.io. Pour les stages, CDI et CDD, ajoute "
-                    + "une cle Adzuna (ADZUNA_APP_ID et ADZUNA_APP_KEY) sur Render, et retire FT_CLIENT_ID et "
-                    + "FT_CLIENT_SECRET.");
+                    + "une cle Jooble (JOOBLE_API_KEY) sur Render, et retire FT_CLIENT_ID et FT_CLIENT_SECRET.");
         }
         if (j.access_token() == null) {
             throw new OffresIndisponiblesException("France Travail n'a pas renvoye de jeton d'acces");
