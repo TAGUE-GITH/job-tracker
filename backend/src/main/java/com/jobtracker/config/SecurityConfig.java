@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +28,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class SecurityConfig {
 
+    private static final Logger LOG = LoggerFactory.getLogger(SecurityConfig.class);
+
     private final SecretKey secretKey;
     private final List<String> corsOrigins;
 
@@ -36,12 +40,30 @@ public class SecurityConfig {
             throw new IllegalStateException("app.jwt.secret doit faire au moins 32 caracteres");
         }
         this.secretKey = new SecretKeySpec(bytes, "HmacSHA256");
-        // Render fournit un nom d'hote sans "https://" : on le complete
         this.corsOrigins = corsOrigins.stream()
-                .map(String::trim)
+                .map(SecurityConfig::origine)
                 .filter(o -> !o.isEmpty())
-                .map(o -> o.startsWith("http") ? o : "https://" + o)
                 .toList();
+        LOG.info("Origines CORS autorisees : {}", this.corsOrigins.isEmpty() ? "aucune" : this.corsOrigins);
+    }
+
+    /**
+     * Ramene une valeur de CORS_ORIGINS a une origine "https://hote[:port]" :
+     * Render fournit un nom d'hote sans "https://", et une URL copiee depuis le navigateur
+     * peut contenir un chemin (/login) ou un "/" final, qui ne correspondent jamais a l'en-tete Origin.
+     * Les jokers sont acceptes, par exemple https://*.vercel.app.
+     */
+    public static String origine(String valeur) {
+        String o = valeur.trim();
+        if (o.isEmpty()) {
+            return o;
+        }
+        if (!o.contains("://")) {
+            o = "https://" + o;
+        }
+        int debutHote = o.indexOf("://") + 3;
+        int finHote = o.indexOf('/', debutHote);
+        return finHote < 0 ? o : o.substring(0, finHote);
     }
 
     @Bean
@@ -61,7 +83,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(corsOrigins);
+        config.setAllowedOriginPatterns(corsOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setExposedHeaders(List.of("Content-Disposition"));
