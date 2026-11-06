@@ -93,6 +93,16 @@ Render ne déploie que lorsque la CI GitHub Actions est verte (`autoDeployTrigge
    - `AI_API_KEY` = ta clé Groq
 3. Le site est ensuite disponible sur `https://job-tracker.onrender.com` (l'URL exacte s'affiche dans Render).
 
+### Variante : frontend sur Vercel
+
+Le backend reste sur Render, et le frontend est hébergé sur Vercel. Le fichier [frontend/vercel.json](frontend/vercel.json) redirige les appels `/api/*` vers le backend Render : le navigateur reste sur le même domaine, donc aucune configuration CORS n'est nécessaire.
+
+1. Sur https://vercel.com, connecte-toi avec GitHub, puis *Add New > Project* et importe ce dépôt.
+2. **Root Directory** : `frontend` (le framework Vite est détecté automatiquement). Ne définis pas `VITE_API_HOST`.
+3. *Deploy*. Chaque push sur `main` redéploie le site.
+
+Si l'URL du backend change, mets à jour la `destination` dans `vercel.json`.
+
 > Sur l'offre gratuite, le backend s'endort après 15 min d'inactivité : la première requête prend alors environ 1 min. Les CV et lettres sont stockés dans PostgreSQL, car le disque de Render est effacé à chaque déploiement.
 
 ## API REST
