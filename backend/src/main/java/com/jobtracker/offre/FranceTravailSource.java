@@ -165,38 +165,54 @@ public class FranceTravailSource implements SourceOffres {
         if (jeton != null && Instant.now().isBefore(expiration)) {
             return jeton;
         }
-        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-        form.add("grant_type", "client_credentials");
-        form.add("client_id", clientId);
-        form.add("client_secret", clientSecret);
-        form.add("scope", "api_offresdemploiv2 o2dsoffre");
-        Jeton j;
-        try {
-            j = restClient.post()
-                    .uri(URL_JETON)
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .body(form)
-                    .retrieve()
-                    .body(Jeton.class);
-        } catch (RestClientResponseException e) {
-            String reponse = e.getResponseBodyAsString();
-            if (reponse.contains("invalid_client")) {
-                throw new OffresIndisponiblesException("France Travail refuse les identifiants (invalid_client) : "
-                        + "verifie FT_CLIENT_ID (identifiant client, " + clientId.length() + " caracteres recus) et "
-                        + "FT_CLIENT_SECRET (cle secrete, " + clientSecret.length() + " caracteres recus) sur Render.");
+        // Selon l'anciennete de l'application, France Travail attend l'un ou l'autre de ces scopes
+        List<String> scopes = List.of(
+                "api_offresdemploiv2 o2dsoffre",
+                "api_offresdemploiv2",
+                "application_" + clientId + " api_offresdemploiv2 o2dsoffre");
+        Jeton j = null;
+        for (String scope : scopes) {
+            try {
+                j = demanderJeton(scope);
+                break;
+            } catch (RestClientResponseException e) {
+                String reponse = e.getResponseBodyAsString();
+                if (reponse.contains("invalid_client")) {
+                    throw new OffresIndisponiblesException("France Travail refuse les identifiants (invalid_client) : "
+                            + "verifie FT_CLIENT_ID (identifiant client, " + clientId.length() + " caracteres recus) et "
+                            + "FT_CLIENT_SECRET (cle secrete, " + clientSecret.length() + " caracteres recus) sur Render.");
+                }
+                if (!reponse.contains("invalid_scope")) {
+                    throw e;
+                }
+                LOG.info("France Travail : scope \"{}\" refuse, essai suivant", scope);
             }
-            if (reponse.contains("invalid_scope")) {
-                throw new OffresIndisponiblesException("Identifiants France Travail valides, mais l'API "
-                        + "\"Offres d'emploi v2\" n'est pas ajoutee a ton application sur francetravail.io.");
-            }
-            throw e;
         }
-        if (j == null || j.access_token() == null) {
+        if (j == null) {
+            throw new OffresIndisponiblesException("Identifiants France Travail valides, mais l'API "
+                    + "\"Offres d'emploi v2\" n'est pas ajoutee a ton application sur francetravail.io "
+                    + "(ou l'abonnement n'est pas encore actif).");
+        }
+        if (j.access_token() == null) {
             throw new OffresIndisponiblesException("France Travail n'a pas renvoye de jeton d'acces");
         }
         jeton = j.access_token();
         long duree = j.expires_in() != null ? j.expires_in() : 1500;
         expiration = Instant.now().plusSeconds(Math.max(60, duree - 60));
         return jeton;
+    }
+
+    private Jeton demanderJeton(String scope) {
+        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+        form.add("grant_type", "client_credentials");
+        form.add("client_id", clientId);
+        form.add("client_secret", clientSecret);
+        form.add("scope", scope);
+        return restClient.post()
+                .uri(URL_JETON)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(form)
+                .retrieve()
+                .body(Jeton.class);
     }
 }
