@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://job-tracker-api-spxs.onrender.com/api/:path*"
+      "destination": "https://job-tracker-api-0k8d.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
