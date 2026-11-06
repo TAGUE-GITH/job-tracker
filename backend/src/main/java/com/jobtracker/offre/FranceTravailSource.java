@@ -189,9 +189,10 @@ public class FranceTravailSource implements SourceOffres {
             }
         }
         if (j == null) {
-            throw new OffresIndisponiblesException("Identifiants France Travail valides, mais l'API "
-                    + "\"Offres d'emploi v2\" n'est pas ajoutee a ton application sur francetravail.io "
-                    + "(ou l'abonnement n'est pas encore actif).");
+            throw new OffresIndisponiblesException("France Travail refuse l'acces a l'API \"Offres d'emploi v2\", "
+                    + "qui n'est plus en acces libre sur francetravail.io. Pour les stages, CDI et CDD, ajoute "
+                    + "une cle Adzuna (ADZUNA_APP_ID et ADZUNA_APP_KEY) sur Render, et retire FT_CLIENT_ID et "
+                    + "FT_CLIENT_SECRET.");
         }
         if (j.access_token() == null) {
             throw new OffresIndisponiblesException("France Travail n'a pas renvoye de jeton d'acces");
