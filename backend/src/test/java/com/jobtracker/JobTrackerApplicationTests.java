@@ -103,6 +103,19 @@ class JobTrackerApplicationTests {
     }
 
     @Test
+    void aideIvoSansCleEtSansMessage() throws Exception {
+        mvc.perform(post("/api/ia/aide").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"messages":[{"role":"user","content":"Comment ajouter un CV ?"}]}"""))
+                .andExpect(status().isServiceUnavailable());
+
+        mvc.perform(post("/api/ia/aide").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"messages\":[]}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void valideLesChampsObligatoires() throws Exception {
         mvc.perform(post("/api/candidatures").header("Authorization", token)
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))

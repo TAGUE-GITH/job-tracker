@@ -148,10 +148,13 @@
   border-radius: 50%; font-size: 0.75rem; font-weight: 700; color: white;
   background: linear-gradient(135deg, var(--l-violet), var(--l-fuchsia));
 }
-.chat {
+.l-chat {
   background: var(--l-card); border: 1px solid var(--border); border-radius: 22px; padding: 1.4rem;
   display: flex; flex-direction: column; gap: 0.8rem; box-shadow: var(--l-shadow);
 }
+.l-chat-head { display: flex; align-items: center; gap: 0.7rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); }
+.l-chat-head b { display: block; }
+.l-chat-head small { color: #10b981; font-size: 0.78rem; font-weight: 600; }
 .bubble { max-width: 85%; padding: 0.8rem 1rem; border-radius: 16px; line-height: 1.5; font-size: 0.95rem; }
 .bubble.bot { background: var(--bg); border-bottom-left-radius: 4px; }
 .bubble.me {

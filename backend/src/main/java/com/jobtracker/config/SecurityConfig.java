@@ -66,7 +66,11 @@ public class SecurityConfig {
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setExposedHeaders(List.of("Content-Disposition"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", config);
+        // Sans origine configuree (dev avec le proxy Vite, Docker avec nginx), pas de regle CORS :
+        // sinon Spring refuserait (403) les requetes qui portent un en-tete Origin.
+        if (!corsOrigins.isEmpty()) {
+            source.registerCorsConfiguration("/api/**", config);
+        }
         return source;
     }
 

@@ -3,6 +3,7 @@ import { useAuth } from './auth.jsx'
 import Login from './pages/Login.jsx'
 import Landing from './pages/Landing.jsx'
 import Logo from './components/Logo.jsx'
+import IvoWidget from './components/IvoWidget.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Candidatures from './pages/Candidatures.jsx'
 import CandidatureForm from './pages/CandidatureForm.jsx'
@@ -30,6 +31,7 @@ function Layout() {
       <main className="container">
         <Outlet />
       </main>
+      <IvoWidget />
     </div>
   )
 }

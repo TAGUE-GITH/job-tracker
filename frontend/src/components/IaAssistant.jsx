@@ -3,6 +3,7 @@ import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { api } from '../api'
 import { ETAPES } from '../labels'
+import IvoAvatar from './IvoAvatar.jsx'
 
 const ETAPES_ENTRETIEN = ['ECHANGE_RH', 'TEST_TECHNIQUE', 'ENTRETIEN_TECHNIQUE', 'ENTRETIEN_MANAGER']
 
@@ -53,10 +54,15 @@ export default function IaAssistant({ candidature }) {
 
   return (
     <div className="card ia">
-      <h3>🤖 Assistant entretien</h3>
-      <p className="muted small">
-        L'IA s'appuie sur le texte de l'offre et tes notes d'étapes pour te préparer.
-      </p>
+      <div className="ia-head">
+        <IvoAvatar size={44} />
+        <div>
+          <h3>Ivo · coach d'entretien</h3>
+          <p className="muted small">
+            Ivo s'appuie sur le texte de l'offre et tes notes d'étapes pour te préparer.
+          </p>
+        </div>
+      </div>
 
       <div className="row">
         <select value={typeEtape} onChange={(e) => setTypeEtape(e.target.value)}>
@@ -72,7 +78,7 @@ export default function IaAssistant({ candidature }) {
             {m.role === 'assistant' ? <Markdown remarkPlugins={[remarkGfm]}>{m.content}</Markdown> : m.content}
           </div>
         ))}
-        {chargement && <div className="bulle assistant muted">L'IA réfléchit…</div>}
+        {chargement && <div className="bulle assistant muted">Ivo réfléchit…</div>}
         {erreur && <p className="erreur">{erreur}</p>}
         <div ref={finRef} />
       </div>

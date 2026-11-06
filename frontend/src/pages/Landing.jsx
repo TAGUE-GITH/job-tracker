@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
 import Logo from '../components/Logo.jsx'
+import IvoAvatar from '../components/IvoAvatar.jsx'
 import '../landing.css'
 
 const FONCTIONNALITES = [
@@ -21,7 +22,7 @@ const FONCTIONNALITES = [
   },
   {
     icone: '🤖',
-    titre: 'Un coach IA pour tes entretiens',
+    titre: 'Ivo, ton coach IA',
     texte: "À partir de l'offre et de tes notes, l'IA prépare les questions probables, des réponses STAR et te fait passer un entretien blanc.",
   },
   {
@@ -56,7 +57,7 @@ export default function Landing() {
         <Link to="/accueil" className="landing-logo"><Logo size={34} /></Link>
         <nav>
           <a href="#fonctionnalites">Fonctionnalités</a>
-          <a href="#ia">Coach IA</a>
+          <a href="#ia">Ivo, coach IA</a>
           <a href="#etapes">Comment ça marche</a>
         </nav>
         <div className="landing-nav-actions">
@@ -109,7 +110,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="float-card float-ia">
-            <span className="float-icon">🤖</span>
+            <span className="float-icon"><IvoAvatar size={36} /></span>
             <div><b>Question probable</b><small>« Parle-moi d'un bug difficile que tu as résolu. »</small></div>
           </div>
           <div className="float-card float-offre">
@@ -145,10 +146,10 @@ export default function Landing() {
 
       <section id="ia" className="section ia-section">
         <div className="ia-text">
-          <span className="eyebrow">Coach IA</span>
+          <span className="eyebrow">Ivo · ton coach IA</span>
           <h2>Arrive à l'entretien en ayant déjà répondu aux questions</h2>
           <p>
-            L'assistant lit le texte de l'offre et les notes de tes échanges. Il te donne ce que
+            Ivo, l'assistant de Candivo, lit le texte de l'offre et les notes de tes échanges. Il te donne ce que
             l'entreprise recherche, les questions les plus probables avec une trame de réponse,
             les points techniques à réviser… puis il joue le recruteur pour un entretien blanc.
           </p>
@@ -156,9 +157,11 @@ export default function Landing() {
             <li>Préparation complète en un clic</li>
             <li>Simulation question par question, avec retour sur tes réponses</li>
             <li>Adapté à l'étape : RH, technique ou manager</li>
+            <li>Une question sur l'appli ? Ivo répond aussi, sur chaque page</li>
           </ul>
         </div>
-        <div className="chat" aria-hidden="true">
+        <div className="l-chat" aria-hidden="true">
+          <div className="l-chat-head"><IvoAvatar size={38} /><div><b>Ivo</b><small>En ligne</small></div></div>
           <div className="bubble bot">Prêt pour ton entretien technique chez <b>Atlas Studio</b> ? Première question : comment sécurises-tu une API REST ?</div>
           <div className="bubble me">J'utilise Spring Security avec des jetons JWT signés, et je valide chaque entrée…</div>
           <div className="bubble bot">Très bien 👍 Pense aussi à parler des rôles et du CORS. On passe à la suite ?</div>
