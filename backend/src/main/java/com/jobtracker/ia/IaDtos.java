@@ -25,7 +25,7 @@ public final class IaDtos {
     public record IaRequest(TypeEtape typeEtape, List<@Valid Message> messages) {
     }
 
-    /** Question posee a Ivo sur l'application Candivo (aide generale, hors candidature). */
+    /** Question posee a Ivo sur l'application Taguora (aide generale, hors candidature). */
     public record AideRequest(@NotEmpty List<@Valid Message> messages) {
     }
 

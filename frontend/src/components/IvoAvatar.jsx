@@ -1,6 +1,6 @@
 import { useId } from 'react'
 
-// Avatar d'Ivo, l'assistant IA de Candivo : un petit compagnon rond avec une antenne-etoile
+// Avatar d'Ivo, l'assistant IA de Taguora : un petit compagnon rond avec une antenne-etoile
 export default function IvoAvatar({ size = 40 }) {
   const id = useId()
   return (

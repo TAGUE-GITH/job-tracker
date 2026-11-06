@@ -1,6 +1,6 @@
-# Candivo
+# Taguora
 
-**Candivo** est une application pour suivre ses candidatures : l'offre (lien, texte, entreprise), le CV et la lettre utilisés, l'évolution du processus (premier échange RH, entretien technique, offre ou refus), des statistiques visuelles et un **assistant IA gratuit** pour préparer les entretiens.
+**Taguora** est une application pour suivre ses candidatures : l'offre (lien, texte, entreprise), le CV et la lettre utilisés, l'évolution du processus (premier échange RH, entretien technique, offre ou refus), des statistiques visuelles et un **assistant IA gratuit** pour préparer les entretiens.
 
 ![CI](https://github.com/TAGUE-GITH/job-tracker/actions/workflows/ci.yml/badge.svg)
 

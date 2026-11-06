@@ -74,7 +74,7 @@ export default function Landing() {
             <span className="gradient-text">enfin sous contrôle.</span>
           </h1>
           <p className="hero-sub">
-            Candivo centralise tes offres, suit chaque étape du recrutement, mesure tes progrès
+            Taguora centralise tes offres, suit chaque étape du recrutement, mesure tes progrès
             et te prépare aux entretiens avec une IA qui connaît l'annonce.
           </p>
           <div className="hero-actions">
@@ -131,7 +131,7 @@ export default function Landing() {
         <div className="section-head">
           <span className="eyebrow">Fonctionnalités</span>
           <h2>Tout ce qu'il faut pour décrocher le poste</h2>
-          <p>Fini le tableur oublié et les mails perdus : Candivo garde le fil pour toi.</p>
+          <p>Fini le tableur oublié et les mails perdus : Taguora garde le fil pour toi.</p>
         </div>
         <div className="features">
           {FONCTIONNALITES.map((f) => (
@@ -149,7 +149,7 @@ export default function Landing() {
           <span className="eyebrow">Ivo · ton coach IA</span>
           <h2>Arrive à l'entretien en ayant déjà répondu aux questions</h2>
           <p>
-            Ivo, l'assistant de Candivo, lit le texte de l'offre et les notes de tes échanges. Il te donne ce que
+            Ivo, l'assistant de Taguora, lit le texte de l'offre et les notes de tes échanges. Il te donne ce que
             l'entreprise recherche, les questions les plus probables avec une trame de réponse,
             les points techniques à réviser… puis il joue le recruteur pour un entretien blanc.
           </p>
@@ -193,7 +193,7 @@ export default function Landing() {
 
       <footer className="landing-footer">
         <Logo size={24} />
-        <span>© {new Date().getFullYear()} Candivo · Fait avec ❤️ pour les chercheurs d'emploi</span>
+        <span>© {new Date().getFullYear()} Taguora · Fait avec ❤️ pour les chercheurs d'emploi</span>
       </footer>
     </div>
   )

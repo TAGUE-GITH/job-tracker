@@ -54,14 +54,14 @@ export default function IvoWidget() {
             <IvoAvatar size={40} />
             <div>
               <strong>Ivo</strong>
-              <small><span className="ivo-dot" /> Ton assistant Candivo</small>
+              <small><span className="ivo-dot" /> Ton assistant Taguora</small>
             </div>
             <button className="ivo-fermer" onClick={() => setOuvert(false)} aria-label="Fermer">×</button>
           </header>
 
           <div className="ivo-messages">
             <div className="bulle assistant">
-              Salut 👋 Je suis <b>Ivo</b>. Pose-moi une question sur Candivo, sur tes candidatures
+              Salut 👋 Je suis <b>Ivo</b>. Pose-moi une question sur Taguora, sur tes candidatures
               ou sur ta recherche d'emploi.
             </div>
             {messages.length === 0 && (

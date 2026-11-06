@@ -1,4 +1,4 @@
-/* Page d'accueil publique de Candivo */
+/* Page d'accueil publique de Taguora */
 .landing {
   --l-violet: #6366f1;
   --l-fuchsia: #d946ef;
@@ -23,7 +23,8 @@
 /* Marque */
 .brand { display: inline-flex; align-items: center; gap: 0.55rem; }
 .brand-name {
-  font-weight: 800; font-size: 1.3rem; letter-spacing: -0.03em;
+  text-transform: uppercase; letter-spacing: 0.02em;
+  font-weight: 800; font-size: 1.3rem; 
   background: linear-gradient(90deg, var(--l-violet, #6366f1), var(--l-fuchsia, #d946ef));
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
@@ -194,7 +195,8 @@
   display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
   color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--border);
 }
-.landing-footer .brand-name { font-size: 1.05rem; }
+.landing-footer .brand-name {
+  text-transform: uppercase; letter-spacing: 0.02em; font-size: 1.05rem; }
 
 /* Animations */
 @keyframes pousse { from { transform: scaleY(0); } to { transform: scaleY(1); } }

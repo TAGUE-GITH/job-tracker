@@ -17,7 +17,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 /**
- * Ivo, l'assistant IA de Candivo : coach d'entretien et aide sur l'application.
+ * Ivo, l'assistant IA de Taguora : coach d'entretien et aide sur l'application.
  * Utilise n'importe quelle API compatible OpenAI
  * (Groq et OpenRouter ont des offres gratuites, Ollama tourne en local sans cle).
  */
@@ -34,8 +34,8 @@ public class IaService {
             dans une colonne etroite.
             """;
 
-    private static final String GUIDE_CANDIVO = """
-            Fonctionnement de l'application Candivo (a utiliser pour repondre aux questions d'aide) :
+    private static final String GUIDE_TAGUORA = """
+            Fonctionnement de l'application Taguora (a utiliser pour repondre aux questions d'aide) :
             - Menu du haut : "Tableau de bord", "Candidatures", "CV & lettres", et le bouton "Deconnexion".
             - Ajouter une candidature : menu Candidatures > bouton "Nouvelle candidature". Champs : entreprise \
             et poste (obligatoires), lien de l'offre, texte de l'offre (a coller : il sert a l'IA), date, \
@@ -106,7 +106,7 @@ public class IaService {
 
     private String promptSysteme(Candidature c, TypeEtape etape) {
         StringBuilder sb = new StringBuilder("""
-                Tu es Ivo, le coach IA de l'application Candivo, expert en recrutement tech. Tu aides \
+                Tu es Ivo, le coach IA de l'application Taguora, expert en recrutement tech. Tu aides \
                 un candidat a preparer ses entretiens. Pour chaque question, ecris la question en gras \
                 puis la reponse conseillee en liste a puces. \
                 Si le candidat te demande de simuler l'entretien, pose une seule question a la fois \
@@ -143,14 +143,14 @@ public class IaService {
 
     private String promptAide(Long userId) {
         StringBuilder sb = new StringBuilder("""
-                Tu es Ivo, l'assistant IA de Candivo, une application de suivi de candidatures. \
+                Tu es Ivo, l'assistant IA de Taguora, une application de suivi de candidatures. \
                 Tu es chaleureux, encourageant et bref (en general moins de 150 mots). Tu reponds \
                 aux questions sur l'utilisation de l'application, sur les candidatures de l'utilisateur \
                 et, plus largement, sur la recherche d'emploi (CV, lettre, relances, entretiens). \
                 Pour preparer un entretien precis, invite l'utilisateur a ouvrir la candidature et a \
                 utiliser le coach d'entretien.
                 """);
-        sb.append(FORMAT).append('\n').append(GUIDE_CANDIVO);
+        sb.append(FORMAT).append('\n').append(GUIDE_TAGUORA);
 
         List<Candidature> candidatures = candidatureService.toutes(userId);
         sb.append("\nCandidatures de l'utilisateur (").append(candidatures.size())
