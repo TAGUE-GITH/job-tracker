@@ -16,6 +16,15 @@ public interface SourceOffres {
 
     ResultatSource rechercher(Recherche recherche);
 
+    /** Retire les espaces et les guillemets colles par erreur autour d'une cle d'API. */
+    static String nettoyer(String valeur) {
+        String v = valeur == null ? "" : valeur.strip();
+        if (v.length() >= 2 && (v.startsWith("\"") && v.endsWith("\"") || v.startsWith("'") && v.endsWith("'"))) {
+            v = v.substring(1, v.length() - 1).strip();
+        }
+        return v;
+    }
+
     static String sansHtml(String texte) {
         return texte == null ? null : texte.replaceAll("<[^>]+>", "").replace("&amp;", "&").strip();
     }

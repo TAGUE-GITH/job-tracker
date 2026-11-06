@@ -9,6 +9,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriBuilder;
 
 /**
@@ -35,6 +38,8 @@ public class FranceTravailSource implements SourceOffres {
     private static final Pattern DEPARTEMENT = Pattern.compile("^(\\d{2,3}|2[AaBb])$");
     private static final Pattern TOTAL = Pattern.compile("/(\\d+)$");
 
+    private static final Logger LOG = LoggerFactory.getLogger(FranceTravailSource.class);
+
     private final RestClient restClient = RestClient.create();
     private final String clientId;
     private final String clientSecret;
@@ -45,8 +50,14 @@ public class FranceTravailSource implements SourceOffres {
     public FranceTravailSource(
             @Value("${app.offres.france-travail.client-id:}") String clientId,
             @Value("${app.offres.france-travail.client-secret:}") String clientSecret) {
-        this.clientId = clientId.strip();
-        this.clientSecret = clientSecret.strip();
+        this.clientId = SourceOffres.nettoyer(clientId);
+        this.clientSecret = SourceOffres.nettoyer(clientSecret);
+        if (configuree()) {
+            // Aide au diagnostic sans exposer le secret : debut de l'identifiant et longueurs
+            LOG.info("France Travail : identifiant {}... ({} caracteres), cle secrete de {} caracteres",
+                    this.clientId.substring(0, Math.min(8, this.clientId.length())),
+                    this.clientId.length(), this.clientSecret.length());
+        }
     }
 
     record Jeton(String access_token, Long expires_in) {
@@ -159,12 +170,27 @@ public class FranceTravailSource implements SourceOffres {
         form.add("client_id", clientId);
         form.add("client_secret", clientSecret);
         form.add("scope", "api_offresdemploiv2 o2dsoffre");
-        Jeton j = restClient.post()
-                .uri(URL_JETON)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(form)
-                .retrieve()
-                .body(Jeton.class);
+        Jeton j;
+        try {
+            j = restClient.post()
+                    .uri(URL_JETON)
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(form)
+                    .retrieve()
+                    .body(Jeton.class);
+        } catch (RestClientResponseException e) {
+            String reponse = e.getResponseBodyAsString();
+            if (reponse.contains("invalid_client")) {
+                throw new OffresIndisponiblesException("France Travail refuse les identifiants (invalid_client) : "
+                        + "verifie FT_CLIENT_ID (identifiant client, " + clientId.length() + " caracteres recus) et "
+                        + "FT_CLIENT_SECRET (cle secrete, " + clientSecret.length() + " caracteres recus) sur Render.");
+            }
+            if (reponse.contains("invalid_scope")) {
+                throw new OffresIndisponiblesException("Identifiants France Travail valides, mais l'API "
+                        + "\"Offres d'emploi v2\" n'est pas ajoutee a ton application sur francetravail.io.");
+            }
+            throw e;
+        }
         if (j == null || j.access_token() == null) {
             throw new OffresIndisponiblesException("France Travail n'a pas renvoye de jeton d'acces");
         }
