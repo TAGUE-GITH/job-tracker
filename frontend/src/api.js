@@ -75,4 +75,6 @@ export const api = {
   stats: () => request('/stats'),
   ia: (id, data) => request(`/candidatures/${id}/ia`, { method: 'POST', body: data }),
   aide: (data) => request('/ia/aide', { method: 'POST', body: data }),
+  offres: ({ q = '', lieu = '', contrat = '', source = '', page = 0 } = {}) =>
+    request(`/offres?${new URLSearchParams({ q, lieu, contrat, source, page })}`),
 }

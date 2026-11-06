@@ -20,7 +20,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
-        "app.ia.api-key="
+        "app.ia.api-key=",
+        "app.offres.france-travail.client-id=",
+        "app.offres.adzuna.app-id="
 })
 @AutoConfigureMockMvc
 class JobTrackerApplicationTests {
@@ -112,6 +114,16 @@ class JobTrackerApplicationTests {
 
         mvc.perform(post("/api/ia/aide").header("Authorization", token)
                         .contentType(MediaType.APPLICATION_JSON).content("{\"messages\":[]}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void offresSansApiConfiguree() throws Exception {
+        mvc.perform(get("/api/offres").param("q", "java").header("Authorization", token))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("FT_CLIENT_ID")));
+
+        mvc.perform(get("/api/offres").param("contrat", "INTERIM").header("Authorization", token))
                 .andExpect(status().isBadRequest());
     }
 

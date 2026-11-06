@@ -31,11 +31,13 @@ const FONCTIONNALITES = [
     texte: 'Importe tes documents une fois, rattache-les à chaque candidature et sache exactement quelle version tu as envoyée.',
   },
   {
-    icone: '🔒',
-    titre: 'Tes données restent à toi',
-    texte: 'Compte personnel, mot de passe chiffré, connexion sécurisée : personne d’autre ne voit tes candidatures.',
+    icone: '🔎',
+    titre: 'Les offres directement dans l’appli',
+    texte: 'Cherche des offres d’alternance, de stage ou de CDI, postule en un clic et ajoute-les à ton suivi sans copier-coller.',
   },
 ]
+
+const ANNEE = new Date().getFullYear()
 
 const ETAPES = [
   { num: '1', titre: 'Ajoute une offre', texte: "Colle le lien et le texte de l'annonce, choisis ton CV. 30 secondes." },
@@ -193,7 +195,7 @@ export default function Landing() {
 
       <footer className="landing-footer">
         <Logo size={24} />
-        <span>© {new Date().getFullYear()} Taguora · Fait avec ❤️ pour les chercheurs d'emploi</span>
+        <span>© {ANNEE} Taguora · Fait avec ❤️ pour les chercheurs d'emploi</span>
       </footer>
     </div>
   )

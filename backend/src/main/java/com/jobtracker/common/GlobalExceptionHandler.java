@@ -1,6 +1,7 @@
 package com.jobtracker.common;
 
 import com.jobtracker.ia.IaIndisponibleException;
+import com.jobtracker.offre.OffresIndisponiblesException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,8 @@ public class GlobalExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
-    @ExceptionHandler(IaIndisponibleException.class)
-    public ProblemDetail iaIndisponible(IaIndisponibleException e) {
+    @ExceptionHandler({IaIndisponibleException.class, OffresIndisponiblesException.class})
+    public ProblemDetail serviceIndisponible(RuntimeException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
     }
 

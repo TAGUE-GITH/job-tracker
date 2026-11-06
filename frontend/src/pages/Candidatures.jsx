@@ -38,7 +38,7 @@ export default function Candidatures() {
       ) : liste.length === 0 ? (
         <div className="card vide"><p className="muted">Aucune candidature trouvée.</p></div>
       ) : (
-        <div className="card table-wrap">
+        <div className="card table-wrap table-cards">
           <table>
             <thead>
               <tr>
@@ -54,11 +54,11 @@ export default function Candidatures() {
                 const derniere = c.etapes[c.etapes.length - 1]
                 return (
                   <tr key={c.id}>
-                    <td><Link to={`/candidatures/${c.id}`}><strong>{c.nomEntreprise}</strong></Link></td>
-                    <td>{c.poste}</td>
-                    <td>{formatDate(c.dateCandidature)}</td>
-                    <td>{derniere ? `${ETAPES[derniere.type]} · ${formatDate(derniere.date)}` : '—'}</td>
-                    <td><StatutBadge statut={c.statut} /></td>
+                    <td data-label="Entreprise"><Link to={`/candidatures/${c.id}`}><strong>{c.nomEntreprise}</strong></Link></td>
+                    <td data-label="Poste">{c.poste}</td>
+                    <td data-label="Date">{formatDate(c.dateCandidature)}</td>
+                    <td data-label="Dernière étape">{derniere ? `${ETAPES[derniere.type]} · ${formatDate(derniere.date)}` : '—'}</td>
+                    <td data-label="Statut"><StatutBadge statut={c.statut} /></td>
                   </tr>
                 )
               })}

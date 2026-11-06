@@ -23,6 +23,10 @@ services:
       AI_BASE_URL: ${AI_BASE_URL:-https://api.groq.com/openai/v1}
       AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-openai/gpt-oss-120b}
+      FT_CLIENT_ID: ${FT_CLIENT_ID:-}
+      FT_CLIENT_SECRET: ${FT_CLIENT_SECRET:-}
+      ADZUNA_APP_ID: ${ADZUNA_APP_ID:-}
+      ADZUNA_APP_KEY: ${ADZUNA_APP_KEY:-}
     depends_on:
       db:
         condition: service_healthy

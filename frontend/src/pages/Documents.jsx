@@ -50,7 +50,7 @@ export default function Documents() {
       {docs.length === 0 ? (
         <div className="card vide"><p className="muted">Aucun document pour l'instant.</p></div>
       ) : (
-        <div className="card table-wrap">
+        <div className="card table-wrap table-cards">
           <table>
             <thead>
               <tr><th>Fichier</th><th>Type</th><th>Ajouté le</th><th /></tr>
@@ -58,10 +58,10 @@ export default function Documents() {
             <tbody>
               {docs.map((d) => (
                 <tr key={d.id}>
-                  <td><button className="link" onClick={() => api.ouvrirDocument(d.id)}>{d.nomFichier}</button></td>
-                  <td>{d.type === 'CV' ? 'CV' : 'Lettre'}</td>
-                  <td>{formatDate(d.dateAjout)}</td>
-                  <td className="right"><button className="btn danger small" onClick={() => supprimer(d)}>Supprimer</button></td>
+                  <td data-label="Fichier"><button className="link" onClick={() => api.ouvrirDocument(d.id)}>{d.nomFichier}</button></td>
+                  <td data-label="Type">{d.type === 'CV' ? 'CV' : 'Lettre'}</td>
+                  <td data-label="Ajouté le">{formatDate(d.dateAjout)}</td>
+                  <td className="right td-actions"><button className="btn danger small" onClick={() => supprimer(d)}>Supprimer</button></td>
                 </tr>
               ))}
             </tbody>
