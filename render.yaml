@@ -1,5 +1,8 @@
-# Blueprint Render : decrit toute l'infrastructure (Infrastructure as Code).
-# Render > New > Blueprint > choisir ce depot. La base PostgreSQL est hebergee chez Neon (gratuit).
+# Blueprint Render : decrit le backend (Infrastructure as Code).
+# Render > New > Blueprint > choisir ce depot. La base PostgreSQL est hebergee chez Neon (gratuit),
+# le frontend chez Vercel (voir frontend/vercel.json et frontend/.env.vercel).
+# A chaque push, Render resynchronise ces variables : une valeur ecrite ici ("value") remplace
+# celle saisie dans le tableau de bord, "sync: false" laisse la valeur du tableau de bord intacte.
 services:
   - type: web
     name: job-tracker-api
@@ -25,7 +28,7 @@ services:
       - key: JOOBLE_API_KEY
         sync: false
       - key: JOOBLE_HOST
-        value: jooble.org
+        sync: false # fr.jooble.org pour une cle demandee sur le site francais
       - key: FT_CLIENT_ID
         sync: false
       - key: FT_CLIENT_SECRET
@@ -36,26 +39,6 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
+      # Adresse du frontend Vercel (fixee ici pour ne plus etre effacee a chaque synchronisation)
       - key: CORS_ORIGINS
-        fromService:
-          type: web
-          name: job-tracker
-          property: host
-
-  - type: web
-    name: job-tracker
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist
-    autoDeployTrigger: checksPass
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: VITE_API_HOST
-        fromService:
-          type: web
-          name: job-tracker-api
-          property: host
+        value: https://job-tracker-five-omega-85.vercel.app
