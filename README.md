@@ -95,13 +95,14 @@ Render ne déploie que lorsque la CI GitHub Actions est verte (`autoDeployTrigge
 
 ### Variante : frontend sur Vercel
 
-Le backend reste sur Render, et le frontend est hébergé sur Vercel. Le fichier [frontend/vercel.json](frontend/vercel.json) redirige les appels `/api/*` vers le backend Render : le navigateur reste sur le même domaine, donc aucune configuration CORS n'est nécessaire.
+Le backend reste sur Render, et le frontend est hébergé sur Vercel. Le navigateur appelle directement le backend Render, dont l'adresse est dans [frontend/.env.vercel](frontend/.env.vercel). [frontend/vercel.json](frontend/vercel.json) lance le build avec `--mode vercel` pour lire ce fichier. On n'utilise pas de proxy Vercel : il coupe les requêtes trop longues (erreur 502) pendant le réveil du backend gratuit.
 
 1. Sur https://vercel.com, connecte-toi avec GitHub, puis *Add New > Project* et importe ce dépôt.
-2. **Root Directory** : `frontend` (le framework Vite est détecté automatiquement). Ne définis pas `VITE_API_HOST`.
+2. **Root Directory** : `frontend` (le framework Vite est détecté automatiquement).
 3. *Deploy*. Chaque push sur `main` redéploie le site.
+4. Sur Render, dans le service backend, définis `CORS_ORIGINS` avec l'URL de production Vercel (par exemple `https://job-tracker-xxx.vercel.app`).
 
-Si l'URL du backend change, mets à jour la `destination` dans `vercel.json`.
+Si l'URL du backend change, mets à jour `VITE_API_HOST` dans `frontend/.env.vercel`.
 
 > Sur l'offre gratuite, le backend s'endort après 15 min d'inactivité : la première requête prend alors environ 1 min. Les CV et lettres sont stockés dans PostgreSQL, car le disque de Render est effacé à chaque déploiement.
 

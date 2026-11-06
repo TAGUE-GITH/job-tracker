@@ -1,10 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build -- --mode vercel",
   "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://job-tracker-api-0k8d.onrender.com/api/:path*"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
