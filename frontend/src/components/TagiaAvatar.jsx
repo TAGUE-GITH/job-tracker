@@ -1,10 +1,10 @@
 import { useId } from 'react'
 
-// Avatar d'Ivo, l'assistant IA de Taguora : un petit compagnon rond avec une antenne-etoile
-export default function IvoAvatar({ size = 40 }) {
+// Avatar de TAGIA, l'assistant IA de Taguora : un petit compagnon rond avec une antenne-etoile
+export default function TagiaAvatar({ size = 40 }) {
   const id = useId()
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" role="img" aria-label="Ivo">
+    <svg width={size} height={size} viewBox="0 0 64 64" role="img" aria-label="TAGIA">
       <defs>
         <linearGradient id={`${id}-corps`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#6366f1" />

@@ -17,7 +17,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 /**
- * Ivo, l'assistant IA de Taguora : coach d'entretien et aide sur l'application.
+ * TAGIA, l'assistant IA de Taguora : coach d'entretien et aide sur l'application.
  * Utilise n'importe quelle API compatible OpenAI
  * (Groq et OpenRouter ont des offres gratuites, Ollama tourne en local sans cle).
  */
@@ -53,7 +53,7 @@ public class IaService {
             statut et entonnoir de recrutement.
             - Coach d'entretien (sur la page d'une candidature) : choisir l'etape, "Preparer" genere une \
             preparation complete, "Simuler" lance un entretien blanc question par question.
-            - Ivo (la bulle en bas a droite) repond aux questions sur l'application et sur la recherche d'emploi.
+            - TAGIA (la bulle en bas a droite) repond aux questions sur l'application et sur la recherche d'emploi.
             - Compte : inscription avec nom, email et mot de passe (6 caracteres minimum). La session dure \
             24 h. Il n'y a pas encore de reinitialisation du mot de passe ni d'export des donnees.
             Si une fonctionnalite demandee n'existe pas, dis-le simplement sans l'inventer.
@@ -106,7 +106,7 @@ public class IaService {
 
     private String promptSysteme(Candidature c, TypeEtape etape) {
         StringBuilder sb = new StringBuilder("""
-                Tu es Ivo, le coach IA de l'application Taguora, expert en recrutement tech. Tu aides \
+                Tu es TAGIA, le coach IA de l'application Taguora, expert en recrutement tech. Tu aides \
                 un candidat a preparer ses entretiens. Pour chaque question, ecris la question en gras \
                 puis la reponse conseillee en liste a puces. \
                 Si le candidat te demande de simuler l'entretien, pose une seule question a la fois \
@@ -132,7 +132,7 @@ public class IaService {
         return sb.toString();
     }
 
-    /** Ivo repond aux questions sur l'application et sur les candidatures de l'utilisateur. */
+    /** TAGIA repond aux questions sur l'application et sur les candidatures de l'utilisateur. */
     @Transactional(readOnly = true)
     public IaResponse aide(Long userId, List<Message> conversation) {
         List<Message> messages = new ArrayList<>();
@@ -143,7 +143,7 @@ public class IaService {
 
     private String promptAide(Long userId) {
         StringBuilder sb = new StringBuilder("""
-                Tu es Ivo, l'assistant IA de Taguora, une application de suivi de candidatures. \
+                Tu es TAGIA, l'assistant IA de Taguora, une application de suivi de candidatures. \
                 Tu es chaleureux, encourageant et bref (en general moins de 150 mots). Tu reponds \
                 aux questions sur l'utilisation de l'application, sur les candidatures de l'utilisateur \
                 et, plus largement, sur la recherche d'emploi (CV, lettre, relances, entretiens). \

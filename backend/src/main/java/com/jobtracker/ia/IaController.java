@@ -24,7 +24,7 @@ public class IaController {
         return iaService.assister(CurrentUser.id(), id, req);
     }
 
-    /** Ivo repond aux questions sur l'application et sur les candidatures de l'utilisateur. */
+    /** TAGIA repond aux questions sur l'application et sur les candidatures de l'utilisateur. */
     @PostMapping("/api/ia/aide")
     public IaResponse aide(@Valid @RequestBody AideRequest req) {
         return iaService.aide(CurrentUser.id(), req.messages());

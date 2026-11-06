@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { api } from '../api'
-import IvoAvatar from './IvoAvatar.jsx'
+import TagiaAvatar from './TagiaAvatar.jsx'
 
 const SUGGESTIONS = [
   'Comment ajouter une candidature ?',
@@ -11,8 +11,8 @@ const SUGGESTIONS = [
   'Quand relancer un recruteur ?',
 ]
 
-// Bulle d'aide flottante : Ivo repond aux questions sur l'application, sur toutes les pages
-export default function IvoWidget() {
+// Bulle d'aide flottante : TAGIA repond aux questions sur l'application, sur toutes les pages
+export default function TagiaWidget() {
   const [ouvert, setOuvert] = useState(false)
   const [messages, setMessages] = useState([])
   const [saisie, setSaisie] = useState('')
@@ -47,25 +47,25 @@ export default function IvoWidget() {
   }
 
   return (
-    <div className={`ivo ${ouvert ? 'ivo-ouvert' : ''}`}>
+    <div className={`tagia ${ouvert ? 'tagia-ouvert' : ''}`}>
       {ouvert && (
-        <section className="ivo-panel" aria-label="Discuter avec Ivo">
-          <header className="ivo-head">
-            <IvoAvatar size={40} />
+        <section className="tagia-panel" aria-label="Discuter avec TAGIA">
+          <header className="tagia-head">
+            <TagiaAvatar size={40} />
             <div>
-              <strong>Ivo</strong>
-              <small><span className="ivo-dot" /> Ton assistant Taguora</small>
+              <strong>TAGIA</strong>
+              <small><span className="tagia-dot" /> Ton assistant Taguora</small>
             </div>
-            <button className="ivo-fermer" onClick={() => setOuvert(false)} aria-label="Fermer">×</button>
+            <button className="tagia-fermer" onClick={() => setOuvert(false)} aria-label="Fermer">×</button>
           </header>
 
-          <div className="ivo-messages">
+          <div className="tagia-messages">
             <div className="bulle assistant">
-              Salut 👋 Je suis <b>Ivo</b>. Pose-moi une question sur Taguora, sur tes candidatures
+              Salut 👋 Je suis <b>TAGIA</b>. Pose-moi une question sur Taguora, sur tes candidatures
               ou sur ta recherche d'emploi.
             </div>
             {messages.length === 0 && (
-              <div className="ivo-suggestions">
+              <div className="tagia-suggestions">
                 {SUGGESTIONS.map((s) => (
                   <button key={s} type="button" onClick={() => demander(s)}>{s}</button>
                 ))}
@@ -76,12 +76,12 @@ export default function IvoWidget() {
                 {m.role === 'assistant' ? <Markdown remarkPlugins={[remarkGfm]}>{m.content}</Markdown> : m.content}
               </div>
             ))}
-            {chargement && <div className="bulle assistant ivo-ecrit"><span /><span /><span /></div>}
+            {chargement && <div className="bulle assistant tagia-ecrit"><span /><span /><span /></div>}
             {erreur && <p className="erreur">{erreur}</p>}
             <div ref={finRef} />
           </div>
 
-          <form className="ivo-saisie" onSubmit={onSubmit}>
+          <form className="tagia-saisie" onSubmit={onSubmit}>
             <input value={saisie} onChange={(e) => setSaisie(e.target.value)}
               placeholder="Écris ta question…" disabled={chargement} autoFocus />
             <button className="btn primary" disabled={chargement || !saisie.trim()} aria-label="Envoyer">➤</button>
@@ -89,10 +89,10 @@ export default function IvoWidget() {
         </section>
       )}
 
-      <button className="ivo-bouton" onClick={() => setOuvert(!ouvert)}
-        aria-label={ouvert ? 'Fermer Ivo' : 'Ouvrir Ivo, ton assistant'}>
-        <IvoAvatar size={46} />
-        {!ouvert && <span className="ivo-label">Besoin d'aide ?</span>}
+      <button className="tagia-bouton" onClick={() => setOuvert(!ouvert)}
+        aria-label={ouvert ? 'Fermer TAGIA' : 'Ouvrir TAGIA, ton assistant'}>
+        <TagiaAvatar size={46} />
+        {!ouvert && <span className="tagia-label">Besoin d'aide ?</span>}
       </button>
     </div>
   )
