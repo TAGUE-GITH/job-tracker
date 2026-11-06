@@ -26,8 +26,8 @@ public class AdzunaSource implements SourceOffres {
     public AdzunaSource(
             @Value("${app.offres.adzuna.app-id:}") String appId,
             @Value("${app.offres.adzuna.app-key:}") String appKey) {
-        this.appId = appId;
-        this.appKey = appKey;
+        this.appId = appId.strip();
+        this.appKey = appKey.strip();
     }
 
     record Reponse(Long count, List<Offre> results) {

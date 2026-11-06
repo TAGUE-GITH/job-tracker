@@ -45,8 +45,8 @@ public class FranceTravailSource implements SourceOffres {
     public FranceTravailSource(
             @Value("${app.offres.france-travail.client-id:}") String clientId,
             @Value("${app.offres.france-travail.client-secret:}") String clientSecret) {
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
+        this.clientId = clientId.strip();
+        this.clientSecret = clientSecret.strip();
     }
 
     record Jeton(String access_token, Long expires_in) {
