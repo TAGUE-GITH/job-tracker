@@ -28,7 +28,7 @@ import org.springframework.web.util.UriBuilder;
  * Authentification OAuth2 client_credentials, jeton mis en cache jusqu'a son expiration.
  */
 @Component
-@Order(1)
+@Order(3)
 public class FranceTravailSource implements SourceOffres {
 
     private static final String URL_JETON =

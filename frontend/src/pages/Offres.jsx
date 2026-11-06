@@ -93,12 +93,12 @@ export default function Offres() {
       <form className="card recherche-offres" onSubmit={onSubmit}>
         <label>
           Mots-clés
-          <input name="q" value={form.q} onChange={onChange} placeholder="développeur java, react…" />
+          <input name="q" value={form.q} onChange={onChange} placeholder="développeur java, data, réseau… ou code ROME" />
         </label>
         <label>
           Lieu
           <input name="lieu" value={form.lieu} onChange={onChange}
-            placeholder={form.source === 'France Travail' ? 'Département, ex. 75' : 'Ville ou région'} />
+            placeholder="Ville ou département, ex. Lyon ou 75" />
         </label>
         <label>
           Contrat

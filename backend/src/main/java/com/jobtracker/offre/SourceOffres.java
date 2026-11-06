@@ -16,6 +16,11 @@ public interface SourceOffres {
 
     ResultatSource rechercher(Recherche recherche);
 
+    /** Faux si la source ne propose pas ce type de contrat (vide = tous). */
+    default boolean supporte(String contrat) {
+        return true;
+    }
+
     /** Retire les espaces et les guillemets colles par erreur autour d'une cle d'API. */
     static String nettoyer(String valeur) {
         String v = valeur == null ? "" : valeur.strip();

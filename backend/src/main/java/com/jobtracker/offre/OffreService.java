@@ -20,10 +20,19 @@ public class OffreService {
     public OffresResponse rechercher(String nomSource, Recherche recherche) {
         List<SourceOffres> disponibles = sources.stream().filter(SourceOffres::configuree).toList();
         if (disponibles.isEmpty()) {
-            throw new OffresIndisponiblesException("Aucune API d'offres configuree : definis FT_CLIENT_ID et "
-                    + "FT_CLIENT_SECRET (https://francetravail.io) ou ADZUNA_APP_ID et ADZUNA_APP_KEY "
-                    + "(https://developer.adzuna.com)");
+            throw new OffresIndisponiblesException("Aucune API d'offres configuree : definis LBA_API_KEY "
+                    + "(https://api.apprentissage.beta.gouv.fr, offres d'alternance) ou ADZUNA_APP_ID et "
+                    + "ADZUNA_APP_KEY (https://developer.adzuna.com)");
         }
+        List<SourceOffres> compatibles = disponibles.stream()
+                .filter(s -> s.supporte(recherche.contrat()))
+                .toList();
+        if (compatibles.isEmpty()) {
+            throw new OffresIndisponiblesException("Aucune source configuree ne propose ce type de contrat : "
+                    + "La bonne alternance ne publie que des offres en alternance. Pour les stages, CDI et CDD, "
+                    + "ajoute une cle Adzuna (ADZUNA_APP_ID et ADZUNA_APP_KEY).");
+        }
+        disponibles = compatibles;
         SourceOffres source = disponibles.stream()
                 .filter(s -> s.nom().equalsIgnoreCase(nomSource))
                 .findFirst()
