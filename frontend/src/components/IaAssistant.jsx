@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { api } from '../api'
 import { ETAPES } from '../labels'
 
@@ -68,7 +69,7 @@ export default function IaAssistant({ candidature }) {
       <div className="chat">
         {messages.map((m, i) => (
           <div key={i} className={`bulle ${m.role}`}>
-            {m.role === 'assistant' ? <Markdown>{m.content}</Markdown> : m.content}
+            {m.role === 'assistant' ? <Markdown remarkPlugins={[remarkGfm]}>{m.content}</Markdown> : m.content}
           </div>
         ))}
         {chargement && <div className="bulle assistant muted">L'IA réfléchit…</div>}
