@@ -22,7 +22,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-moi-avec-une-longue-chaine-aleatoire-0123456789}
       AI_BASE_URL: ${AI_BASE_URL:-https://api.groq.com/openai/v1}
       AI_API_KEY: ${AI_API_KEY:-}
-      AI_MODEL: ${AI_MODEL:-llama-3.3-70b-versatile}
+      AI_MODEL: ${AI_MODEL:-openai/gpt-oss-120b}
     depends_on:
       db:
         condition: service_healthy
