@@ -13,6 +13,23 @@ const CONTRATS = [
 
 const RECHERCHE_DEFAUT = { q: 'développeur java', lieu: '', contrat: 'ALTERNANCE', source: '' }
 
+const DEPARTEMENT = /^(\d{2,3}|2[ab])$/i
+const MOT_CONTRAT = { ALTERNANCE: 'alternance', STAGE: 'stage', CDI: 'CDI', CDD: 'CDD' }
+
+// Apec et HelloWork n'ont pas d'API publique : on ouvre leur site avec la meme recherche
+function liensExternes({ q, lieu, contrat }) {
+  const mot = MOT_CONTRAT[contrat]
+  const motsCles = mot && !q.toLowerCase().includes(mot.toLowerCase()) ? `${q} ${mot}`.trim() : q.trim()
+  const hellowork = new URLSearchParams({ k: motsCles })
+  if (lieu.trim()) hellowork.set('l', lieu.trim())
+  const apec = new URLSearchParams({ motsCles })
+  if (DEPARTEMENT.test(lieu.trim())) apec.set('lieux', lieu.trim().toUpperCase())
+  return [
+    { nom: 'HelloWork', url: `https://www.hellowork.com/fr-fr/emploi/recherche.html?${hellowork}` },
+    { nom: 'Apec', url: `https://www.apec.fr/candidat/recherche-emploi.html/emploi?${apec}`, note: 'offres cadres' },
+  ]
+}
+
 export default function Offres() {
   const navigate = useNavigate()
   const [form, setForm] = useState(RECHERCHE_DEFAUT)
@@ -119,6 +136,16 @@ export default function Offres() {
       )}
 
       {erreur && <div className="card alerte"><strong>Recherche impossible</strong><p>{erreur}</p></div>}
+
+      <div className="voir-aussi">
+        <span className="muted small">Voir aussi :</span>
+        {liensExternes(form).map((l) => (
+          <a key={l.nom} href={l.url} target="_blank" rel="noopener noreferrer" className="btn ghost small">
+            {l.nom} ↗{l.note && <span className="muted"> · {l.note}</span>}
+          </a>
+        ))}
+        <span className="muted small">puis ajoute l'offre avec « + Nouvelle candidature ».</span>
+      </div>
 
       {resultat && (
         <p className="muted small">
