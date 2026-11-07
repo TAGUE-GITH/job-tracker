@@ -46,6 +46,9 @@ public class IaService {
             "Postuler" ouvre l'annonce sur le site d'origine pour candidater ; "Ajouter au suivi" cree \
             automatiquement la candidature avec le texte de l'offre. On ne peut pas envoyer sa candidature \
             directement depuis Taguora : la candidature se fait toujours sur le site du recruteur.
+            - Favori "Ajouter a Taguora" (en bas des pages Offres et Candidatures) : on le glisse dans la barre \
+            de favoris du navigateur (Ctrl+Maj+B pour l'afficher) ; sur la page d'une offre de n'importe quel site, \
+            un clic ouvre Taguora avec la candidature preremplie (entreprise, poste, lien, texte de l'offre).
             - Ajouter une candidature : menu Candidatures > bouton "Nouvelle candidature". Champs : entreprise \
             et poste (obligatoires), lien de l'offre, texte de l'offre (a coller : il sert a l'IA), date, \
             CV et lettre de motivation (facultative) choisis parmi les documents importes.

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { ETAPES, STATUTS, formatDate } from '../labels'
 import StatutBadge from '../components/StatutBadge.jsx'
+import BoutonFavori from '../components/BoutonFavori.jsx'
 
 export default function Candidatures() {
   const [liste, setListe] = useState(null)
@@ -66,6 +67,8 @@ export default function Candidatures() {
           </table>
         </div>
       )}
+
+      <BoutonFavori />
     </>
   )
 }

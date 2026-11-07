@@ -11,6 +11,7 @@ import CandidatureForm from './pages/CandidatureForm.jsx'
 import CandidatureDetail from './pages/CandidatureDetail.jsx'
 import Documents from './pages/Documents.jsx'
 import Offres from './pages/Offres.jsx'
+import Importer from './pages/Importer.jsx'
 
 function Layout() {
   const { user, logout } = useAuth()
@@ -51,6 +52,7 @@ export default function App() {
     <Routes>
       <Route path="/accueil" element={<Landing />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/importer" element={<Importer />} />
       <Route element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="candidatures" element={<Candidatures />} />

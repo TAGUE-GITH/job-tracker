@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { aujourdhui, formatDate } from '../labels'
+import BoutonFavori from '../components/BoutonFavori.jsx'
 
 const CONTRATS = [
   { valeur: '', label: 'Tous les contrats' },
@@ -172,6 +173,8 @@ export default function Offres() {
           <button className="btn ghost" onClick={() => chercher(form, resultat.page + 1)}>Voir plus d'offres</button>
         </div>
       )}
+
+      <BoutonFavori />
     </>
   )
 }

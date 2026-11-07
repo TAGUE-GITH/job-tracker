@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
 import Logo from '../components/Logo.jsx'
+import { importEnAttente } from '../importOffre.js'
 
 export default function Login() {
   const { user, login, register } = useAuth()
@@ -12,7 +13,9 @@ export default function Login() {
   const [erreur, setErreur] = useState('')
   const [chargement, setChargement] = useState(false)
 
-  if (user) return <Navigate to="/" replace />
+  // Apres une connexion demandee par le favori "Ajouter a Taguora", on reprend l'import
+  const suite = importEnAttente() ? '/importer' : '/'
+  if (user) return <Navigate to={suite} replace />
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
@@ -23,7 +26,7 @@ export default function Login() {
     try {
       if (mode === 'login') await login({ email: form.email, password: form.password })
       else await register(form)
-      navigate('/')
+      navigate(suite)
     } catch (err) {
       setErreur(err.message)
     } finally {

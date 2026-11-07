@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { aujourdhui, formatDate } from '../labels'
 
@@ -11,7 +11,9 @@ const VIDE = {
 export default function CandidatureForm() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [form, setForm] = useState(VIDE)
+  // Offre envoyee par le favori "Ajouter a Taguora" ou par la page Offres
+  const offre = useLocation().state?.offre
+  const [form, setForm] = useState(() => (offre && !id ? { ...VIDE, ...offre } : VIDE))
   const [documents, setDocuments] = useState([])
   const [erreur, setErreur] = useState('')
   const [envoi, setEnvoi] = useState(false)
@@ -69,6 +71,12 @@ export default function CandidatureForm() {
   return (
     <form className="card form" onSubmit={onSubmit}>
       <h1>{id ? 'Modifier la candidature' : 'Nouvelle candidature'}</h1>
+      {offre && !id && (
+        <p className="import-info">
+          ✨ Offre importée{offre.lienOffre && <> depuis <strong>{hote(offre.lienOffre)}</strong></>} : vérifie
+          l'entreprise et le poste, choisis ton CV, puis enregistre.
+        </p>
+      )}
 
       <div className="grid-2">
         <label>
@@ -136,4 +144,12 @@ function DocumentChoix({ label, name, valeur, onChange, options, onUpload }) {
       </div>
     </label>
   )
+}
+
+function hote(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return 'le web'
+  }
 }

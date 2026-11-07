@@ -8,6 +8,7 @@
 
 - **Comptes utilisateurs** : inscription et connexion (JWT, mots de passe hachés avec BCrypt)
 - **Offres d'emploi** : recherche d'offres en direct (La bonne alternance, Jooble) par mots-clés, lieu et contrat (alternance, stage, CDI, CDD), bouton « Postuler » vers l'annonce d'origine et ajout au suivi en un clic
+- **Favori « Ajouter à Taguora »** : glissé dans la barre de favoris, il envoie n'importe quelle offre (Welcome to the Jungle, LinkedIn, Indeed, HelloWork, Apec…) dans ton suivi en un clic. Il lit les données structurées schema.org `JobPosting` de la page (titre, entreprise, lieu, contrat, description), sinon le texte sélectionné ou le contenu principal
 - **Candidatures** : entreprise, poste, lien, texte de l'offre, date, CV et lettre de motivation (facultative), recherche et filtre par statut
 - **Évolution** : timeline des étapes (candidature envoyée, échange RH, test technique, entretiens, offre, refus) avec des notes. Le statut se met à jour automatiquement.
 - **CV et lettres** : import de fichiers (PDF, Word…) réutilisables d'une candidature à l'autre
