@@ -63,6 +63,7 @@ export default function Landing() {
           <a href="#etapes">Comment ça marche</a>
         </nav>
         <div className="landing-nav-actions">
+          {!user && <Link to="/demo" className="btn ghost lien-demo">Démo</Link>}
           {!user && <Link to="/login" className="btn ghost">Connexion</Link>}
           <Link to={cta.to} className="btn primary">{user ? 'Mon espace' : 'Créer un compte'}</Link>
         </div>
@@ -81,7 +82,8 @@ export default function Landing() {
           </p>
           <div className="hero-actions">
             <Link to={cta.to} className="btn primary btn-lg">{cta.label} →</Link>
-            <a href="#fonctionnalites" className="btn ghost btn-lg">Découvrir</a>
+            {!user && <Link to="/demo" className="btn ghost btn-lg">👀 Essayer la démo</Link>}
+            {user && <a href="#fonctionnalites" className="btn ghost btn-lg">Découvrir</a>}
           </div>
           <ul className="hero-points">
             <li>✓ Gratuit</li>

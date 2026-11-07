@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 // "user" est un mot reserve en PostgreSQL, d'ou le nom de table "users"
 @Entity
@@ -35,6 +36,9 @@ public class User {
     @Column(length = 100)
     private String ville;
 
+    @Column(name = "date_creation")
+    private LocalDateTime dateCreation;
+
     protected User() {
     }
 
@@ -42,6 +46,7 @@ public class User {
         this.nom = nom;
         this.email = email;
         this.password = password;
+        this.dateCreation = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -54,6 +59,10 @@ public class User {
 
     public String getEmail() {
         return email;
+    }
+
+    public LocalDateTime getDateCreation() {
+        return dateCreation;
     }
 
     public String getTelephone() {

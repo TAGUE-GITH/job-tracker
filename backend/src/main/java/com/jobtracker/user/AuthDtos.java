@@ -18,6 +18,7 @@ public final class AuthDtos {
     public record LoginRequest(@NotBlank String email, @NotBlank String password) {
     }
 
-    public record AuthResponse(String token, Long id, String nom, String email) {
+    /** demo : compte de demonstration, supprime automatiquement apres quelques heures. */
+    public record AuthResponse(String token, Long id, String nom, String email, boolean demo) {
     }
 }

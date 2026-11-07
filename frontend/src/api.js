@@ -61,6 +61,7 @@ async function envoyer(path, { method = 'GET', body, raw = false } = {}) {
 }
 
 export const api = {
+  demo: () => request('/auth/demo', { method: 'POST' }),
   login: (data) => request('/auth/login', { method: 'POST', body: data }),
   register: (data) => request('/auth/register', { method: 'POST', body: data }),
 

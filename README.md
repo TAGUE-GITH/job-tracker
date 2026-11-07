@@ -1,29 +1,84 @@
+<div align="center">
+
+<img src="frontend/public/icon-192.png" alt="Logo Taguora" width="88" />
+
 # Taguora
 
-**Taguora** est une application pour suivre ses candidatures : l'offre (lien, texte, entreprise), le CV et la lettre utilisés, l'évolution du processus (premier échange RH, entretien technique, offre ou refus), des statistiques visuelles et un **assistant IA gratuit** pour préparer les entretiens.
+**Le copilote de ta recherche d'alternance, de stage ou d'emploi.**
+Suis tes candidatures, trouve des offres, et laisse **TAGIA**, l'assistant IA, adapter ton CV, écrire tes lettres et t'entraîner aux entretiens.
 
-![CI](https://github.com/TAGUE-GITH/job-tracker/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/TAGUE-GITH/job-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/TAGUE-GITH/job-tracker/actions/workflows/ci.yml)
+![Java 21](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot 4](https://img.shields.io/badge/Spring%20Boot-4-6db33f)
+![React 19](https://img.shields.io/badge/React-19-61dafb)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-336791)
+
+### [🌐 Ouvrir l'application](https://job-tracker-five-omega-85.vercel.app) · [👀 Essayer la démo sans inscription](https://job-tracker-five-omega-85.vercel.app/demo)
+
+<sub>Le serveur est hébergé gratuitement : après une pause, le premier chargement peut prendre jusqu'à une minute.</sub>
+
+<img src="docs/captures/tableau-de-bord.png" alt="Tableau de bord de Taguora" width="900" />
+
+</div>
+
+## Pourquoi Taguora ?
+
+Chercher une alternance, c'est des dizaines de candidatures, des tableurs oubliés, des relances qu'on ne fait pas et des entretiens qu'on prépare seul. Taguora réunit tout au même endroit et ajoute une IA qui **connaît l'offre et ton CV** :
+
+- 🎯 **Score de compatibilité CV ↔ offre** avec les compétences manquantes et les mots-clés à ajouter
+- 📄 **CV réécrit pour chaque offre**, en PDF d'une page lisible par les logiciels de tri (ATS)
+- ✉️ **Lettre de motivation sur mesure** avec un en-tête à la française
+- 🎙️ **Entretien blanc à l'oral** : TAGIA pose les questions à voix haute et note tes réponses
+- 🔔 **Relances intelligentes** et **📊 statistiques** qui montrent ce qui marche vraiment
+
+## Captures d'écran
+
+| Fiche candidature et TAGIA | Vue Kanban |
+|---|---|
+| <img src="docs/captures/candidature.png" alt="Fiche d'une candidature avec TAGIA" /> | <img src="docs/captures/kanban.png" alt="Vue Kanban des candidatures" /> |
+| **CV généré, compatible ATS (une page)** | **Page d'accueil** |
+| <img src="docs/captures/cv-ats.png" alt="CV au format ATS généré par Taguora" /> | <img src="docs/captures/accueil.png" alt="Page d'accueil de Taguora" /> |
 
 ## Fonctionnalités
 
-- **Comptes utilisateurs** : inscription et connexion (JWT, mots de passe hachés avec BCrypt)
-- **Offres d'emploi** : recherche d'offres en direct (La bonne alternance, Jooble) par mots-clés, lieu et contrat (alternance, stage, CDI, CDD), bouton « Postuler » vers l'annonce d'origine et ajout au suivi en un clic
-- **Favori « Ajouter à Taguora »** : glissé dans la barre de favoris, il envoie n'importe quelle offre (Welcome to the Jungle, LinkedIn, Indeed, HelloWork, Apec…) dans ton suivi en un clic. Il lit les données structurées schema.org `JobPosting` de la page (titre, entreprise, lieu, contrat, description), sinon le texte sélectionné ou le contenu principal
-- **Candidatures** : entreprise, poste, lien, texte de l'offre, date, CV et lettre de motivation (facultative), recherche et filtre par statut
-- **Vue Kanban** : les candidatures en colonnes par statut, à déplacer par glisser-déposer (ou avec le menu « Déplacer vers… » sur téléphone) ; l'étape correspondante est ajoutée automatiquement
-- **Relances intelligentes** : le tableau de bord liste les candidatures sans nouvelles depuis 7 jours, TAGIA rédige l'email de relance, et « J'ai relancé » ajoute une étape *Relance* (qui ne change pas le statut)
-- **Évolution** : timeline des étapes (candidature envoyée, échange RH, test technique, entretiens, offre, refus) avec des notes. Le statut se met à jour automatiquement.
-- **CV et lettres** : import de fichiers (PDF, Word…) réutilisables d'une candidature à l'autre
-- **Statistiques malignes** : taux de réponse par version de CV et par site d'offres, délai moyen avant une première réponse
-- **Mon compte** : coordonnées (téléphone, adresse, ville) pour l'en-tête des lettres, changement de mot de passe, export de toutes ses données (JSON) et suppression définitive du compte
-- **Application installable (PWA)** : « Installer Taguora » depuis Chrome ou Edge (ordinateur et Android) ou « Sur l'écran d'accueil » sur iPhone ; l'interface s'ouvre même hors connexion
-- **Tableau de bord** : candidatures par mois, répartition par statut, entonnoir de recrutement, taux de réponse, d'entretien et d'offre
-- **TAGIA, l'assistant IA** : une bulle d'aide sur chaque page répond aux questions sur l'application, sur tes candidatures et sur la recherche d'emploi
-- **Compatibilité CV ↔ offre (TAGIA)** : TAGIA lit ton CV (PDF ou Word) et l'offre, donne un score sur 100, tes points forts, les compétences qui manquent et les mots-clés à ajouter pour passer les filtres des recruteurs
-- **CV adapté à l'offre, compatible ATS (TAGIA)** : TAGIA réécrit ton CV pour l'offre (titre, profil, compétences dans l'ordre de l'offre, en ajoutant celles de l'offre proches des tiennes, missions reformulées avec ses mots-clés, projet le plus pertinent détaillé, atouts, centres d'intérêt) sans inventer d'expérience ni de diplôme ; le PDF tient toujours sur une page (mise en page resserrée automatiquement) ; tout est modifiable, puis un PDF « ATS » (une colonne, vrai texte, rubriques classiques) est créé, rattaché à la candidature et noté
-- **Lettre de motivation sur mesure (TAGIA)** : rédigée à partir de ton CV et de l'offre, avec un en-tête à la française (tes coordonnées en haut à gauche, le destinataire à droite, le lieu et la date), modifiable, puis enregistrée en PDF et rattachée à la candidature en un clic
-- **Entretien blanc à l'oral (TAGIA)** : TAGIA pose les questions à voix haute, tu réponds au micro (reconnaissance vocale du navigateur, Chrome et Edge), il commente chaque réponse puis donne un bilan noté sur 10
-- **Coach d'entretien (TAGIA)** : préparation d'un entretien (questions probables et réponses conseillées, questions à poser, points à réviser) et simulation d'entretien interactive, à partir du texte de l'offre et de tes notes
+### Suivi des candidatures
+- **Candidatures** : entreprise, poste, lien et texte de l'offre, CV et lettre utilisés, recherche et filtre par statut
+- **Timeline des étapes** (échange RH, tests, entretiens, offre, refus, relance) avec notes ; le statut se met à jour tout seul
+- **Vue Kanban** par glisser-déposer (menu « Déplacer vers… » sur téléphone)
+- **Relances intelligentes** : candidatures sans nouvelles depuis 7 jours, email de relance rédigé par TAGIA
+- **Tableau de bord** : taux de réponse, d'entretien et d'offre, délai moyen de réponse, candidatures par mois, entonnoir, **taux de réponse par CV et par site d'offres**
+
+### TAGIA, l'assistant IA
+- **Compatibilité CV ↔ offre** : score sur 100, points forts, compétences manquantes, mots-clés ATS
+- **CV adapté à l'offre** : titre, profil, compétences de l'offre proches des tiennes, projet le plus pertinent détaillé ; sans inventer d'expérience ni de diplôme ; PDF « ATS » d'une page, rattaché à la candidature et noté
+- **Lettre de motivation** modifiable, PDF avec tes coordonnées, le destinataire, le lieu et la date
+- **Coach d'entretien** : questions probables et réponses STAR, simulation à l'écrit ou **à l'oral** (synthèse et reconnaissance vocale du navigateur), bilan noté sur 10
+- **Bulle d'aide** sur chaque page : TAGIA répond aux questions sur l'application et sur la recherche d'emploi
+
+### Trouver des offres
+- **Recherche en direct** : La bonne alternance (toutes les offres d'alternance en France) et Jooble (stages, CDI, CDD)
+- **Favori « Ajouter à Taguora »** : envoie n'importe quelle offre (Welcome to the Jungle, LinkedIn, Indeed, HelloWork, Apec…) dans le suivi en un clic, en lisant les données schema.org `JobPosting` de la page
+- Liens « Voir aussi » vers Welcome to the Jungle, HelloWork et l'Apec avec la même recherche
+
+### Confort
+- **Démo sans inscription** : chaque visiteur reçoit un compte neuf rempli d'exemples, supprimé automatiquement après 6 heures
+- **Application installable (PWA)**, responsive (menu mobile, listes en cartes), mode sombre automatique
+- **Mon compte** : coordonnées, mot de passe, export de toutes ses données (JSON), suppression du compte
+
+## Architecture
+
+```mermaid
+flowchart LR
+    U[Navigateur<br/>React 19 + Vite<br/>PWA] -->|HTTPS + JWT| API[API Spring Boot 4<br/>Java 21]
+    V[Vercel<br/>site statique] -.sert.-> U
+    API -->|JPA + Flyway| DB[(PostgreSQL<br/>Neon)]
+    API -->|API compatible OpenAI| IA[Groq<br/>gpt-oss-120b]
+    API --> LBA[La bonne alternance]
+    API --> J[Jooble]
+    API -->|PDFBox| PDF[CV et lettres PDF]
+    GH[GitHub Actions<br/>tests + build] -->|CI verte| R[Render<br/>image Docker]
+    R -.héberge.-> API
+```
 
 ## Stack technique
 
@@ -33,7 +88,7 @@
 | Backend | Java 21, Spring Boot 4, Spring Data JPA, Flyway, Spring Security (JWT), Bean Validation, PDFBox |
 | Base de données | PostgreSQL (Docker, Neon en production), H2 en développement et pour les tests |
 | IA | Toute API compatible OpenAI : Groq (gratuit, par défaut), OpenRouter, Ollama (local)… |
-| DevOps | Docker multi-stage, docker-compose, GitHub Actions (tests, build, images sur GHCR), Render (Blueprint) |
+| DevOps | Docker multi-stage, docker-compose, GitHub Actions (tests, build, images sur GHCR), Render (Blueprint) pour l'API, Vercel pour le site |
 
 ## Démarrage rapide avec Docker
 
@@ -142,6 +197,7 @@ Toutes les routes, sauf `/api/auth/**`, demandent l'en-tête `Authorization: Bea
 |---|---|---|
 | POST | `/api/auth/register` | Inscription |
 | POST | `/api/auth/login` | Connexion (renvoie le JWT) |
+| POST | `/api/auth/demo` | Crée un compte de démonstration rempli d'exemples (supprimé après 6 h) |
 | GET | `/api/candidatures?statut=&q=` | Liste filtrée |
 | POST / GET / PUT / DELETE | `/api/candidatures[/{id}]` | CRUD des candidatures |
 | POST / PUT / DELETE | `/api/candidatures/{id}/etapes[/{etapeId}]` | Étapes de la candidature |

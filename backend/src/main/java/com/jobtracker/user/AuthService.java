@@ -19,6 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthService {
 
+    /** Les comptes de demonstration ont une adresse dans ce domaine fictif. */
+    public static final String DOMAINE_DEMO = "@demo.taguora";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
@@ -49,7 +52,8 @@ public class AuthService {
         return toResponse(user);
     }
 
-    private AuthResponse toResponse(User user) {
+    /** Jeton de connexion pour un utilisateur (inscription, connexion, compte de demonstration). */
+    public AuthResponse toResponse(User user) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(user.getEmail())
@@ -59,6 +63,7 @@ public class AuthService {
                 .build();
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
         String token = jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
-        return new AuthResponse(token, user.getId(), user.getNom(), user.getEmail());
+        return new AuthResponse(token, user.getId(), user.getNom(), user.getEmail(),
+                user.getEmail().endsWith(DOMAINE_DEMO));
     }
 }

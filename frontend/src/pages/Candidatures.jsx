@@ -7,6 +7,9 @@ import BoutonFavori from '../components/BoutonFavori.jsx'
 import Kanban from '../components/Kanban.jsx'
 
 const lireVue = () => {
+  // ?vue=kanban dans l'URL l'emporte (lien direct vers la vue Kanban)
+  const demandee = new URLSearchParams(window.location.search).get('vue')
+  if (demandee === 'kanban' || demandee === 'liste') return demandee
   try {
     return localStorage.getItem('jt_vue') || 'liste'
   } catch {

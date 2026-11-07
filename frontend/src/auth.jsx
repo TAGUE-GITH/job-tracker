@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
 
   const connecter = (res) => {
     setToken(res.token)
-    const u = { id: res.id, nom: res.nom, email: res.email }
+    const u = { id: res.id, nom: res.nom, email: res.email, demo: !!res.demo }
     localStorage.setItem(USER_KEY, JSON.stringify(u))
     setUser(u)
   }
@@ -21,6 +21,7 @@ export function AuthProvider({ children }) {
     user,
     login: async (data) => connecter(await api.login(data)),
     register: async (data) => connecter(await api.register(data)),
+    demo: async () => connecter(await api.demo()),
     // Apres une modification du nom dans "Mon compte"
     majUtilisateur: (modifs) => {
       setUser((u) => {

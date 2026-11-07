@@ -75,7 +75,14 @@ public class CompteService {
 
     @Transactional
     public void supprimer(Long userId, String motDePasse) {
-        User user = verifier(userId, motDePasse);
+        verifier(userId, motDePasse);
+        effacer(userId);
+    }
+
+    /** Supprime definitivement le compte et toutes ses donnees (sans demander le mot de passe). */
+    @Transactional
+    public void effacer(Long userId) {
+        User user = utilisateur(userId);
         candidatureService.toutes(userId).forEach(c -> candidatureService.supprimer(userId, c.getId()));
         documentService.lister(userId).forEach(d -> documentService.supprimer(userId, d.id()));
         userRepository.delete(user);

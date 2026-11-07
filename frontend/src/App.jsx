@@ -14,6 +14,8 @@ import Offres from './pages/Offres.jsx'
 import Importer from './pages/Importer.jsx'
 import Compte from './pages/Compte.jsx'
 import BandeauReveil from './components/BandeauReveil.jsx'
+import BandeauDemo from './components/BandeauDemo.jsx'
+import Demo from './pages/Demo.jsx'
 
 function Layout() {
   const { user, logout } = useAuth()
@@ -24,6 +26,7 @@ function Layout() {
 
   return (
     <div className="app">
+      <BandeauDemo />
       <header className={`topbar ${menuOuvert ? 'menu-ouvert' : ''}`}>
         <Link to="/accueil" className="logo"><Logo size={28} /></Link>
         <button className="burger" onClick={() => setMenuOuvert(!menuOuvert)}
@@ -57,6 +60,7 @@ export default function App() {
         <Route path="/accueil" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/importer" element={<Importer />} />
+        <Route path="/demo" element={<Demo />} />
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="candidatures" element={<Candidatures />} />

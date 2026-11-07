@@ -68,6 +68,9 @@ export default function Login() {
         <button className="btn primary" disabled={chargement}>
           {chargement ? '…' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
         </button>
+        <p className="muted small centre-texte">
+          Juste curieux ? <Link to="/demo">Essaie la démo sans t'inscrire</Link>
+        </p>
       </form>
     </div>
   )

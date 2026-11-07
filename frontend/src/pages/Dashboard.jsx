@@ -7,6 +7,9 @@ import { api } from '../api'
 import { STATUTS } from '../labels'
 import ARelancer from '../components/ARelancer.jsx'
 
+// Pas d'animation des graphiques si l'utilisateur a demande a reduire les animations (accessibilite)
+const ANIMER = !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
 const COULEURS = { gris: '#94a3b8', bleu: '#3b82f6', vert: '#22c55e', rouge: '#ef4444', orange: '#f59e0b' }
 
 const formatMois = (m) => {
@@ -68,7 +71,7 @@ export default function Dashboard() {
               <XAxis dataKey="mois" />
               <YAxis allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="count" name="Candidatures" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="count" name="Candidatures" fill="#6366f1" radius={[4, 4, 0, 0]} isAnimationActive={ANIMER} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -77,7 +80,7 @@ export default function Dashboard() {
           <h3>Répartition par statut</h3>
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
-              <Pie data={parStatut} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={2}>
+              <Pie data={parStatut} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={2} isAnimationActive={ANIMER}>
                 {parStatut.map((s) => <Cell key={s.name} fill={s.couleur} />)}
               </Pie>
               <Tooltip />
@@ -102,7 +105,7 @@ export default function Dashboard() {
             <XAxis type="number" allowDecimals={false} />
             <YAxis type="category" dataKey="etape" width={110} />
             <Tooltip />
-            <Bar dataKey="count" name="Candidatures" fill="#22c55e" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="count" name="Candidatures" fill="#22c55e" radius={[0, 4, 4, 0]} isAnimationActive={ANIMER} />
           </BarChart>
         </ResponsiveContainer>
       </div>
