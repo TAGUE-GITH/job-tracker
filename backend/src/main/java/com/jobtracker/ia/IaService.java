@@ -77,7 +77,10 @@ public class IaService {
             motivation" = lettre redigee depuis le CV et l'offre, modifiable, puis "Enregistrer en PDF" la \
             rattache a la candidature. Il faut le texte de l'offre et un CV importe (PDF ou Word .docx).
             - Coach d'entretien (sur la page d'une candidature) : choisir l'etape, "Preparer" genere une \
-            preparation complete, "Simuler" lance un entretien blanc question par question.
+            preparation complete, "Simuler" lance un entretien blanc question par question. \
+            L'interrupteur "Mode oral" (Chrome et Edge) fait lire les questions a voix haute et permet de repondre \
+            au micro (bouton micro) ; apres deux reponses, "Terminer et obtenir mon bilan" donne une note sur 10, \
+            les points forts et les axes d'amelioration.
             - TAGIA (la bulle en bas a droite) repond aux questions sur l'application et sur la recherche d'emploi.
             - Compte : inscription avec nom, email et mot de passe (6 caracteres minimum). La session dure \
             24 h. Il n'y a pas encore de reinitialisation du mot de passe ni d'export des donnees.

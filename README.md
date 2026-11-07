@@ -18,6 +18,7 @@
 - **TAGIA, l'assistant IA** : une bulle d'aide sur chaque page répond aux questions sur l'application, sur tes candidatures et sur la recherche d'emploi
 - **Compatibilité CV ↔ offre (TAGIA)** : TAGIA lit ton CV (PDF ou Word) et l'offre, donne un score sur 100, tes points forts, les compétences qui manquent et les mots-clés à ajouter pour passer les filtres des recruteurs
 - **Lettre de motivation sur mesure (TAGIA)** : rédigée à partir de ton CV et de l'offre, modifiable, puis enregistrée en PDF et rattachée à la candidature en un clic
+- **Entretien blanc à l'oral (TAGIA)** : TAGIA pose les questions à voix haute, tu réponds au micro (reconnaissance vocale du navigateur, Chrome et Edge), il commente chaque réponse puis donne un bilan noté sur 10
 - **Coach d'entretien (TAGIA)** : préparation d'un entretien (questions probables et réponses conseillées, questions à poser, points à réviser) et simulation d'entretien interactive, à partir du texte de l'offre et de tes notes
 
 ## Stack technique
