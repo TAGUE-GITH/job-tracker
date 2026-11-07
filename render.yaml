@@ -41,4 +41,4 @@ services:
         generateValue: true
       # Adresse du frontend Vercel (fixee ici pour ne plus etre effacee a chaque synchronisation)
       - key: CORS_ORIGINS
-        value: https://job-tracker-five-omega-85.vercel.app
+        value: https://job-tracker-five-omega-85.vercel.app,https://taguora.vercel.app
