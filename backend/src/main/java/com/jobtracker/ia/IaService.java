@@ -72,6 +72,10 @@ public class IaService {
             - Tableau de bord : total, candidatures en cours, taux de reponse (part des candidatures ayant \
             eu au moins une reponse), taux d'entretien, taux d'offre, graphique par mois, repartition par \
             statut et entonnoir de recrutement.
+            - Onglet "CV adapte" de la carte "TAGIA - CV & lettre" : TAGIA reecrit le CV pour l'offre (titre, profil, \
+            competences dans l'ordre de l'offre, missions avec ses mots-cles, atouts, centres d'interet) sans rien \
+            inventer ; tout est modifiable, puis "Enregistrer le CV en PDF" cree un CV compatible ATS (une colonne, \
+            vrai texte), le rattache a la candidature et affiche sa note ATS estimee.
             - Carte "TAGIA - CV & lettre" (page d'une candidature) : onglet "Compatibilite" = score sur 100 du \
             CV face a l'offre, points forts, competences manquantes, mots-cles a ajouter ; onglet "Lettre de \
             motivation" = lettre redigee depuis le CV et l'offre, avec un en-tete modifiable (coordonnees du \
@@ -233,6 +237,48 @@ public class IaService {
         int fin = reponse.lastIndexOf('}');
         if (debut < 0 || fin <= debut) {
             throw new IaIndisponibleException("L'IA n'a pas renvoye d'analyse exploitable, reessaie");
+        }
+        return new IaResponse(reponse.substring(debut, fin + 1));
+    }
+
+    /**
+     * Reecrit le CV pour cette offre, au format JSON (voir CvPdf.Cv) : titre, profil, competences, experiences,
+     * formations, projets, langues, atouts, centres d'interet. Le contenu reste fidele au CV d'origine.
+     */
+    @Transactional(readOnly = true)
+    public IaResponse cvAdapte(Long userId, Long candidatureId, Long cvId) {
+        Candidature c = candidatureService.trouver(userId, candidatureId);
+        String cv = texteCv(userId, c, cvId);
+        List<Message> messages = List.of(
+                new Message("system", """
+                        Tu es un expert en recrutement et en logiciels de tri de CV (ATS). Tu reecris le CV du \
+                        candidat pour qu'il corresponde au mieux a l'offre et passe les filtres ATS, en francais.
+                        Regles absolues :
+                        - n'invente JAMAIS d'experience, d'entreprise, de diplome, de date ni de competence que le CV \
+                        ne permet pas d'affirmer ; tu peux reformuler, reordonner, mettre en avant et reprendre le \
+                        vocabulaire exact de l'offre pour des elements reellement presents ;
+                        - titre : intitule proche de celui de l'offre (ex. "Developpeur Java / Spring Boot - Alternance") ;
+                        - profil : 3 a 4 phrases percutantes, orientees vers l'offre, sans "je" repete ;
+                        - competences : les plus pertinentes pour l'offre en premier, termes exacts de l'offre ;
+                        - missions : verbes d'action, resultats chiffres si le CV les donne, 2 a 4 par experience ;
+                        - atouts : 3 a 5 qualites prouvees par le CV ; centres d'interet : ceux du CV (ou vide) ;
+                        - motsClesAjoutes : mots-cles de l'offre que tu as integres.
+                        Reponds UNIQUEMENT avec un objet JSON valide :
+                        {"titre": "", "profil": "",
+                         "competencesTechniques": [""], "competencesTransverses": [""],
+                         "experiences": [{"poste": "", "entreprise": "", "lieu": "", "periode": "", "missions": [""]}],
+                         "projets": [{"nom": "", "description": "", "technologies": ""}],
+                         "formations": [{"diplome": "", "etablissement": "", "periode": "", "details": ""}],
+                         "langues": [""], "atouts": [""], "centresInteret": [""], "liens": [""],
+                         "motsClesAjoutes": [""]}
+                        """),
+                new Message("user", "OFFRE (" + c.getPoste() + " chez " + c.getNomEntreprise() + ") :\n"
+                        + texteOffre(c) + "\n\nCV ACTUEL DU CANDIDAT :\n" + cv));
+        String reponse = appeler(messages, true);
+        int debut = reponse.indexOf('{');
+        int fin = reponse.lastIndexOf('}');
+        if (debut < 0 || fin <= debut) {
+            throw new IaIndisponibleException("L'IA n'a pas renvoye de CV exploitable, reessaie");
         }
         return new IaResponse(reponse.substring(debut, fin + 1));
     }

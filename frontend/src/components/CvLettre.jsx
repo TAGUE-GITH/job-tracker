@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 import TagiaAvatar from './TagiaAvatar.jsx'
+import CvAdapte from './CvAdapte.jsx'
 
 // TAGIA compare le CV a l'offre (score, competences manquantes) et redige la lettre de motivation
 export default function CvLettre({ candidature, onChange }) {
@@ -31,7 +32,7 @@ export default function CvLettre({ candidature, onChange }) {
         <TagiaAvatar size={44} />
         <div>
           <h3>TAGIA · CV & lettre</h3>
-          <p className="muted small">Ton CV face à cette offre, et une lettre de motivation sur mesure.</p>
+          <p className="muted small">Ton CV face à cette offre, un CV adapté et une lettre de motivation sur mesure.</p>
         </div>
       </div>
 
@@ -40,7 +41,10 @@ export default function CvLettre({ candidature, onChange }) {
           🎯 Compatibilité
         </button>
         <button type="button" className={onglet === 'lettre' ? 'active' : ''} onClick={() => setOnglet('lettre')}>
-          ✉️ Lettre de motivation
+          ✉️ Lettre
+        </button>
+        <button type="button" className={onglet === 'cv' ? 'active' : ''} onClick={() => setOnglet('cv')}>
+          📄 CV adapté
         </button>
       </div>
 
@@ -56,9 +60,9 @@ export default function CvLettre({ candidature, onChange }) {
               </select>
             </label>
           )}
-          {onglet === 'analyse'
-            ? <Analyse candidatureId={candidature.id} cvId={cvId} />
-            : <Lettre candidature={candidature} cvId={cvId} onChange={onChange} />}
+          {onglet === 'analyse' && <Analyse candidatureId={candidature.id} cvId={cvId} />}
+          {onglet === 'lettre' && <Lettre candidature={candidature} cvId={cvId} onChange={onChange} />}
+          {onglet === 'cv' && <CvAdapte candidature={candidature} cvId={cvId} onChange={onChange} Score={Score} />}
         </>
       )}
     </div>

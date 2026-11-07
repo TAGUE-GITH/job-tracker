@@ -6,11 +6,13 @@ import com.jobtracker.candidature.CandidatureDtos.LettreRequest;
 import com.jobtracker.common.NotFoundException;
 import com.jobtracker.document.Document;
 import com.jobtracker.document.DocumentService;
+import com.jobtracker.document.CvPdf;
 import com.jobtracker.document.LettrePdf;
 import com.jobtracker.document.TypeDocument;
 import com.jobtracker.etape.Etape;
 import com.jobtracker.etape.EtapeDtos.EtapeRequest;
 import com.jobtracker.etape.TypeEtape;
+import com.jobtracker.user.User;
 import com.jobtracker.user.UserRepository;
 import java.util.List;
 import java.util.Locale;
@@ -80,6 +82,18 @@ public class CandidatureService {
         String nom = ("Lettre de motivation - " + c.getNomEntreprise()).replaceAll("[\\\\/:*?\"<>|]", " ").strip();
         LettrePdf.EnTete entete = new LettrePdf.EnTete(req.expediteur(), req.destinataire(), req.lieuDate());
         c.setLettre(documentService.creerLettrePdf(userId, nom + ".pdf", entete, req.texte()));
+        return CandidatureResponse.from(c);
+    }
+
+    /** Enregistre le CV adapte a l'offre (relu par le candidat) en PDF ATS et le rattache a la candidature. */
+    @Transactional
+    public CandidatureResponse enregistrerCv(Long userId, Long id, CvPdf.Cv cv) {
+        Candidature c = trouver(userId, id);
+        User u = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Compte introuvable"));
+        String adresse = u.getAdresse() != null ? u.getAdresse() : u.getVille();
+        CvPdf.Contact contact = new CvPdf.Contact(u.getNom(), u.getEmail(), u.getTelephone(), adresse);
+        String nom = ("CV " + u.getNom() + " - " + c.getNomEntreprise()).replaceAll("[\\\\/:*?\"<>|]", " ").strip();
+        c.setCv(documentService.creerCvPdf(userId, nom + ".pdf", contact, cv));
         return CandidatureResponse.from(c);
     }
 

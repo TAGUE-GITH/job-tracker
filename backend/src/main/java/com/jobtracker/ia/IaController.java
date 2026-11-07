@@ -36,6 +36,11 @@ public class IaController {
         return iaService.relance(CurrentUser.id(), id);
     }
 
+    @PostMapping("/api/candidatures/{id}/ia/cv")
+    public IaResponse cvAdapte(@PathVariable Long id, @RequestBody(required = false) AnalyseRequest req) {
+        return iaService.cvAdapte(CurrentUser.id(), id, req == null ? null : req.cvId());
+    }
+
     @PostMapping("/api/candidatures/{id}/ia/lettre")
     public IaResponse lettre(@PathVariable Long id, @Valid @RequestBody(required = false) LettreIaRequest req) {
         return iaService.lettre(CurrentUser.id(), id, req == null ? null : req.cvId(),

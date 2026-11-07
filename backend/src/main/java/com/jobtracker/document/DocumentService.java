@@ -79,6 +79,15 @@ public class DocumentService {
         return doc;
     }
 
+    /** Enregistre un CV adapte a une offre (genere au format ATS) dans les documents de l'utilisateur. */
+    @Transactional
+    public Document creerCvPdf(Long userId, String nomFichier, CvPdf.Contact contact, CvPdf.Cv cv) {
+        Document doc = documentRepository.save(new Document(nomFichier, TypeDocument.CV, "application/pdf",
+                userRepository.getReferenceById(userId)));
+        contenuRepository.save(new DocumentContenu(doc, CvPdf.generer(contact, cv)));
+        return doc;
+    }
+
     public Document trouver(Long userId, Long documentId) {
         return documentRepository.findByIdAndUserId(documentId, userId)
                 .orElseThrow(() -> new NotFoundException("Document introuvable"));

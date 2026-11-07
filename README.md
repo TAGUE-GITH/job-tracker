@@ -20,6 +20,7 @@
 - **Tableau de bord** : candidatures par mois, répartition par statut, entonnoir de recrutement, taux de réponse, d'entretien et d'offre
 - **TAGIA, l'assistant IA** : une bulle d'aide sur chaque page répond aux questions sur l'application, sur tes candidatures et sur la recherche d'emploi
 - **Compatibilité CV ↔ offre (TAGIA)** : TAGIA lit ton CV (PDF ou Word) et l'offre, donne un score sur 100, tes points forts, les compétences qui manquent et les mots-clés à ajouter pour passer les filtres des recruteurs
+- **CV adapté à l'offre, compatible ATS (TAGIA)** : TAGIA réécrit ton CV pour l'offre (titre, profil, compétences dans l'ordre de l'offre, missions reformulées avec ses mots-clés, atouts, centres d'intérêt) sans rien inventer ; tout est modifiable, puis un PDF « ATS » (une colonne, vrai texte, rubriques classiques) est créé, rattaché à la candidature et noté
 - **Lettre de motivation sur mesure (TAGIA)** : rédigée à partir de ton CV et de l'offre, avec un en-tête à la française (tes coordonnées en haut à gauche, le destinataire à droite, le lieu et la date), modifiable, puis enregistrée en PDF et rattachée à la candidature en un clic
 - **Entretien blanc à l'oral (TAGIA)** : TAGIA pose les questions à voix haute, tu réponds au micro (reconnaissance vocale du navigateur, Chrome et Edge), il commente chaque réponse puis donne un bilan noté sur 10
 - **Coach d'entretien (TAGIA)** : préparation d'un entretien (questions probables et réponses conseillées, questions à poser, points à réviser) et simulation d'entretien interactive, à partir du texte de l'offre et de tes notes
@@ -142,6 +143,8 @@ Toutes les routes, sauf `/api/auth/**`, demandent l'en-tête `Authorization: Bea
 | POST / PUT / DELETE | `/api/candidatures/{id}/etapes[/{etapeId}]` | Étapes de la candidature |
 | POST | `/api/candidatures/{id}/ia` | Assistant IA (`{ typeEtape, messages }`) |
 | POST | `/api/candidatures/{id}/ia/compatibilite` | Score CV ↔ offre (`{ cvId }`, réponse JSON) |
+| POST | `/api/candidatures/{id}/ia/cv` | CV réécrit pour l'offre (`{ cvId }`, réponse JSON) |
+| POST | `/api/candidatures/{id}/cv` | Enregistre le CV adapté en PDF ATS et le rattache |
 | POST | `/api/candidatures/{id}/ia/relance` | Brouillon d'email de relance |
 | POST | `/api/candidatures/{id}/ia/lettre` | Lettre de motivation (`{ cvId, consignes }`) |
 | POST | `/api/candidatures/{id}/lettre` | Enregistre la lettre en PDF et la rattache (`{ texte }`) |

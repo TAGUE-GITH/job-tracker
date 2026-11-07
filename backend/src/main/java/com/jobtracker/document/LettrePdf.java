@@ -75,7 +75,7 @@ public final class LettrePdf {
             // Corps de la lettre, sur plusieurs pages si besoin
             page.y = y;
             for (String paragraphe : nettoyer(texte, police).split("\n", -1)) {
-                for (String ligne : couper(paragraphe, police, LARGEUR)) {
+                for (String ligne : couper(paragraphe, police, LARGEUR, TAILLE_POLICE)) {
                     page.ligneSuivante(ligne, police);
                 }
             }
@@ -141,14 +141,14 @@ public final class LettrePdf {
         }
         for (String ligne : nettoyer(bloc, police).strip().split("\n")) {
             if (!ligne.isBlank()) {
-                lignes.addAll(couper(ligne, police, largeur));
+                lignes.addAll(couper(ligne, police, largeur, TAILLE_POLICE));
             }
         }
         return lignes;
     }
 
     /** Remplace ou retire les caracteres que la police standard ne sait pas afficher (emojis...). */
-    private static String nettoyer(String texte, PDType1Font police) {
+    static String nettoyer(String texte, PDType1Font police) {
         String t = texte.replace("\r", "")
                 .replace('’', '\'').replace('‘', '\'')
                 .replace('“', '"').replace('”', '"')
@@ -172,7 +172,7 @@ public final class LettrePdf {
         return sb.toString();
     }
 
-    private static List<String> couper(String paragraphe, PDType1Font police, float largeur) throws IOException {
+    static List<String> couper(String paragraphe, PDType1Font police, float largeur, float taille) throws IOException {
         List<String> lignes = new ArrayList<>();
         if (paragraphe.isBlank()) {
             lignes.add("");
@@ -181,7 +181,7 @@ public final class LettrePdf {
         StringBuilder ligne = new StringBuilder();
         for (String mot : paragraphe.strip().split(" +")) {
             String essai = ligne.isEmpty() ? mot : ligne + " " + mot;
-            if (police.getStringWidth(essai) / 1000 * TAILLE_POLICE > largeur && !ligne.isEmpty()) {
+            if (police.getStringWidth(essai) / 1000 * taille > largeur && !ligne.isEmpty()) {
                 lignes.add(ligne.toString());
                 ligne = new StringBuilder(mot);
             } else {

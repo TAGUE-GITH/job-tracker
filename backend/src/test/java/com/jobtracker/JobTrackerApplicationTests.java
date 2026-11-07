@@ -223,6 +223,31 @@ class JobTrackerApplicationTests {
     }
 
     @Test
+    void cvAdapteAOffre() throws Exception {
+        String id = extraire(mvc.perform(post("/api/candidatures").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nomEntreprise":"Globex","poste":"Dev Java","dateCandidature":"2026-11-01",
+                                 "texteOffre":"Alternance Java Spring Boot"}"""))
+                .andReturn().getResponse().getContentAsString(), "id");
+        // Sans CV importe, rien a adapter
+        mvc.perform(post("/api/candidatures/" + id + "/ia/cv").header("Authorization", token))
+                .andExpect(status().isBadRequest());
+
+        // CV relu par le candidat : enregistre en PDF et rattache a la candidature
+        mvc.perform(post("/api/candidatures/" + id + "/cv").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"titre":"Developpeur Java - Alternance","profil":"Developpeur Spring Boot motive.",
+                                 "competencesTechniques":["Java","Spring Boot"],
+                                 "experiences":[{"poste":"Stagiaire","entreprise":"Acme","periode":"2025",
+                                                 "missions":["API REST"]}]}"""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cv.nomFichier").value("CV Franck - Globex.pdf"))
+                .andExpect(jsonPath("$.cv.type").value("CV"));
+    }
+
+    @Test
     void coordonneesDuProfil() throws Exception {
         mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/compte/profil")
                         .header("Authorization", token).contentType(MediaType.APPLICATION_JSON)

@@ -4,6 +4,7 @@ import com.jobtracker.candidature.CandidatureDtos.CandidatureRequest;
 import com.jobtracker.candidature.CandidatureDtos.CandidatureResponse;
 import com.jobtracker.candidature.CandidatureDtos.LettreRequest;
 import com.jobtracker.common.CurrentUser;
+import com.jobtracker.document.CvPdf;
 import com.jobtracker.etape.EtapeDtos.EtapeRequest;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -60,6 +61,11 @@ public class CandidatureController {
     @PostMapping("/{id}/lettre")
     public CandidatureResponse enregistrerLettre(@PathVariable Long id, @Valid @RequestBody LettreRequest req) {
         return service.enregistrerLettre(CurrentUser.id(), id, req);
+    }
+
+    @PostMapping("/{id}/cv")
+    public CandidatureResponse enregistrerCv(@PathVariable Long id, @RequestBody CvPdf.Cv cv) {
+        return service.enregistrerCv(CurrentUser.id(), id, cv);
     }
 
     @PostMapping("/{id}/etapes")
