@@ -15,12 +15,12 @@
 - **Évolution** : timeline des étapes (candidature envoyée, échange RH, test technique, entretiens, offre, refus) avec des notes. Le statut se met à jour automatiquement.
 - **CV et lettres** : import de fichiers (PDF, Word…) réutilisables d'une candidature à l'autre
 - **Statistiques malignes** : taux de réponse par version de CV et par site d'offres, délai moyen avant une première réponse
-- **Mon compte** : changement de mot de passe, export de toutes ses données (JSON) et suppression définitive du compte
+- **Mon compte** : coordonnées (téléphone, adresse, ville) pour l'en-tête des lettres, changement de mot de passe, export de toutes ses données (JSON) et suppression définitive du compte
 - **Application installable (PWA)** : « Installer Taguora » depuis Chrome ou Edge (ordinateur et Android) ou « Sur l'écran d'accueil » sur iPhone ; l'interface s'ouvre même hors connexion
 - **Tableau de bord** : candidatures par mois, répartition par statut, entonnoir de recrutement, taux de réponse, d'entretien et d'offre
 - **TAGIA, l'assistant IA** : une bulle d'aide sur chaque page répond aux questions sur l'application, sur tes candidatures et sur la recherche d'emploi
 - **Compatibilité CV ↔ offre (TAGIA)** : TAGIA lit ton CV (PDF ou Word) et l'offre, donne un score sur 100, tes points forts, les compétences qui manquent et les mots-clés à ajouter pour passer les filtres des recruteurs
-- **Lettre de motivation sur mesure (TAGIA)** : rédigée à partir de ton CV et de l'offre, modifiable, puis enregistrée en PDF et rattachée à la candidature en un clic
+- **Lettre de motivation sur mesure (TAGIA)** : rédigée à partir de ton CV et de l'offre, avec un en-tête à la française (tes coordonnées en haut à gauche, le destinataire à droite, le lieu et la date), modifiable, puis enregistrée en PDF et rattachée à la candidature en un clic
 - **Entretien blanc à l'oral (TAGIA)** : TAGIA pose les questions à voix haute, tu réponds au micro (reconnaissance vocale du navigateur, Chrome et Edge), il commente chaque réponse puis donne un bilan noté sur 10
 - **Coach d'entretien (TAGIA)** : préparation d'un entretien (questions probables et réponses conseillées, questions à poser, points à réviser) et simulation d'entretien interactive, à partir du texte de l'offre et de tes notes
 
@@ -150,6 +150,7 @@ Toutes les routes, sauf `/api/auth/**`, demandent l'en-tête `Authorization: Bea
 | GET | `/api/documents/{id}/fichier` | Téléchargement |
 | DELETE | `/api/documents/{id}` | Suppression |
 | GET | `/api/offres?q=&lieu=&contrat=&source=&page=` | Recherche d'offres d'emploi (La bonne alternance, Jooble, Adzuna, France Travail) |
+| GET / PUT | `/api/compte/profil` | Coordonnées (`{ nom, telephone, adresse, ville }`) |
 | PUT | `/api/compte/mot-de-passe` | Changer de mot de passe (`{ actuel, nouveau }`) |
 | GET | `/api/compte/export` | Export de toutes ses données |
 | POST | `/api/compte/suppression` | Suppression du compte (`{ motDePasse }`) |

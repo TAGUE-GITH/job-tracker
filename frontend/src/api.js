@@ -72,6 +72,8 @@ export const api = {
     setTimeout(() => URL.revokeObjectURL(url), 60_000)
   },
 
+  profil: () => request('/compte/profil'),
+  modifierProfil: (data) => request('/compte/profil', { method: 'PUT', body: data }),
   changerMotDePasse: (data) => request('/compte/mot-de-passe', { method: 'PUT', body: data }),
   exporterCompte: () => request('/compte/export'),
   supprimerCompte: (motDePasse) => request('/compte/suppression', { method: 'POST', body: { motDePasse } }),
@@ -80,7 +82,7 @@ export const api = {
   compatibilite: (id, data) => request(`/candidatures/${id}/ia/compatibilite`, { method: 'POST', body: data }),
   relance: (id) => request(`/candidatures/${id}/ia/relance`, { method: 'POST' }),
   lettreIa: (id, data) => request(`/candidatures/${id}/ia/lettre`, { method: 'POST', body: data }),
-  enregistrerLettre: (id, texte) => request(`/candidatures/${id}/lettre`, { method: 'POST', body: { texte } }),
+  enregistrerLettre: (id, lettre) => request(`/candidatures/${id}/lettre`, { method: 'POST', body: lettre }),
   aide: (data) => request('/ia/aide', { method: 'POST', body: data }),
   offres: ({ q = '', lieu = '', contrat = '', source = '', page = 0 } = {}) =>
     request(`/offres?${new URLSearchParams({ q, lieu, contrat, source, page })}`),

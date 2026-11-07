@@ -21,6 +21,14 @@ export function AuthProvider({ children }) {
     user,
     login: async (data) => connecter(await api.login(data)),
     register: async (data) => connecter(await api.register(data)),
+    // Apres une modification du nom dans "Mon compte"
+    majUtilisateur: (modifs) => {
+      setUser((u) => {
+        const nouveau = { ...u, ...modifs }
+        localStorage.setItem(USER_KEY, JSON.stringify(nouveau))
+        return nouveau
+      })
+    },
     logout: () => {
       setToken(null)
       localStorage.removeItem(USER_KEY)

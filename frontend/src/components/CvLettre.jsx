@@ -145,13 +145,43 @@ function Liste({ titre, items, classe = '' }) {
   )
 }
 
+const dateLongue = () => new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+/** En-tete propose par defaut : coordonnees du profil, entreprise, lieu et date du jour. */
+function enTeteParDefaut(profil, candidature) {
+  const expediteur = profil
+    ? [profil.nom, profil.adresse, profil.telephone, profil.email].filter((l) => l && l.trim()).join('\n')
+    : ''
+  // "Lieu : Nantes" est ajoute au texte de l'offre par le favori et la page Offres
+  const lieu = candidature.texteOffre?.match(/^Lieu : (.+)$/m)?.[1]
+  const destinataire = [candidature.nomEntreprise, 'Service Recrutement', lieu].filter(Boolean).join('\n')
+  const lieuDate = profil?.ville ? `À ${profil.ville}, le ${dateLongue()}` : `Le ${dateLongue()}`
+  return { expediteur, destinataire, lieuDate }
+}
+
 function Lettre({ candidature, cvId, onChange }) {
+  const [profil, setProfil] = useState(null)
+  const [entete, setEntete] = useState(() => enTeteParDefaut(null, candidature))
   const [consignes, setConsignes] = useState('')
   const [texte, setTexte] = useState('')
   const [chargement, setChargement] = useState(false)
   const [enregistrement, setEnregistrement] = useState(false)
   const [message, setMessage] = useState('')
   const [erreur, setErreur] = useState('')
+
+  useEffect(() => {
+    api.profil()
+      .then((p) => {
+        setProfil(p)
+        setEntete(enTeteParDefaut(p, candidature))
+      })
+      .catch(() => {})
+    // Uniquement a l'ouverture d'une candidature : l'enregistrement ne doit pas effacer l'en-tete modifie
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidature.id])
+
+  const profilIncomplet = profil && (!profil.telephone || !profil.adresse || !profil.ville)
+  const changerEntete = (e) => setEntete({ ...entete, [e.target.name]: e.target.value })
 
   const rediger = async () => {
     setErreur('')
@@ -168,9 +198,11 @@ function Lettre({ candidature, cvId, onChange }) {
   }
 
   const copier = async () => {
+    const complet = [entete.expediteur, entete.destinataire, entete.lieuDate, texte]
+      .map((b) => b.trim()).filter(Boolean).join('\n\n')
     try {
-      await navigator.clipboard.writeText(texte)
-      setMessage('Lettre copiée ✓')
+      await navigator.clipboard.writeText(complet)
+      setMessage('Lettre copiée avec l’en-tête ✓')
     } catch {
       setMessage('Copie impossible : sélectionne le texte puis Ctrl + C')
     }
@@ -180,7 +212,7 @@ function Lettre({ candidature, cvId, onChange }) {
     setErreur('')
     setEnregistrement(true)
     try {
-      onChange(await api.enregistrerLettre(candidature.id, texte))
+      onChange(await api.enregistrerLettre(candidature.id, { texte, ...entete }))
       setMessage('Lettre enregistrée en PDF et rattachée à la candidature ✓')
     } catch (e) {
       setErreur(e.message)
@@ -204,7 +236,34 @@ function Lettre({ candidature, cvId, onChange }) {
       {texte && (
         <>
           <p className="muted small">Relis et corrige la lettre avant de l'envoyer : c'est toi qui signes.</p>
-          <textarea className="lettre-texte" value={texte} onChange={(e) => setTexte(e.target.value)} rows={16} />
+          {profilIncomplet && (
+            <p className="import-info">
+              📇 Complète ton téléphone, ton adresse et ta ville dans <Link to="/compte">Mon compte</Link> pour
+              qu'ils s'ajoutent automatiquement en haut de tes lettres.
+            </p>
+          )}
+          <div className="feuille">
+            <div className="feuille-entete">
+              <label className="bloc-expediteur">
+                <span className="muted small">Tes coordonnées</span>
+                <textarea name="expediteur" value={entete.expediteur} onChange={changerEntete} rows={5} maxLength={600}
+                  placeholder={'Prénom Nom\nAdresse\nCode postal Ville\nTéléphone\nE-mail'} />
+              </label>
+              <div className="bloc-droite">
+                <label>
+                  <span className="muted small">Destinataire</span>
+                  <textarea name="destinataire" value={entete.destinataire} onChange={changerEntete} rows={4} maxLength={600}
+                    placeholder={'Entreprise\nService Recrutement\nAdresse'} />
+                </label>
+                <label>
+                  <span className="muted small">Lieu et date</span>
+                  <input name="lieuDate" value={entete.lieuDate} onChange={changerEntete} maxLength={200} />
+                </label>
+              </div>
+            </div>
+            <textarea className="lettre-texte" value={texte} onChange={(e) => setTexte(e.target.value)} rows={16}
+              aria-label="Corps de la lettre" />
+          </div>
           <div className="actions">
             <button className="btn ghost" onClick={copier}>Copier</button>
             <button className="btn primary" onClick={enregistrer} disabled={enregistrement || !texte.trim()}>

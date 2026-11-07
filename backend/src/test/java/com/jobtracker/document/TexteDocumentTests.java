@@ -30,6 +30,26 @@ class TexteDocumentTests {
     }
 
     @Test
+    void enTeteAvecCoordonneesDestinataireEtDate() throws Exception {
+        LettrePdf.EnTete entete = new LettrePdf.EnTete(
+                "Franck Tague\n12 rue des Lilas\n75011 Paris\n06 12 34 56 78\nfranck@exemple.fr",
+                "Liksi\nService Recrutement\n44000 Nantes",
+                "À Paris, le 7 novembre 2026");
+        byte[] pdf = LettrePdf.generer(entete, LETTRE);
+        String texte = TexteDocument.extraire(pdf, "lettre.pdf", "application/pdf");
+        assertTrue(texte.contains("06 12 34 56 78"), texte);
+        assertTrue(texte.contains("Service Recrutement"), texte);
+        assertTrue(texte.contains("À Paris, le 7 novembre 2026"), texte);
+        assertTrue(texte.indexOf("franck@exemple.fr") < texte.indexOf("Madame, Monsieur"), texte);
+
+        // Apercu visuel pour verification manuelle (target/lettre-apercu.png)
+        try (var doc = org.apache.pdfbox.Loader.loadPDF(pdf)) {
+            var image = new org.apache.pdfbox.rendering.PDFRenderer(doc).renderImageWithDPI(0, 60);
+            javax.imageio.ImageIO.write(image, "png", new java.io.File("target/lettre-apercu.png"));
+        }
+    }
+
+    @Test
     void lettreLonguePasseSurPlusieursPages() {
         String longue = (LETTRE + "\n\n").repeat(12);
         String texte = TexteDocument.extraire(LettrePdf.generer(longue), "lettre.pdf", "application/pdf");

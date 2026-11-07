@@ -74,7 +74,9 @@ public class IaService {
             statut et entonnoir de recrutement.
             - Carte "TAGIA - CV & lettre" (page d'une candidature) : onglet "Compatibilite" = score sur 100 du \
             CV face a l'offre, points forts, competences manquantes, mots-cles a ajouter ; onglet "Lettre de \
-            motivation" = lettre redigee depuis le CV et l'offre, modifiable, puis "Enregistrer en PDF" la \
+            motivation" = lettre redigee depuis le CV et l'offre, avec un en-tete modifiable (coordonnees du \
+            candidat en haut a gauche, prises dans "Mon compte" > "Mes coordonnees", destinataire a droite, \
+            lieu et date), puis "Enregistrer en PDF" la \
             rattache a la candidature. Il faut le texte de l'offre et un CV importe (PDF ou Word .docx).
             - Coach d'entretien (sur la page d'une candidature) : choisir l'etape, "Preparer" genere une \
             preparation complete, "Simuler" lance un entretien blanc question par question. \
@@ -246,11 +248,12 @@ public class IaService {
                         Tu es un expert en recrutement qui redige des lettres de motivation percutantes en francais. \
                         Redige une lettre de motivation pour le candidat, a partir de son CV et de l'offre. Regles :
                         - 250 a 350 mots, ton professionnel, sincere et dynamique, sans formules creuses ;
+                        - n'ecris NI coordonnees, NI adresse, NI date, NI bloc destinataire : ils sont ajoutes \
+                        automatiquement en haut de la lettre ;
                         - structure : ligne "Objet : ...", "Madame, Monsieur,", accroche sur l'entreprise, \
                         2 paragraphes qui relient des experiences REELLES du CV aux besoins de l'offre \
                         (n'invente aucune experience ni diplome), motivation, formule de politesse, signature ;
-                        - texte brut uniquement : pas de Markdown, pas de titres, pas de crochets a completer \
-                        sauf [Adresse] et [Telephone] si tu en as besoin ;
+                        - texte brut uniquement : pas de Markdown, pas de titres, pas de crochets a completer ;
                         - le candidat s'appelle %s.
                         """.formatted(nom)),
                 new Message("user", "OFFRE (" + c.getPoste() + " chez " + c.getNomEntreprise() + ") :\n"

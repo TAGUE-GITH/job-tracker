@@ -33,6 +33,33 @@ public class CompteService {
             List<DocumentResponse> documents) {
     }
 
+    public record Profil(String nom, String email, String telephone, String adresse, String ville) {
+
+        static Profil de(User u) {
+            return new Profil(u.getNom(), u.getEmail(), u.getTelephone(), u.getAdresse(), u.getVille());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Profil profil(Long userId) {
+        return Profil.de(utilisateur(userId));
+    }
+
+    @Transactional
+    public Profil modifierProfil(Long userId, String nom, String telephone, String adresse, String ville) {
+        User user = utilisateur(userId);
+        user.modifierProfil(nom.strip(), vide(telephone), vide(adresse), vide(ville));
+        return Profil.de(user);
+    }
+
+    private static String vide(String valeur) {
+        return valeur == null || valeur.isBlank() ? null : valeur.strip();
+    }
+
+    private User utilisateur(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Compte introuvable"));
+    }
+
     @Transactional
     public void changerMotDePasse(Long userId, String actuel, String nouveau) {
         User user = verifier(userId, actuel);
@@ -41,7 +68,7 @@ public class CompteService {
 
     @Transactional(readOnly = true)
     public Export exporter(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Compte introuvable"));
+        User user = utilisateur(userId);
         return new Export(Instant.now(), user.getNom(), user.getEmail(),
                 candidatureService.lister(userId, null, null), documentService.lister(userId));
     }
@@ -55,7 +82,7 @@ public class CompteService {
     }
 
     private User verifier(Long userId, String motDePasse) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Compte introuvable"));
+        User user = utilisateur(userId);
         if (motDePasse == null || !passwordEncoder.matches(motDePasse, user.getPassword())) {
             throw new BadCredentialsException("Mot de passe incorrect");
         }

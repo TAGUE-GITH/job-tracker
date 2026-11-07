@@ -69,13 +69,13 @@ public class DocumentService {
 
     /** Enregistre une lettre de motivation (texte) sous forme de PDF dans les documents de l'utilisateur. */
     @Transactional
-    public Document creerLettrePdf(Long userId, String nomFichier, String texte) {
+    public Document creerLettrePdf(Long userId, String nomFichier, LettrePdf.EnTete entete, String texte) {
         if (texte == null || texte.isBlank()) {
             throw new IllegalArgumentException("La lettre est vide");
         }
         Document doc = documentRepository.save(new Document(nomFichier, TypeDocument.LETTRE, "application/pdf",
                 userRepository.getReferenceById(userId)));
-        contenuRepository.save(new DocumentContenu(doc, LettrePdf.generer(texte)));
+        contenuRepository.save(new DocumentContenu(doc, LettrePdf.generer(entete, texte)));
         return doc;
     }
 

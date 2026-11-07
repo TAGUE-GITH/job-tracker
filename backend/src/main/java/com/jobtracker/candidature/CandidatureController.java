@@ -59,7 +59,7 @@ public class CandidatureController {
 
     @PostMapping("/{id}/lettre")
     public CandidatureResponse enregistrerLettre(@PathVariable Long id, @Valid @RequestBody LettreRequest req) {
-        return service.enregistrerLettre(CurrentUser.id(), id, req.texte());
+        return service.enregistrerLettre(CurrentUser.id(), id, req);
     }
 
     @PostMapping("/{id}/etapes")

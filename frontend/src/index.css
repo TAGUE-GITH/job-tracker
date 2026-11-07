@@ -415,3 +415,15 @@ kbd { font: inherit; font-size: 0.8rem; padding: 0.05rem 0.4rem; border: 1px sol
 .zone-danger { border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
 .zone-danger h3 { color: var(--danger); }
 .user a { color: var(--text); font-weight: 600; }
+
+/* Apercu de la lettre : en-tete a la francaise */
+.feuille { border: 1px solid var(--border); border-radius: 12px; padding: 1rem; background: var(--surface); display: flex; flex-direction: column; gap: 0.8rem; box-shadow: 0 6px 18px -14px rgba(0, 0, 0, 0.4); }
+.feuille-entete { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+.feuille-entete label { margin: 0; gap: 0.2rem; font-weight: 400; }
+.feuille-entete textarea, .feuille-entete input { font-size: 0.88rem; line-height: 1.4; }
+.bloc-expediteur textarea::first-line { font-weight: 700; }
+.bloc-droite { display: flex; flex-direction: column; gap: 0.6rem; padding-top: 2.2rem; }
+@media (max-width: 640px) {
+  .feuille-entete { grid-template-columns: 1fr; }
+  .bloc-droite { padding-top: 0; }
+}

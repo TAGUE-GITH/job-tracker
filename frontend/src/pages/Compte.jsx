@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth.jsx'
@@ -16,10 +16,72 @@ export default function Compte() {
           <p className="muted">{user.nom} · {user.email}</p>
         </div>
       </div>
+      <Coordonnees />
       <MotDePasse />
       <Export />
       <Suppression onSupprime={() => { logout(); navigate('/accueil') }} />
     </div>
+  )
+}
+
+function Coordonnees() {
+  const { majUtilisateur } = useAuth()
+  const [form, setForm] = useState(null)
+  const [message, setMessage] = useState('')
+  const [erreur, setErreur] = useState('')
+
+  useEffect(() => {
+    api.profil()
+      .then((p) => setForm({ nom: p.nom ?? '', telephone: p.telephone ?? '', adresse: p.adresse ?? '', ville: p.ville ?? '' }))
+      .catch((e) => setErreur(e.message))
+  }, [])
+
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+  const onSubmit = async (e) => {
+    e.preventDefault()
+    setMessage('')
+    setErreur('')
+    try {
+      const p = await api.modifierProfil(form)
+      majUtilisateur({ nom: p.nom })
+      setMessage('Coordonnées enregistrées ✓')
+    } catch (err) {
+      setErreur(err.message)
+    }
+  }
+
+  return (
+    <form className="card" onSubmit={onSubmit}>
+      <h3>📇 Mes coordonnées</h3>
+      <p className="muted small">Elles s'affichent en haut à gauche de tes lettres de motivation.</p>
+      {!form ? <p className="muted">Chargement…</p> : (
+        <>
+          <div className="grid-2">
+            <label>
+              Nom et prénom
+              <input name="nom" value={form.nom} onChange={onChange} required maxLength={100} autoComplete="name" />
+            </label>
+            <label>
+              Téléphone
+              <input name="telephone" type="tel" value={form.telephone} onChange={onChange} maxLength={30}
+                placeholder="06 12 34 56 78" autoComplete="tel" />
+            </label>
+          </div>
+          <label>
+            Adresse <span className="muted small">(rue, puis code postal et ville sur la ligne suivante)</span>
+            <textarea name="adresse" value={form.adresse} onChange={onChange} rows={2} maxLength={300}
+              placeholder={'12 rue des Lilas\n75011 Paris'} autoComplete="street-address" />
+          </label>
+          <label>
+            Ville <span className="muted small">(pour « À Paris, le … » sous le destinataire)</span>
+            <input name="ville" value={form.ville} onChange={onChange} maxLength={100} placeholder="Paris" />
+          </label>
+        </>
+      )}
+      {erreur && <p className="erreur">{erreur}</p>}
+      {message && <p className="succes">{message}</p>}
+      {form && <button className="btn primary">Enregistrer</button>}
+    </form>
   )
 }
 

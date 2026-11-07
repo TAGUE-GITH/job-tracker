@@ -2,9 +2,11 @@ package com.jobtracker.candidature;
 
 import com.jobtracker.candidature.CandidatureDtos.CandidatureRequest;
 import com.jobtracker.candidature.CandidatureDtos.CandidatureResponse;
+import com.jobtracker.candidature.CandidatureDtos.LettreRequest;
 import com.jobtracker.common.NotFoundException;
 import com.jobtracker.document.Document;
 import com.jobtracker.document.DocumentService;
+import com.jobtracker.document.LettrePdf;
 import com.jobtracker.document.TypeDocument;
 import com.jobtracker.etape.Etape;
 import com.jobtracker.etape.EtapeDtos.EtapeRequest;
@@ -73,10 +75,11 @@ public class CandidatureService {
 
     /** Enregistre la lettre de motivation (redigee avec TAGIA) en PDF et la rattache a la candidature. */
     @Transactional
-    public CandidatureResponse enregistrerLettre(Long userId, Long id, String texte) {
+    public CandidatureResponse enregistrerLettre(Long userId, Long id, LettreRequest req) {
         Candidature c = trouver(userId, id);
         String nom = ("Lettre de motivation - " + c.getNomEntreprise()).replaceAll("[\\\\/:*?\"<>|]", " ").strip();
-        c.setLettre(documentService.creerLettrePdf(userId, nom + ".pdf", texte));
+        LettrePdf.EnTete entete = new LettrePdf.EnTete(req.expediteur(), req.destinataire(), req.lieuDate());
+        c.setLettre(documentService.creerLettrePdf(userId, nom + ".pdf", entete, req.texte()));
         return CandidatureResponse.from(c);
     }
 

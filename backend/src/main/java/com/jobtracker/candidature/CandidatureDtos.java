@@ -25,7 +25,12 @@ public final class CandidatureDtos {
             Boolean abandonnee) {
     }
 
-    public record LettreRequest(@NotBlank(message = "La lettre est vide") @Size(max = 20000) String texte) {
+    /** Lettre relue par le candidat ; les blocs d'en-tete (plusieurs lignes) sont facultatifs. */
+    public record LettreRequest(
+            @NotBlank(message = "La lettre est vide") @Size(max = 20000) String texte,
+            @Size(max = 600) String expediteur,
+            @Size(max = 600) String destinataire,
+            @Size(max = 200) String lieuDate) {
     }
 
     public record CandidatureResponse(

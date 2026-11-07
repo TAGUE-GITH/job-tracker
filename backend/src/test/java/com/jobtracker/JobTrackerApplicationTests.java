@@ -163,7 +163,10 @@ class JobTrackerApplicationTests {
         // La lettre (relue par le candidat) est enregistree en PDF et rattachee
         String body = mvc.perform(post("/api/candidatures/" + id + "/lettre").header("Authorization", token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"texte\":\"Madame, Monsieur,\\n\\nJe souhaite rejoindre Acme.\"}"))
+                        .content("""
+                                {"texte":"Madame, Monsieur,\\n\\nJe souhaite rejoindre Acme.",
+                                 "expediteur":"Franck Tague\\n06 12 34 56 78","destinataire":"Acme/Labs",
+                                 "lieuDate":"À Paris, le 7 novembre 2026"}"""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lettre.nomFichier").value("Lettre de motivation - Acme Labs.pdf"))
                 .andReturn().getResponse().getContentAsString();
@@ -217,6 +220,21 @@ class JobTrackerApplicationTests {
                 .andExpect(jsonPath("$.parSource[?(@.nom == 'Sans lien')].reponses").value(0))
                 .andExpect(jsonPath("$.parCv[0].nom").value("Sans CV"))
                 .andExpect(jsonPath("$.parCv[0].total").value(2));
+    }
+
+    @Test
+    void coordonneesDuProfil() throws Exception {
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/compte/profil")
+                        .header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nom":"Franck Tague","telephone":"06 12 34 56 78",
+                                 "adresse":"12 rue des Lilas\\n75011 Paris","ville":"Paris"}"""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.telephone").value("06 12 34 56 78"));
+        mvc.perform(get("/api/compte/profil").header("Authorization", token))
+                .andExpect(jsonPath("$.nom").value("Franck Tague"))
+                .andExpect(jsonPath("$.ville").value("Paris"))
+                .andExpect(jsonPath("$.email").exists());
     }
 
     @Test

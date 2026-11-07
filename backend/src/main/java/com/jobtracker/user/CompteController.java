@@ -2,6 +2,7 @@ package com.jobtracker.user;
 
 import com.jobtracker.common.CurrentUser;
 import com.jobtracker.user.CompteService.Export;
+import com.jobtracker.user.CompteService.Profil;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -33,6 +34,23 @@ public class CompteController {
     }
 
     public record SuppressionRequest(@NotBlank String motDePasse) {
+    }
+
+    public record ProfilRequest(
+            @NotBlank(message = "Le nom est obligatoire") @Size(max = 100) String nom,
+            @Size(max = 30) String telephone,
+            @Size(max = 300) String adresse,
+            @Size(max = 100) String ville) {
+    }
+
+    @GetMapping("/profil")
+    public Profil profil() {
+        return compteService.profil(CurrentUser.id());
+    }
+
+    @PutMapping("/profil")
+    public Profil modifierProfil(@Valid @RequestBody ProfilRequest req) {
+        return compteService.modifierProfil(CurrentUser.id(), req.nom(), req.telephone(), req.adresse(), req.ville());
     }
 
     @PutMapping("/mot-de-passe")

@@ -25,6 +25,16 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    // Coordonnees affichees en haut des lettres de motivation (facultatives)
+    @Column(length = 30)
+    private String telephone;
+
+    @Column(length = 300)
+    private String adresse;
+
+    @Column(length = 100)
+    private String ville;
+
     protected User() {
     }
 
@@ -44,6 +54,25 @@ public class User {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getTelephone() {
+        return telephone;
+    }
+
+    public String getAdresse() {
+        return adresse;
+    }
+
+    public String getVille() {
+        return ville;
+    }
+
+    public void modifierProfil(String nom, String telephone, String adresse, String ville) {
+        this.nom = nom;
+        this.telephone = telephone;
+        this.adresse = adresse;
+        this.ville = ville;
     }
 
     public void changerMotDePasse(String hash) {
