@@ -73,7 +73,7 @@ public class IaService {
             eu au moins une reponse), taux d'entretien, taux d'offre, graphique par mois, repartition par \
             statut et entonnoir de recrutement.
             - Onglet "CV adapte" de la carte "TAGIA - CV & lettre" : TAGIA reecrit le CV pour l'offre (titre, profil, \
-            competences dans l'ordre de l'offre, y compris celles de l'offre proches du profil, missions avec ses mots-cles, atouts, centres d'interet) sans inventer d'experience ni de diplome ; tout est modifiable, puis "Enregistrer le CV en PDF" cree un CV compatible ATS (une colonne, \
+            competences dans l'ordre de l'offre, y compris celles de l'offre proches du profil, missions avec ses mots-cles, projet le plus pertinent detaille, atouts, centres d'interet) sans inventer d'experience ni de diplome, sur une seule page ; tout est modifiable, puis "Enregistrer le CV en PDF" cree un CV compatible ATS (une colonne, \
             vrai texte), le rattache a la candidature et affiche sa note ATS estimee.
             - Carte "TAGIA - CV & lettre" (page d'une candidature) : onglet "Compatibilite" = score sur 100 du \
             CV face a l'offre, points forts, competences manquantes, mots-cles a ajouter ; onglet "Lettre de \
@@ -262,8 +262,15 @@ public class IaService {
                         developpeur -> comptabilite) ;
                         - titre : intitule proche de celui de l'offre (ex. "Developpeur Java / Spring Boot - Alternance") ;
                         - profil : 3 a 4 phrases percutantes, orientees vers l'offre, sans "je" repete ;
-                        - competences : les plus pertinentes pour l'offre en premier, termes exacts de l'offre ;
-                        - missions : verbes d'action, resultats chiffres si le CV les donne, 2 a 4 par experience ;
+                        - competences : integre TOUTES les competences demandees par l'offre, sauf celles trop \
+                        eloignees du profil ; les plus pertinentes pour l'offre en premier, avec les termes exacts de l'offre ;
+                        - projets : choisis parmi les projets du CV les 1 ou 2 PLUS pertinents pour le poste et ignore \
+                        les autres ; detaille chacun : une phrase de contexte (description), puis 3 a 4 points concrets \
+                        (fonctionnalites realisees, architecture, outils, resultats) qui reprennent les mots-cles de \
+                        l'offre, et la liste des technologies ;
+                        - le CV doit tenir sur UNE page : sois concis, garde les experiences et formations les plus \
+                        utiles pour l'offre, 2 a 3 missions par experience, phrases courtes ;
+                        - missions : verbes d'action, resultats chiffres si le CV les donne ;
                         - atouts : 3 a 5 qualites prouvees par le CV ; centres d'interet : ceux du CV (ou vide) ;
                         - motsClesAjoutes : mots-cles de l'offre que tu as integres ;
                         - competencesAjoutees : uniquement les competences que tu as ajoutees et qui ne figuraient pas \
@@ -272,7 +279,7 @@ public class IaService {
                         {"titre": "", "profil": "",
                          "competencesTechniques": [""], "competencesTransverses": [""],
                          "experiences": [{"poste": "", "entreprise": "", "lieu": "", "periode": "", "missions": [""]}],
-                         "projets": [{"nom": "", "description": "", "technologies": ""}],
+                         "projets": [{"nom": "", "description": "", "points": [""], "technologies": ""}],
                          "formations": [{"diplome": "", "etablissement": "", "periode": "", "details": ""}],
                          "langues": [""], "atouts": [""], "centresInteret": [""], "liens": [""],
                          "motsClesAjoutes": [""], "competencesAjoutees": [""]}

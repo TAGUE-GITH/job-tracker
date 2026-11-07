@@ -16,7 +16,7 @@ function versFormulaire(cv) {
   }
   LISTES.forEach((cle) => { f[cle] = enLignes(cv[cle]) })
   f.experiences = (cv.experiences ?? []).map((x) => ({ ...x, missions: enLignes(x.missions) }))
-  f.projets = cv.projets ?? []
+  f.projets = (cv.projets ?? []).map((p) => ({ ...p, points: enLignes(p.points) }))
   f.formations = cv.formations ?? []
   return f
 }
@@ -26,14 +26,14 @@ function versCv(f) {
   const cv = { titre: f.titre, profil: f.profil }
   LISTES.forEach((cle) => { cv[cle] = enListe(f[cle]) })
   cv.experiences = f.experiences.map((x) => ({ ...x, missions: enListe(x.missions) }))
-  cv.projets = f.projets
+  cv.projets = f.projets.map((p) => ({ ...p, points: enListe(p.points) }))
   cv.formations = f.formations
   return cv
 }
 
 const VIDES = {
   experiences: { poste: '', entreprise: '', lieu: '', periode: '', missions: '' },
-  projets: { nom: '', description: '', technologies: '' },
+  projets: { nom: '', description: '', points: '', technologies: '' },
   formations: { diplome: '', etablissement: '', periode: '', details: '' },
 }
 
@@ -97,8 +97,8 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
       {!form && !chargement && (
         <p className="muted small">
           TAGIA réécrit ton CV pour cette offre : titre, profil, compétences dans l'ordre de l'offre (avec celles de
-          l'offre proches des tiennes), missions reformulées avec ses mots-clés, atouts et centres d'intérêt. Il
-          n'invente ni expérience ni diplôme.
+          l'offre proches des tiennes), missions reformulées avec ses mots-clés, ton projet le plus pertinent
+          détaillé, atouts et centres d'intérêt, le tout sur une page. Il n'invente ni expérience ni diplôme.
           Le PDF est pensé pour les logiciels de tri (ATS) : une colonne, du vrai texte, des rubriques classiques.
         </p>
       )}
@@ -156,14 +156,15 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
             ))}
           </Groupe>
 
-          <Groupe titre="Projets" onAjouter={() => ajouter('projets')}>
+          <Groupe titre="Projets les plus pertinents pour le poste" onAjouter={() => ajouter('projets')}>
             {form.projets.map((p, i) => (
               <Bloc key={i} onRetirer={() => retirer('projets', i)}>
                 <div className="grid-2">
                   <Champ libelle="Nom" valeur={p.nom} onChange={(v) => changerElement('projets', i, 'nom', v)} />
                   <Champ libelle="Technologies" valeur={p.technologies} onChange={(v) => changerElement('projets', i, 'technologies', v)} />
                 </div>
-                <label>Description<textarea rows={2} value={p.description ?? ''} onChange={(e) => changerElement('projets', i, 'description', e.target.value)} /></label>
+                <label>Contexte<textarea rows={2} value={p.description ?? ''} onChange={(e) => changerElement('projets', i, 'description', e.target.value)} /></label>
+                <Liste titre="Réalisations détaillées" valeur={p.points ?? ''} onChange={(v) => changerElement('projets', i, 'points', v)} />
               </Bloc>
             ))}
           </Groupe>

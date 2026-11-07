@@ -21,7 +21,10 @@ class CvPdfTests {
                     List.of("Développement d'API REST en Java avec Spring Boot",
                             "Mise en place de tests automatisés et d'une CI GitHub Actions"))),
             List.of(new CvPdf.Projet("Taguora", "Application de suivi de candidatures avec assistant IA.",
-                    "Java, Spring Boot, React, Docker, PostgreSQL")),
+                    "Java, Spring Boot, React, Docker, PostgreSQL",
+                    List.of("API REST Spring Boot securisee par JWT, base PostgreSQL",
+                            "Interface React responsive avec tableau de bord et Kanban",
+                            "CI/CD GitHub Actions, images Docker, deploiement Render et Vercel"))),
             List.of(new CvPdf.Formation("Bachelor Développeur d'applications", "École du Numérique", "2024 - 2027",
                     null)),
             List.of("Français : natif", "Anglais : B2"),
@@ -56,5 +59,25 @@ class CvPdfTests {
                 new CvPdf.Cv(null, "Profil court mais suffisant pour etre lu par un logiciel.", null, null, null,
                         null, null, null, null, null, null));
         assertTrue(TexteDocument.extraire(pdf, "cv.pdf", "application/pdf").contains("PROFIL"));
+    }
+
+    @Test
+    void unCvChargeTientSurUnePage() throws Exception {
+        List<CvPdf.Experience> experiences = new java.util.ArrayList<>();
+        for (int i = 1; i <= 4; i++) {
+            experiences.add(new CvPdf.Experience("Developpeur Java " + i, "Entreprise " + i, "Paris", "202" + i,
+                    List.of("Conception et developpement d'API REST avec Spring Boot et PostgreSQL pour une equipe agile",
+                            "Mise en place de tests unitaires JUnit et d'integration continue avec GitHub Actions",
+                            "Amelioration des performances et documentation technique de l'application")));
+        }
+        CvPdf.Cv charge = new CvPdf.Cv(CV.titre(), CV.profil() + " " + CV.profil(), CV.competencesTechniques(),
+                CV.competencesTransverses(), experiences, CV.projets(), CV.formations(), CV.langues(), CV.atouts(),
+                CV.centresInteret(), CV.liens());
+        byte[] pdf = CvPdf.generer(new CvPdf.Contact("Franck Tague", "franck@exemple.fr", "06 12 34 56 78", "Paris"),
+                charge);
+        org.junit.jupiter.api.Assertions.assertEquals(1, CvPdf.pages(pdf));
+        try (var doc = Loader.loadPDF(pdf)) {
+            ImageIO.write(new PDFRenderer(doc).renderImageWithDPI(0, 70), "png", new File("target/cv-charge-apercu.png"));
+        }
     }
 }
