@@ -16,7 +16,7 @@ const RECHERCHE_DEFAUT = { q: 'développeur java', lieu: '', contrat: 'ALTERNANC
 const DEPARTEMENT = /^(\d{2,3}|2[ab])$/i
 const MOT_CONTRAT = { ALTERNANCE: 'alternance', STAGE: 'stage', CDI: 'CDI', CDD: 'CDD' }
 
-// Apec et HelloWork n'ont pas d'API publique : on ouvre leur site avec la meme recherche
+// Welcome to the Jungle, Apec et HelloWork n'ont pas d'API publique : on ouvre leur site avec la meme recherche
 function liensExternes({ q, lieu, contrat }) {
   const mot = MOT_CONTRAT[contrat]
   const motsCles = mot && !q.toLowerCase().includes(mot.toLowerCase()) ? `${q} ${mot}`.trim() : q.trim()
@@ -24,7 +24,10 @@ function liensExternes({ q, lieu, contrat }) {
   if (lieu.trim()) hellowork.set('l', lieu.trim())
   const apec = new URLSearchParams({ motsCles })
   if (DEPARTEMENT.test(lieu.trim())) apec.set('lieux', lieu.trim().toUpperCase())
+  const wttj = new URLSearchParams({ query: motsCles })
+  if (lieu.trim() && !DEPARTEMENT.test(lieu.trim())) wttj.set('aroundQuery', lieu.trim())
   return [
+    { nom: 'Welcome to the Jungle', url: `https://www.welcometothejungle.com/fr/jobs?${wttj}`, note: 'tech et startups' },
     { nom: 'HelloWork', url: `https://www.hellowork.com/fr-fr/emploi/recherche.html?${hellowork}` },
     { nom: 'Apec', url: `https://www.apec.fr/candidat/recherche-emploi.html/emploi?${apec}`, note: 'offres cadres' },
   ]
