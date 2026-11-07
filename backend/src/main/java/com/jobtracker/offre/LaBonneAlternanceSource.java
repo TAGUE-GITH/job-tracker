@@ -119,6 +119,13 @@ public class LaBonneAlternanceSource implements SourceOffres {
     }
 
     @Override
+    public String aideErreur(int statut) {
+        return statut == 401 || statut == 403
+                ? ". Verifie LBA_API_KEY sur Render (cle Production sur https://api.apprentissage.beta.gouv.fr)."
+                : "";
+    }
+
+    @Override
     public ResultatSource rechercher(Recherche r) {
         List<String> romes = romes(r.motsCles());
         double[] coordonnees = DEPARTEMENT.matcher(r.lieu()).matches() || r.lieu().isBlank()

@@ -60,6 +60,16 @@ public class JoobleSource implements SourceOffres {
     }
 
     @Override
+    public String aideErreur(int statut) {
+        if (statut != 403) {
+            return "";
+        }
+        return ". Jooble ne reconnait pas la cle sur " + hote + " : une cle demandee sur fr.jooble.org "
+                + "demande JOOBLE_HOST=fr.jooble.org, une cle demandee sur jooble.org demande "
+                + "JOOBLE_HOST=jooble.org (variables du service sur Render).";
+    }
+
+    @Override
     public ResultatSource rechercher(Recherche r) {
         String motsCles = r.motsCles();
         String motContrat = MOTS_CONTRAT.get(r.contrat());

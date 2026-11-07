@@ -16,6 +16,11 @@ public interface SourceOffres {
 
     ResultatSource rechercher(Recherche recherche);
 
+    /** Conseil ajoute au message quand l'API repond par une erreur HTTP (vide par defaut). */
+    default String aideErreur(int statut) {
+        return "";
+    }
+
     /** Faux si la source ne propose pas ce type de contrat (vide = tous). */
     default boolean supporte(String contrat) {
         return true;

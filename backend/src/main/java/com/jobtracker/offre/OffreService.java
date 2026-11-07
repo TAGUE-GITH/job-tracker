@@ -6,6 +6,7 @@ import com.jobtracker.offre.OffreDtos.ResultatSource;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 /** Recherche d'offres d'emploi dans les API externes configurees. */
 @Service
@@ -41,6 +42,13 @@ public class OffreService {
         ResultatSource resultat;
         try {
             resultat = source.rechercher(recherche);
+        } catch (RestClientResponseException e) {
+            // Certaines API renvoient une page HTML complete en cas d'erreur : on n'affiche que le code
+            String corps = e.getResponseBodyAsString();
+            String detail = corps.isBlank() || corps.stripLeading().startsWith("<") || corps.length() > 300
+                    ? "" : " : " + corps.strip();
+            throw new OffresIndisponiblesException("L'API " + source.nom() + " a refuse la recherche (erreur "
+                    + e.getStatusCode().value() + ")" + detail + source.aideErreur(e.getStatusCode().value()));
         } catch (RestClientException e) {
             throw new OffresIndisponiblesException("L'API " + source.nom() + " ne repond pas : " + e.getMessage());
         }
