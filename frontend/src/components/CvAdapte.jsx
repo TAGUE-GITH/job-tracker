@@ -10,7 +10,10 @@ const LISTES = ['competencesTechniques', 'competencesTransverses', 'langues', 'a
 
 /** Reponse de TAGIA -> formulaire modifiable */
 function versFormulaire(cv) {
-  const f = { titre: cv.titre ?? '', profil: cv.profil ?? '', motsClesAjoutes: cv.motsClesAjoutes ?? [] }
+  const f = {
+    titre: cv.titre ?? '', profil: cv.profil ?? '', motsClesAjoutes: cv.motsClesAjoutes ?? [],
+    competencesAjoutees: (cv.competencesAjoutees ?? []).filter(Boolean),
+  }
   LISTES.forEach((cle) => { f[cle] = enLignes(cv[cle]) })
   f.experiences = (cv.experiences ?? []).map((x) => ({ ...x, missions: enLignes(x.missions) }))
   f.projets = cv.projets ?? []
@@ -61,6 +64,17 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
   const ajouter = (liste) => setForm((f) => ({ ...f, [liste]: [...f[liste], { ...VIDES[liste] }] }))
   const retirer = (liste, i) => setForm((f) => ({ ...f, [liste]: f[liste].filter((_, j) => j !== i) }))
 
+  // Retire une competence ajoutee par TAGIA, de la liste des ajouts et des listes de competences
+  const retirerCompetence = (competence) => setForm((f) => {
+    const sans = (texte) => enListe(texte).filter((c) => c.toLowerCase() !== competence.toLowerCase()).join('\n')
+    return {
+      ...f,
+      competencesAjoutees: f.competencesAjoutees.filter((c) => c !== competence),
+      competencesTechniques: sans(f.competencesTechniques),
+      competencesTransverses: sans(f.competencesTransverses),
+    }
+  })
+
   const enregistrer = async () => {
     setErreur('')
     setEnregistrement(true)
@@ -82,8 +96,9 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
     <div className="cv-adapte">
       {!form && !chargement && (
         <p className="muted small">
-          TAGIA réécrit ton CV pour cette offre : titre, profil, compétences dans l'ordre de l'offre, missions
-          reformulées avec ses mots-clés, atouts et centres d'intérêt. Il n'invente rien : tout vient de ton CV.
+          TAGIA réécrit ton CV pour cette offre : titre, profil, compétences dans l'ordre de l'offre (avec celles de
+          l'offre proches des tiennes), missions reformulées avec ses mots-clés, atouts et centres d'intérêt. Il
+          n'invente ni expérience ni diplôme.
           Le PDF est pensé pour les logiciels de tri (ATS) : une colonne, du vrai texte, des rubriques classiques.
         </p>
       )}
@@ -98,6 +113,22 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
             <div>
               <h4>🔑 Mots-clés de l'offre intégrés</h4>
               <div className="chips">{form.motsClesAjoutes.map((m) => <span key={m} className="chip">{m}</span>)}</div>
+            </div>
+          )}
+          {form.competencesAjoutees.length > 0 && (
+            <div className="competences-ajoutees">
+              <h4>➕ Compétences ajoutées d'après l'offre</h4>
+              <p className="muted small">
+                Proches de tes compétences actuelles. Garde celles que tu sauras expliquer en entretien, retire les autres (×).
+              </p>
+              <div className="chips">
+                {form.competencesAjoutees.map((c) => (
+                  <span key={c} className="chip chip-ajout">
+                    {c}
+                    <button type="button" onClick={() => retirerCompetence(c)} aria-label={`Retirer ${c}`}>×</button>
+                  </span>
+                ))}
+              </div>
             </div>
           )}
           <p className="muted small">

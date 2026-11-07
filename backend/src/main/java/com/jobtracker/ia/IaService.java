@@ -73,8 +73,7 @@ public class IaService {
             eu au moins une reponse), taux d'entretien, taux d'offre, graphique par mois, repartition par \
             statut et entonnoir de recrutement.
             - Onglet "CV adapte" de la carte "TAGIA - CV & lettre" : TAGIA reecrit le CV pour l'offre (titre, profil, \
-            competences dans l'ordre de l'offre, missions avec ses mots-cles, atouts, centres d'interet) sans rien \
-            inventer ; tout est modifiable, puis "Enregistrer le CV en PDF" cree un CV compatible ATS (une colonne, \
+            competences dans l'ordre de l'offre, y compris celles de l'offre proches du profil, missions avec ses mots-cles, atouts, centres d'interet) sans inventer d'experience ni de diplome ; tout est modifiable, puis "Enregistrer le CV en PDF" cree un CV compatible ATS (une colonne, \
             vrai texte), le rattache a la candidature et affiche sa note ATS estimee.
             - Carte "TAGIA - CV & lettre" (page d'une candidature) : onglet "Compatibilite" = score sur 100 du \
             CV face a l'offre, points forts, competences manquantes, mots-cles a ajouter ; onglet "Lettre de \
@@ -254,15 +253,21 @@ public class IaService {
                         Tu es un expert en recrutement et en logiciels de tri de CV (ATS). Tu reecris le CV du \
                         candidat pour qu'il corresponde au mieux a l'offre et passe les filtres ATS, en francais.
                         Regles absolues :
-                        - n'invente JAMAIS d'experience, d'entreprise, de diplome, de date ni de competence que le CV \
-                        ne permet pas d'affirmer ; tu peux reformuler, reordonner, mettre en avant et reprendre le \
-                        vocabulaire exact de l'offre pour des elements reellement presents ;
+                        - n'invente JAMAIS d'experience, d'entreprise, de diplome ni de date ; tu peux reformuler, \
+                        reordonner, mettre en avant et reprendre le vocabulaire exact de l'offre ;
+                        - competences : AJOUTE les competences demandees par l'offre qui sont proches de celles du \
+                        candidat (meme famille, outil voisin, prolongement naturel : ex. Spring Boot -> Spring Data JPA, \
+                        JUnit ; React -> TypeScript ; SQL -> PostgreSQL ; Git -> GitHub Actions). N'ajoute PAS celles qui \
+                        sont trop eloignees de son profil (autre langage ou domaine sans lien, ex. Java -> SAP ABAP, \
+                        developpeur -> comptabilite) ;
                         - titre : intitule proche de celui de l'offre (ex. "Developpeur Java / Spring Boot - Alternance") ;
                         - profil : 3 a 4 phrases percutantes, orientees vers l'offre, sans "je" repete ;
                         - competences : les plus pertinentes pour l'offre en premier, termes exacts de l'offre ;
                         - missions : verbes d'action, resultats chiffres si le CV les donne, 2 a 4 par experience ;
                         - atouts : 3 a 5 qualites prouvees par le CV ; centres d'interet : ceux du CV (ou vide) ;
-                        - motsClesAjoutes : mots-cles de l'offre que tu as integres.
+                        - motsClesAjoutes : mots-cles de l'offre que tu as integres ;
+                        - competencesAjoutees : uniquement les competences que tu as ajoutees et qui ne figuraient pas \
+                        dans le CV d'origine (elles apparaissent aussi dans competencesTechniques ou Transverses).
                         Reponds UNIQUEMENT avec un objet JSON valide :
                         {"titre": "", "profil": "",
                          "competencesTechniques": [""], "competencesTransverses": [""],
@@ -270,7 +275,7 @@ public class IaService {
                          "projets": [{"nom": "", "description": "", "technologies": ""}],
                          "formations": [{"diplome": "", "etablissement": "", "periode": "", "details": ""}],
                          "langues": [""], "atouts": [""], "centresInteret": [""], "liens": [""],
-                         "motsClesAjoutes": [""]}
+                         "motsClesAjoutes": [""], "competencesAjoutees": [""]}
                         """),
                 new Message("user", "OFFRE (" + c.getPoste() + " chez " + c.getNomEntreprise() + ") :\n"
                         + texteOffre(c) + "\n\nCV ACTUEL DU CANDIDAT :\n" + cv));
