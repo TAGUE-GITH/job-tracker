@@ -13,6 +13,7 @@ import Documents from './pages/Documents.jsx'
 import Offres from './pages/Offres.jsx'
 import Importer from './pages/Importer.jsx'
 import Compte from './pages/Compte.jsx'
+import BandeauReveil from './components/BandeauReveil.jsx'
 
 function Layout() {
   const { user, logout } = useAuth()
@@ -50,21 +51,24 @@ function Layout() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/accueil" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/importer" element={<Importer />} />
-      <Route element={<Layout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="candidatures" element={<Candidatures />} />
-        <Route path="candidatures/nouvelle" element={<CandidatureForm />} />
-        <Route path="candidatures/:id" element={<CandidatureDetail />} />
-        <Route path="candidatures/:id/modifier" element={<CandidatureForm />} />
-        <Route path="documents" element={<Documents />} />
-        <Route path="offres" element={<Offres />} />
-        <Route path="compte" element={<Compte />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <BandeauReveil />
+      <Routes>
+        <Route path="/accueil" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/importer" element={<Importer />} />
+        <Route element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="candidatures" element={<Candidatures />} />
+          <Route path="candidatures/nouvelle" element={<CandidatureForm />} />
+          <Route path="candidatures/:id" element={<CandidatureDetail />} />
+          <Route path="candidatures/:id/modifier" element={<CandidatureForm />} />
+          <Route path="documents" element={<Documents />} />
+          <Route path="offres" element={<Offres />} />
+          <Route path="compte" element={<Compte />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   )
 }

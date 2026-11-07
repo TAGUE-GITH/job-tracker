@@ -8,7 +8,28 @@ const API_URL = host ? `${host.startsWith('http') ? host : `https://${host}`}/ap
 export const getToken = () => localStorage.getItem(TOKEN_KEY)
 export const setToken = (t) => (t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY))
 
-async function request(path, { method = 'GET', body, raw = false } = {}) {
+// Requetes lentes : le serveur gratuit s'endort apres 15 min et met jusqu'a une minute a se reveiller.
+// On previent l'interface (BandeauReveil) quand une requete depasse 4 s (sauf l'IA, lente par nature).
+const DELAI_LENT = 4000
+let requetesLentes = 0
+const signalerLenteur = (delta) => {
+  requetesLentes += delta
+  window.dispatchEvent(new CustomEvent('taguora:lent', { detail: requetesLentes > 0 }))
+}
+
+async function request(path, options = {}) {
+  const surveiller = !path.includes('/ia')
+  let lente = false
+  const minuteur = surveiller ? setTimeout(() => { lente = true; signalerLenteur(1) }, DELAI_LENT) : null
+  try {
+    return await envoyer(path, options)
+  } finally {
+    clearTimeout(minuteur)
+    if (lente) signalerLenteur(-1)
+  }
+}
+
+async function envoyer(path, { method = 'GET', body, raw = false } = {}) {
   const headers = {}
   const token = getToken()
   if (token) headers.Authorization = `Bearer ${token}`

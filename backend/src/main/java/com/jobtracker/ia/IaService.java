@@ -8,6 +8,7 @@ import com.jobtracker.etape.TypeEtape;
 import com.jobtracker.ia.IaDtos.IaRequest;
 import com.jobtracker.ia.IaDtos.IaResponse;
 import com.jobtracker.ia.IaDtos.Message;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -19,7 +20,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 /**
  * TAGIA, l'assistant IA de Taguora : coach d'entretien et aide sur l'application.
@@ -109,7 +113,11 @@ public class IaService {
             @Value("${app.ia.model}") String model) {
         this.candidatureService = candidatureService;
         this.documentService = documentService;
-        this.restClient = RestClient.builder().baseUrl(baseUrl).build();
+        // Delais : 10 s pour se connecter, 90 s pour la reponse (un CV complet peut etre long a generer)
+        SimpleClientHttpRequestFactory delais = new SimpleClientHttpRequestFactory();
+        delais.setConnectTimeout(Duration.ofSeconds(10));
+        delais.setReadTimeout(Duration.ofSeconds(90));
+        this.restClient = RestClient.builder().baseUrl(baseUrl).requestFactory(delais).build();
         this.apiKey = apiKey;
         this.model = model;
     }
@@ -396,8 +404,26 @@ public class IaService {
                 throw new IaIndisponibleException("Reponse vide du service d'IA");
             }
             return res.choices().get(0).message().content();
+        } catch (RestClientResponseException e) {
+            throw new IaIndisponibleException(messageErreur(e.getStatusCode().value()));
+        } catch (ResourceAccessException e) {
+            throw new IaIndisponibleException("TAGIA met trop de temps a repondre. Reessaie dans un instant.");
         } catch (RestClientException e) {
             throw new IaIndisponibleException("Le service d'IA ne repond pas : " + e.getMessage());
         }
+    }
+
+    /** Message comprehensible pour les erreurs les plus courantes de l'API d'IA. */
+    static String messageErreur(int statut) {
+        return switch (statut) {
+            case 429 -> "TAGIA est tres sollicite en ce moment (limite de l'IA gratuite atteinte). "
+                    + "Reessaie dans une minute.";
+            case 401, 403 -> "La cle de l'IA est refusee : verifie la variable AI_API_KEY sur le serveur.";
+            case 404 -> "Le modele d'IA configure n'existe plus : verifie la variable AI_MODEL sur le serveur.";
+            case 413 -> "Le texte envoye a TAGIA est trop long : raccourcis le texte de l'offre ou ton CV.";
+            default -> statut >= 500
+                    ? "Le service d'IA rencontre un probleme de son cote. Reessaie dans quelques minutes."
+                    : "Le service d'IA a refuse la demande (erreur " + statut + ").";
+        };
     }
 }

@@ -29,8 +29,8 @@
 
 | Partie | Technologies |
 |---|---|
-| Frontend | React 19, Vite, React Router, Recharts, react-markdown |
-| Backend | Java 21, Spring Boot 4, Spring Data JPA, Spring Security (JWT), Bean Validation |
+| Frontend | React 19, Vite, React Router, Recharts, react-markdown, Vitest + Testing Library |
+| Backend | Java 21, Spring Boot 4, Spring Data JPA, Flyway, Spring Security (JWT), Bean Validation, PDFBox |
 | Base de données | PostgreSQL (Docker, Neon en production), H2 en développement et pour les tests |
 | IA | Toute API compatible OpenAI : Groq (gratuit, par défaut), OpenRouter, Ollama (local)… |
 | DevOps | Docker multi-stage, docker-compose, GitHub Actions (tests, build, images sur GHCR), Render (Blueprint) |
@@ -88,9 +88,13 @@ Avec plusieurs sources, l'application propose un onglet par source. La candidatu
 ## Tests
 
 ```bash
-cd backend && ./mvnw test
-cd frontend && npm run lint && npm run build
+cd backend && ./mvnw test        # tests JUnit (API, PDF, migrations)
+cd frontend && npm run lint && npm test && npm run build   # oxlint, Vitest + Testing Library, build
 ```
+
+## Base de données et migrations
+
+Le schéma est versionné avec **Flyway** (`backend/src/main/resources/db/migration`) : `V1` crée les tables, chaque évolution ajoute un nouveau script `V2__...`, `V3__...`. Hibernate ne modifie jamais la base (`ddl-auto=validate`), il vérifie seulement qu'elle correspond aux entités. Une base créée avant Flyway est reprise automatiquement comme version 1 (`baseline-on-migrate`).
 
 ## CI/CD (GitHub Actions)
 

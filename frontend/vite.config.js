@@ -9,4 +9,9 @@ export default defineConfig({
       '/api': 'http://localhost:8080',
     },
   },
+  // Tests (Vitest) : navigateur simule avec jsdom
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+  },
 })
