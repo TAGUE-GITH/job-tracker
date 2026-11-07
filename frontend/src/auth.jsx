@@ -22,6 +22,8 @@ export function AuthProvider({ children }) {
     login: async (data) => connecter(await api.login(data)),
     register: async (data) => connecter(await api.register(data)),
     demo: async () => connecter(await api.demo()),
+    // Nouveau jeton apres un changement de mot de passe ou une deconnexion des autres appareils
+    rafraichir: connecter,
     // Apres une modification du nom dans "Mon compte"
     majUtilisateur: (modifs) => {
       setUser((u) => {

@@ -39,6 +39,10 @@ public class User {
     @Column(name = "date_creation")
     private LocalDateTime dateCreation;
 
+    /** Incrementee pour deconnecter toutes les sessions (voir le claim "ver" du JWT). */
+    @Column(name = "version_jeton", nullable = false)
+    private int versionJeton;
+
     protected User() {
     }
 
@@ -82,6 +86,15 @@ public class User {
         this.telephone = telephone;
         this.adresse = adresse;
         this.ville = ville;
+    }
+
+    public int getVersionJeton() {
+        return versionJeton;
+    }
+
+    /** Invalide tous les jetons de connexion deja emis pour ce compte. */
+    public void revoquerJetons() {
+        this.versionJeton++;
     }
 
     public void changerMotDePasse(String hash) {

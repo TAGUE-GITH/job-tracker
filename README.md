@@ -60,6 +60,12 @@ Chercher une alternance, c'est des dizaines de candidatures, des tableurs oubli�
 - **Favori « Ajouter à Taguora »** : envoie n'importe quelle offre (Welcome to the Jungle, LinkedIn, Indeed, HelloWork, Apec…) dans le suivi en un clic, en lisant les données schema.org `JobPosting` de la page
 - Liens « Voir aussi » vers Welcome to the Jungle, HelloWork et l'Apec avec la même recherche
 
+### Sécurité
+- Mots de passe hachés avec **BCrypt**, règle commune serveur et interface (8 caractères minimum, une lettre et un chiffre) avec jauge de force
+- **Mot de passe oublié** : lien à usage unique valable 30 minutes envoyé par email (API Brevo) ; seul le hash SHA-256 du jeton est stocké ; la réponse ne révèle jamais si un email est inscrit
+- **Blocage après 5 échecs** de connexion pendant 15 minutes
+- **Révocation des sessions** : changer ou réinitialiser son mot de passe déconnecte tous les autres appareils (version du jeton JWT vérifiée à chaque requête), bouton « Déconnecter mes autres appareils »
+
 ### Confort
 - **Démo sans inscription** : chaque visiteur reçoit un compte neuf rempli d'exemples, supprimé automatiquement après 6 heures
 - **Application installable (PWA)**, responsive (menu mobile, listes en cartes), mode sombre automatique
@@ -197,6 +203,9 @@ Toutes les routes, sauf `/api/auth/**`, demandent l'en-tête `Authorization: Bea
 |---|---|---|
 | POST | `/api/auth/register` | Inscription |
 | POST | `/api/auth/login` | Connexion (renvoie le JWT) |
+| POST | `/api/auth/mot-de-passe-oublie` | Envoie un lien de réinitialisation par email (`{ email }`, réponse toujours 204) |
+| POST | `/api/auth/reinitialiser` | Nouveau mot de passe avec le jeton reçu (`{ jeton, nouveau }`) |
+| POST | `/api/compte/deconnexion-partout` | Déconnecte les autres appareils, renvoie un jeton neuf |
 | POST | `/api/auth/demo` | Crée un compte de démonstration rempli d'exemples (supprimé après 6 h) |
 | GET | `/api/candidatures?statut=&q=` | Liste filtrée |
 | POST / GET / PUT / DELETE | `/api/candidatures[/{id}]` | CRUD des candidatures |

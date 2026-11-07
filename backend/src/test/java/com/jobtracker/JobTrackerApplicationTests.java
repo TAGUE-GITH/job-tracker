@@ -268,10 +268,20 @@ class JobTrackerApplicationTests {
                         .header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"actuel\":\"mauvais\",\"nouveau\":\"nouveau123\"}"))
                 .andExpect(status().isBadRequest());
+        // Mot de passe trop faible refuse
         mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/compte/mot-de-passe")
                         .header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"actuel\":\"secret123\",\"nouveau\":\"faible\"}"))
+                .andExpect(status().isBadRequest());
+        String ancien = token;
+        String body = mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/compte/mot-de-passe")
+                        .header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"actuel\":\"secret123\",\"nouveau\":\"nouveau123\"}"))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        token = "Bearer " + extraire(body, "token");
+        // Les autres sessions (ancien jeton) sont deconnectees
+        mvc.perform(get("/api/candidatures").header("Authorization", ancien)).andExpect(status().isUnauthorized());
 
         mvc.perform(post("/api/candidatures").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -284,9 +294,9 @@ class JobTrackerApplicationTests {
         mvc.perform(post("/api/compte/suppression").header("Authorization", token)
                         .contentType(MediaType.APPLICATION_JSON).content("{\"motDePasse\":\"nouveau123\"}"))
                 .andExpect(status().isNoContent());
-        // Le compte n'existe plus : son jeton ne donne plus acces a des donnees
+        // Le compte n'existe plus : son jeton est refuse
         mvc.perform(get("/api/compte/export").header("Authorization", token))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

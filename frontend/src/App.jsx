@@ -16,6 +16,8 @@ import Compte from './pages/Compte.jsx'
 import BandeauReveil from './components/BandeauReveil.jsx'
 import BandeauDemo from './components/BandeauDemo.jsx'
 import Demo from './pages/Demo.jsx'
+import MotDePasseOublie from './pages/MotDePasseOublie.jsx'
+import Reinitialiser from './pages/Reinitialiser.jsx'
 
 function Layout() {
   const { user, logout } = useAuth()
@@ -61,6 +63,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/importer" element={<Importer />} />
         <Route path="/demo" element={<Demo />} />
+        <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
+        <Route path="/reinitialiser" element={<Reinitialiser />} />
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="candidatures" element={<Candidatures />} />

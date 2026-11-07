@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth.jsx'
 import { aujourdhui } from '../labels'
+import ChampMotDePasse from '../components/ChampMotDePasse.jsx'
+import { regleRespectee } from '../motDePasse.js'
 
 export default function Compte() {
   const { user, logout } = useAuth()
@@ -18,6 +20,7 @@ export default function Compte() {
       </div>
       <Coordonnees />
       <MotDePasse />
+      <Sessions />
       <Export />
       <Suppression onSupprime={() => { logout(); navigate('/accueil') }} />
     </div>
@@ -86,6 +89,7 @@ function Coordonnees() {
 }
 
 function MotDePasse() {
+  const { rafraichir } = useAuth()
   const [form, setForm] = useState({ actuel: '', nouveau: '', confirmation: '' })
   const [message, setMessage] = useState('')
   const [erreur, setErreur] = useState('')
@@ -95,14 +99,19 @@ function MotDePasse() {
     e.preventDefault()
     setMessage('')
     setErreur('')
+    if (!regleRespectee(form.nouveau)) {
+      setErreur('Mot de passe trop faible : 8 caractères minimum, avec au moins une lettre et un chiffre.')
+      return
+    }
     if (form.nouveau !== form.confirmation) {
       setErreur('Les deux nouveaux mots de passe ne sont pas identiques.')
       return
     }
     try {
-      await api.changerMotDePasse({ actuel: form.actuel, nouveau: form.nouveau })
+      // Le serveur deconnecte les autres appareils et renvoie un jeton neuf pour celui-ci
+      rafraichir(await api.changerMotDePasse({ actuel: form.actuel, nouveau: form.nouveau }))
       setForm({ actuel: '', nouveau: '', confirmation: '' })
-      setMessage('Mot de passe modifié ✓')
+      setMessage('Mot de passe modifié ✓ Tes autres appareils ont été déconnectés.')
     } catch (err) {
       setErreur(err.message)
     }
@@ -113,20 +122,50 @@ function MotDePasse() {
       <h3>🔑 Changer mon mot de passe</h3>
       <label>
         Mot de passe actuel
-        <input name="actuel" type="password" value={form.actuel} onChange={onChange} required autoComplete="current-password" />
+        <ChampMotDePasse name="actuel" value={form.actuel} onChange={onChange} required autoComplete="current-password" />
       </label>
       <label>
-        Nouveau mot de passe <span className="muted small">(6 caractères minimum)</span>
-        <input name="nouveau" type="password" minLength={6} value={form.nouveau} onChange={onChange} required autoComplete="new-password" />
+        Nouveau mot de passe
+        <ChampMotDePasse name="nouveau" value={form.nouveau} onChange={onChange} required avecForce autoComplete="new-password" />
       </label>
       <label>
         Confirme le nouveau mot de passe
-        <input name="confirmation" type="password" minLength={6} value={form.confirmation} onChange={onChange} required autoComplete="new-password" />
+        <ChampMotDePasse name="confirmation" value={form.confirmation} onChange={onChange} required autoComplete="new-password" />
       </label>
       {erreur && <p className="erreur">{erreur}</p>}
       {message && <p className="succes">{message}</p>}
       <button className="btn primary">Enregistrer</button>
     </form>
+  )
+}
+
+function Sessions() {
+  const { rafraichir } = useAuth()
+  const [message, setMessage] = useState('')
+  const [erreur, setErreur] = useState('')
+
+  const deconnecter = async () => {
+    setMessage('')
+    setErreur('')
+    try {
+      rafraichir(await api.deconnexionPartout())
+      setMessage('Toutes tes autres sessions ont été déconnectées ✓')
+    } catch (err) {
+      setErreur(err.message)
+    }
+  }
+
+  return (
+    <div className="card">
+      <h3>🛡️ Sécurité des connexions</h3>
+      <p className="muted small">
+        Tu t'es connecté sur un ordinateur partagé, ou tu as un doute ? Déconnecte toutes tes sessions ouvertes
+        sur les autres appareils. Tu restes connecté ici.
+      </p>
+      {erreur && <p className="erreur">{erreur}</p>}
+      {message && <p className="succes">{message}</p>}
+      <button className="btn ghost" onClick={deconnecter}>Déconnecter mes autres appareils</button>
+    </div>
   )
 }
 

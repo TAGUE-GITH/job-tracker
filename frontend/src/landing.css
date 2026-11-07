@@ -232,3 +232,9 @@
   .float-card { display: none; }
   .final-cta { margin: 1rem 1rem 3rem; }
 }
+
+/* Menu de la page d'accueil : on masque les liens d'ancre avant qu'ils ne se chevauchent */
+@media (max-width: 1000px) {
+  .landing-nav nav { display: none; }
+  .landing-nav { justify-content: space-between; }
+}

@@ -3,6 +3,8 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
 import Logo from '../components/Logo.jsx'
 import { importEnAttente } from '../importOffre.js'
+import ChampMotDePasse from '../components/ChampMotDePasse.jsx'
+import { regleRespectee } from '../motDePasse.js'
 
 export default function Login() {
   const { user, login, register } = useAuth()
@@ -22,6 +24,10 @@ export default function Login() {
   const onSubmit = async (e) => {
     e.preventDefault()
     setErreur('')
+    if (mode === 'register' && !regleRespectee(form.password)) {
+      setErreur('Mot de passe trop faible : 8 caractères minimum, avec au moins une lettre et un chiffre.')
+      return
+    }
     setChargement(true)
     try {
       if (mode === 'login') await login({ email: form.email, password: form.password })
@@ -61,8 +67,12 @@ export default function Login() {
         </label>
         <label>
           Mot de passe
-          <input name="password" type="password" minLength={6} value={form.password} onChange={onChange} required />
+          <ChampMotDePasse name="password" value={form.password} onChange={onChange} required
+            avecForce={mode === 'register'} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
         </label>
+        {mode === 'login' && (
+          <Link to="/mot-de-passe-oublie" className="small lien-oubli">Mot de passe oublié ?</Link>
+        )}
 
         {erreur && <p className="erreur">{erreur}</p>}
         <button className="btn primary" disabled={chargement}>

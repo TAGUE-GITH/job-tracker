@@ -26,13 +26,15 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
     private final long expirationHours;
+    private final TentativesConnexion tentatives;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtEncoder jwtEncoder,
-            @Value("${app.jwt.expiration-hours}") long expirationHours) {
+            @Value("${app.jwt.expiration-hours}") long expirationHours, TentativesConnexion tentatives) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtEncoder = jwtEncoder;
         this.expirationHours = expirationHours;
+        this.tentatives = tentatives;
     }
 
     @Transactional
@@ -46,9 +48,16 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest req) {
-        User user = userRepository.findByEmail(req.email().trim().toLowerCase())
+        String email = req.email().trim().toLowerCase();
+        tentatives.verifier(email);
+        User user = userRepository.findByEmail(email)
                 .filter(u -> passwordEncoder.matches(req.password(), u.getPassword()))
-                .orElseThrow(() -> new BadCredentialsException("Email ou mot de passe incorrect"));
+                .orElse(null);
+        if (user == null) {
+            tentatives.echec(email);
+            throw new BadCredentialsException("Email ou mot de passe incorrect");
+        }
+        tentatives.succes(email);
         return toResponse(user);
     }
 
@@ -58,6 +67,7 @@ public class AuthService {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(user.getEmail())
                 .claim("uid", user.getId())
+                .claim("ver", user.getVersionJeton())
                 .issuedAt(now)
                 .expiresAt(now.plus(expirationHours, ChronoUnit.HOURS))
                 .build();

@@ -1,10 +1,12 @@
 package com.jobtracker.user;
 
 import com.jobtracker.common.CurrentUser;
+import com.jobtracker.user.AuthDtos.AuthResponse;
 import com.jobtracker.user.CompteService.Export;
 import com.jobtracker.user.CompteService.Profil;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -30,7 +32,7 @@ public class CompteController {
 
     public record MotDePasseRequest(
             @NotBlank String actuel,
-            @NotBlank @Size(min = 6, message = "6 caracteres minimum") String nouveau) {
+            @NotBlank @Pattern(regexp = MotDePasse.REGLE, message = MotDePasse.MESSAGE) String nouveau) {
     }
 
     public record SuppressionRequest(@NotBlank String motDePasse) {
@@ -54,9 +56,13 @@ public class CompteController {
     }
 
     @PutMapping("/mot-de-passe")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changerMotDePasse(@Valid @RequestBody MotDePasseRequest req) {
-        compteService.changerMotDePasse(CurrentUser.id(), req.actuel(), req.nouveau());
+    public AuthResponse changerMotDePasse(@Valid @RequestBody MotDePasseRequest req) {
+        return compteService.changerMotDePasse(CurrentUser.id(), req.actuel(), req.nouveau());
+    }
+
+    @PostMapping("/deconnexion-partout")
+    public AuthResponse deconnecterPartout() {
+        return compteService.deconnecterPartout(CurrentUser.id());
     }
 
     @GetMapping("/export")

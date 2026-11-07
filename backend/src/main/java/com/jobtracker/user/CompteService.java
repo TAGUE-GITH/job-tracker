@@ -5,6 +5,7 @@ import com.jobtracker.candidature.CandidatureService;
 import com.jobtracker.common.NotFoundException;
 import com.jobtracker.document.DocumentResponse;
 import com.jobtracker.document.DocumentService;
+import com.jobtracker.user.AuthDtos.AuthResponse;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -20,13 +21,18 @@ public class CompteService {
     private final PasswordEncoder passwordEncoder;
     private final CandidatureService candidatureService;
     private final DocumentService documentService;
+    private final AuthService authService;
+    private final JetonReinitialisationRepository jetonRepository;
 
     public CompteService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-            CandidatureService candidatureService, DocumentService documentService) {
+            CandidatureService candidatureService, DocumentService documentService, AuthService authService,
+            JetonReinitialisationRepository jetonRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.candidatureService = candidatureService;
         this.documentService = documentService;
+        this.authService = authService;
+        this.jetonRepository = jetonRepository;
     }
 
     public record Export(Instant exporteLe, String nom, String email, List<CandidatureResponse> candidatures,
@@ -60,10 +66,21 @@ public class CompteService {
         return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Compte introuvable"));
     }
 
+    /** Change le mot de passe et deconnecte les autres appareils ; renvoie un jeton neuf pour celui-ci. */
     @Transactional
-    public void changerMotDePasse(Long userId, String actuel, String nouveau) {
+    public AuthResponse changerMotDePasse(Long userId, String actuel, String nouveau) {
         User user = verifier(userId, actuel);
         user.changerMotDePasse(passwordEncoder.encode(nouveau));
+        user.revoquerJetons();
+        return authService.toResponse(user);
+    }
+
+    /** Deconnecte toutes les sessions ouvertes ; renvoie un jeton neuf pour l'appareil courant. */
+    @Transactional
+    public AuthResponse deconnecterPartout(Long userId) {
+        User user = utilisateur(userId);
+        user.revoquerJetons();
+        return authService.toResponse(user);
     }
 
     @Transactional(readOnly = true)
@@ -85,6 +102,7 @@ public class CompteService {
         User user = utilisateur(userId);
         candidatureService.toutes(userId).forEach(c -> candidatureService.supprimer(userId, c.getId()));
         documentService.lister(userId).forEach(d -> documentService.supprimer(userId, d.id()));
+        jetonRepository.supprimerPourUtilisateur(userId);
         userRepository.delete(user);
     }
 

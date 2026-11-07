@@ -62,6 +62,9 @@ async function envoyer(path, { method = 'GET', body, raw = false } = {}) {
 
 export const api = {
   demo: () => request('/auth/demo', { method: 'POST' }),
+  motDePasseOublie: (email) => request('/auth/mot-de-passe-oublie', { method: 'POST', body: { email } }),
+  reinitialiser: (jeton, nouveau) => request('/auth/reinitialiser', { method: 'POST', body: { jeton, nouveau } }),
+  deconnexionPartout: () => request('/compte/deconnexion-partout', { method: 'POST' }),
   login: (data) => request('/auth/login', { method: 'POST', body: data }),
   register: (data) => request('/auth/register', { method: 'POST', body: data }),
 
