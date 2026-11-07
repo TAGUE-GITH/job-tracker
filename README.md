@@ -13,7 +13,7 @@ Suis tes candidatures, trouve des offres, et laisse **TAGIA**, l'assistant IA, a
 ![React 19](https://img.shields.io/badge/React-19-61dafb)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-336791)
 
-### [🌐 Ouvrir l'application](https://job-tracker-five-omega-85.vercel.app) · [👀 Essayer la démo sans inscription](https://job-tracker-five-omega-85.vercel.app/demo)
+### [🌐 Ouvrir l'application](https://taguora.vercel.app) · [👀 Essayer la démo sans inscription](https://taguora.vercel.app/demo)
 
 <sub>Le serveur est hébergé gratuitement : après une pause, le premier chargement peut prendre jusqu'à une minute.</sub>
 
