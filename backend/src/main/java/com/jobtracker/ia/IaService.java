@@ -60,7 +60,13 @@ public class IaService {
             tout seul selon la derniere etape ; "Abandonnee" se coche dans le formulaire de modification.
             - Etapes (page d'une candidature, formulaire "Ajouter une etape") : Candidature envoyee (creee \
             automatiquement), Echange RH, Test technique, Entretien technique, Entretien manager, Offre, \
-            Refus. Chaque etape a une date et des notes (questions posees, ressenti) que l'IA reutilise.
+            Refus, Relance envoyee. Chaque etape a une date et des notes (questions posees, ressenti) que l'IA reutilise.
+            - Tableau de bord : carte "A relancer" = candidatures en attente ou en cours sans nouvelle etape \
+            depuis 7 jours ; "Rediger la relance" fait ecrire l'email par TAGIA, "J'ai relance" ajoute une etape \
+            Relance (qui ne change pas le statut).
+            - Page Candidatures : bascule "Liste" / "Kanban". En Kanban, glisser une carte dans une colonne ajoute \
+            l'etape correspondante (En cours : choix de l'etape, Offre, Refus) ou marque la candidature abandonnee ; \
+            sur telephone, le menu "Deplacer vers..." de chaque carte fait la meme chose.
             - CV & lettres : importer des fichiers (PDF, Word..., 10 Mo max) de type CV ou Lettre, les \
             ouvrir, les supprimer. Un document supprime est detache des candidatures.
             - Tableau de bord : total, candidatures en cours, taux de reponse (part des candidatures ayant \
