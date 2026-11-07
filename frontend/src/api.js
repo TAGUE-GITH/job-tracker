@@ -72,6 +72,9 @@ export const api = {
     setTimeout(() => URL.revokeObjectURL(url), 60_000)
   },
 
+  changerMotDePasse: (data) => request('/compte/mot-de-passe', { method: 'PUT', body: data }),
+  exporterCompte: () => request('/compte/export'),
+  supprimerCompte: (motDePasse) => request('/compte/suppression', { method: 'POST', body: { motDePasse } }),
   stats: () => request('/stats'),
   ia: (id, data) => request(`/candidatures/${id}/ia`, { method: 'POST', body: data }),
   compatibilite: (id, data) => request(`/candidatures/${id}/ia/compatibilite`, { method: 'POST', body: data }),

@@ -52,6 +52,9 @@ export default function Dashboard() {
         <Kpi label="Taux de réponse" valeur={`${stats.tauxReponse} %`} />
         <Kpi label="Taux d'entretien" valeur={`${stats.tauxEntretien} %`} />
         <Kpi label="Taux d'offre" valeur={`${stats.tauxOffre} %`} />
+        {stats.delaiMoyenReponse != null && (
+          <Kpi label="Délai moyen de réponse" valeur={`${stats.delaiMoyenReponse} j`} />
+        )}
       </div>
 
       <ARelancer />
@@ -84,6 +87,13 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <div className="grid-2">
+        <Groupes titre="📄 Quel CV marche le mieux ?" groupes={stats.parCv}
+          aide="Taux de réponse selon le CV envoyé. Compare deux versions de ton CV sur plusieurs candidatures." />
+        <Groupes titre="🌐 D'où viennent tes réponses ?" groupes={stats.parSource}
+          aide="Taux de réponse selon le site de l'offre (d'après le lien de l'offre)." />
+      </div>
+
       <div className="card">
         <h3>Entonnoir de recrutement</h3>
         <ResponsiveContainer width="100%" height={240}>
@@ -105,6 +115,33 @@ function Kpi({ label, valeur }) {
     <div className="card kpi">
       <span className="muted">{label}</span>
       <strong>{valeur}</strong>
+    </div>
+  )
+}
+
+function Groupes({ titre, groupes, aide }) {
+  if (!groupes?.length) return null
+  // Le badge n'a de sens que s'il y a au moins deux groupes comparables (2 candidatures ou plus)
+  const comparables = groupes.filter((g) => g.total >= 2)
+  const meilleur = comparables.length >= 2 ? Math.max(...comparables.map((g) => g.tauxReponse)) : -1
+  return (
+    <div className="card groupes">
+      <h3>{titre}</h3>
+      <p className="muted small">{aide}</p>
+      <ul>
+        {groupes.map((g) => (
+          <li key={g.nom}>
+            <div className="groupe-ligne">
+              <span className="groupe-nom" title={g.nom}>
+                {g.nom}
+                {g.total >= 2 && g.tauxReponse === meilleur && meilleur > 0 && <span className="badge vert">🏆 meilleur</span>}
+              </span>
+              <span className="muted small nowrap">{g.reponses}/{g.total} · <strong>{g.tauxReponse} %</strong></span>
+            </div>
+            <div className="jauge"><span style={{ width: `${Math.max(g.tauxReponse, 2)}%` }} /></div>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

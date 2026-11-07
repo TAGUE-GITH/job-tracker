@@ -1,0 +1,20 @@
+{
+  "name": "Taguora · Suivi de candidatures",
+  "short_name": "Taguora",
+  "description": "Suis tes candidatures, prépare tes entretiens avec TAGIA et trouve des offres.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f7fb",
+  "theme_color": "#6366f1",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Offres d'emploi", "url": "/offres", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Mes candidatures", "url": "/candidatures", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

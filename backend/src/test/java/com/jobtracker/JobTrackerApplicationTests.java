@@ -197,6 +197,56 @@ class JobTrackerApplicationTests {
     }
 
     @Test
+    void statistiquesParSourceEtDelaiDeReponse() throws Exception {
+        String id = extraire(mvc.perform(post("/api/candidatures").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nomEntreprise":"Wonka","poste":"Dev","dateCandidature":"2026-10-01",
+                                 "lienOffre":"https://www.welcometothejungle.com/fr/jobs/42"}"""))
+                .andReturn().getResponse().getContentAsString(), "id");
+        mvc.perform(post("/api/candidatures/" + id + "/etapes").header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"type\":\"ECHANGE_RH\",\"date\":\"2026-10-05\"}"));
+        mvc.perform(post("/api/candidatures").header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nomEntreprise\":\"Umbrella\",\"poste\":\"Dev\",\"dateCandidature\":\"2026-10-02\"}"));
+
+        mvc.perform(get("/api/stats").header("Authorization", token))
+                .andExpect(jsonPath("$.delaiMoyenReponse").value(4.0))
+                .andExpect(jsonPath("$.parSource[?(@.nom == 'Welcome to the Jungle')].tauxReponse").value(100.0))
+                .andExpect(jsonPath("$.parSource[?(@.nom == 'Sans lien')].reponses").value(0))
+                .andExpect(jsonPath("$.parCv[0].nom").value("Sans CV"))
+                .andExpect(jsonPath("$.parCv[0].total").value(2));
+    }
+
+    @Test
+    void gestionDuCompte() throws Exception {
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/compte/mot-de-passe")
+                        .header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"actuel\":\"mauvais\",\"nouveau\":\"nouveau123\"}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/compte/mot-de-passe")
+                        .header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"actuel\":\"secret123\",\"nouveau\":\"nouveau123\"}"))
+                .andExpect(status().isNoContent());
+
+        mvc.perform(post("/api/candidatures").header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nomEntreprise\":\"Stark\",\"poste\":\"Dev\",\"dateCandidature\":\"2026-10-02\"}"));
+        mvc.perform(get("/api/compte/export").header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nom").value("Franck"))
+                .andExpect(jsonPath("$.candidatures[0].nomEntreprise").value("Stark"));
+
+        mvc.perform(post("/api/compte/suppression").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"motDePasse\":\"nouveau123\"}"))
+                .andExpect(status().isNoContent());
+        // Le compte n'existe plus : son jeton ne donne plus acces a des donnees
+        mvc.perform(get("/api/compte/export").header("Authorization", token))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void valideLesChampsObligatoires() throws Exception {
         mvc.perform(post("/api/candidatures").header("Authorization", token)
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))

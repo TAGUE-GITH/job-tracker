@@ -46,6 +46,10 @@ public class User {
         return email;
     }
 
+    public void changerMotDePasse(String hash) {
+        this.password = hash;
+    }
+
     public String getPassword() {
         return password;
     }

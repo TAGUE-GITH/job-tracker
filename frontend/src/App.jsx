@@ -12,6 +12,7 @@ import CandidatureDetail from './pages/CandidatureDetail.jsx'
 import Documents from './pages/Documents.jsx'
 import Offres from './pages/Offres.jsx'
 import Importer from './pages/Importer.jsx'
+import Compte from './pages/Compte.jsx'
 
 function Layout() {
   const { user, logout } = useAuth()
@@ -35,7 +36,7 @@ function Layout() {
           <NavLink to="/documents">CV & lettres</NavLink>
         </nav>
         <div className="user">
-          <span>{user.nom}</span>
+          <Link to="/compte" onClick={fermer} title="Mon compte">👤 {user.nom}</Link>
           <button className="btn ghost" onClick={logout}>Déconnexion</button>
         </div>
       </header>
@@ -61,6 +62,7 @@ export default function App() {
         <Route path="candidatures/:id/modifier" element={<CandidatureForm />} />
         <Route path="documents" element={<Documents />} />
         <Route path="offres" element={<Offres />} />
+        <Route path="compte" element={<Compte />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -83,7 +83,12 @@ public class IaService {
             les points forts et les axes d'amelioration.
             - TAGIA (la bulle en bas a droite) repond aux questions sur l'application et sur la recherche d'emploi.
             - Compte : inscription avec nom, email et mot de passe (6 caracteres minimum). La session dure \
-            24 h. Il n'y a pas encore de reinitialisation du mot de passe ni d'export des donnees.
+            24 h. Page "Mon compte" (clic sur son nom en haut) : changer de mot de passe, exporter ses donnees \
+            (fichier JSON), supprimer son compte. Pas de "mot de passe oublie" par email pour le moment.
+            - Statistiques du tableau de bord : aussi le taux de reponse par CV et par site d'offres, et le delai \
+            moyen avant une premiere reponse.
+            - Application installable : dans Chrome ou Edge, icone "Installer" dans la barre d'adresse ; sur \
+            iPhone, Partager puis "Sur l'ecran d'accueil".
             Si une fonctionnalite demandee n'existe pas, dis-le simplement sans l'inventer.
             """;
 
