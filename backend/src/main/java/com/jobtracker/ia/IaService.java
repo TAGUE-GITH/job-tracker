@@ -8,7 +8,10 @@ import com.jobtracker.etape.TypeEtape;
 import com.jobtracker.ia.IaDtos.IaRequest;
 import com.jobtracker.ia.IaDtos.IaResponse;
 import com.jobtracker.ia.IaDtos.Message;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
@@ -239,6 +242,42 @@ public class IaService {
                 new Message("user", "OFFRE (" + c.getPoste() + " chez " + c.getNomEntreprise() + ") :\n"
                         + texteOffre(c) + "\n\nCV DU CANDIDAT :\n" + cv
                         + (consignes == null || consignes.isBlank() ? "" : "\n\nCONSIGNES DU CANDIDAT : " + consignes)));
+        return new IaResponse(appeler(messages, false).strip());
+    }
+
+    /** Brouillon d'email de relance pour une candidature restee sans reponse. */
+    @Transactional(readOnly = true)
+    public IaResponse relance(Long userId, Long candidatureId) {
+        Candidature c = candidatureService.trouver(userId, candidatureId);
+        Etape derniere = c.getEtapes().stream()
+                .max(Comparator.comparing(Etape::getDate))
+                .orElse(null);
+        StringBuilder contexte = new StringBuilder()
+                .append("Entreprise : ").append(c.getNomEntreprise())
+                .append("\nPoste : ").append(c.getPoste())
+                .append("\nCandidature envoyee le : ").append(c.getDateCandidature());
+        if (derniere != null) {
+            contexte.append("\nDerniere etape : ").append(derniere.getType().name())
+                    .append(" le ").append(derniere.getDate())
+                    .append(" (il y a ").append(ChronoUnit.DAYS.between(derniere.getDate(), LocalDate.now()))
+                    .append(" jours)");
+            if (derniere.getNotes() != null) {
+                contexte.append("\nNotes : ").append(derniere.getNotes());
+            }
+        }
+        long relances = c.getEtapes().stream().filter(e -> e.getType() == TypeEtape.RELANCE).count();
+        contexte.append("\nRelances deja envoyees : ").append(relances);
+
+        List<Message> messages = List.of(
+                new Message("system", """
+                        Tu rediges des emails de relance de candidature en francais, courts (80 a 130 mots), \
+                        polis, confiants et jamais insistants. Commence par une ligne "Objet : ...", puis \
+                        "Bonjour,", rappelle la candidature et le poste, redis en une phrase ce que le candidat \
+                        apporte, demande ou en est le processus, propose un echange, formule de politesse, \
+                        signature "%s". Adapte le ton a la derniere etape (apres un entretien, remercie pour \
+                        l'echange). Texte brut, sans Markdown ni crochets a completer.
+                        """.formatted(c.getUser().getNom())),
+                new Message("user", contexte.toString()));
         return new IaResponse(appeler(messages, false).strip());
     }
 

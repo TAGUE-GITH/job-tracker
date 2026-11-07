@@ -40,7 +40,8 @@ public class StatsService {
         List<MoisCount> parMois = new ArrayList<>();
         mois.forEach((m, n) -> parMois.add(new MoisCount(m.toString(), n)));
 
-        long avecReponse = compter(candidatures, t -> t != TypeEtape.CANDIDATURE_ENVOYEE);
+        long avecReponse = compter(candidatures,
+                t -> t != TypeEtape.CANDIDATURE_ENVOYEE && t != TypeEtape.RELANCE);
         long avecRh = compter(candidatures, t -> t == TypeEtape.ECHANGE_RH);
         long avecEntretien = compter(candidatures, TypeEtape::estEntretien);
         long avecOffre = compter(candidatures, t -> t == TypeEtape.OFFRE);

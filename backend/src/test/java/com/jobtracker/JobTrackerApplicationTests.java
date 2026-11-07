@@ -174,6 +174,29 @@ class JobTrackerApplicationTests {
     }
 
     @Test
+    void uneRelanceNeChangePasLeStatut() throws Exception {
+        String id = extraire(mvc.perform(post("/api/candidatures").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nomEntreprise":"Hooli","poste":"Dev","dateCandidature":"2026-10-01"}"""))
+                .andReturn().getResponse().getContentAsString(), "id");
+        mvc.perform(post("/api/candidatures/" + id + "/etapes").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"type":"ECHANGE_RH","date":"2026-10-05"}"""))
+                .andExpect(jsonPath("$.statut").value("EN_COURS"));
+        mvc.perform(post("/api/candidatures/" + id + "/etapes").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"type":"RELANCE","date":"2026-10-20","notes":"Relance par email"}"""))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.statut").value("EN_COURS"))
+                .andExpect(jsonPath("$.etapes.length()").value(3));
+        mvc.perform(post("/api/candidatures/" + id + "/ia/relance").header("Authorization", token))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
     void valideLesChampsObligatoires() throws Exception {
         mvc.perform(post("/api/candidatures").header("Authorization", token)
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))

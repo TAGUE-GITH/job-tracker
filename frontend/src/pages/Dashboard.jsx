@@ -5,6 +5,7 @@ import {
 } from 'recharts'
 import { api } from '../api'
 import { STATUTS } from '../labels'
+import ARelancer from '../components/ARelancer.jsx'
 
 const COULEURS = { gris: '#94a3b8', bleu: '#3b82f6', vert: '#22c55e', rouge: '#ef4444', orange: '#f59e0b' }
 
@@ -52,6 +53,8 @@ export default function Dashboard() {
         <Kpi label="Taux d'entretien" valeur={`${stats.tauxEntretien} %`} />
         <Kpi label="Taux d'offre" valeur={`${stats.tauxOffre} %`} />
       </div>
+
+      <ARelancer />
 
       <div className="grid-2">
         <div className="card">

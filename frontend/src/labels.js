@@ -14,6 +14,7 @@ export const ETAPES = {
   ENTRETIEN_MANAGER: 'Entretien manager',
   OFFRE: 'Offre',
   REFUS: 'Refus',
+  RELANCE: 'Relance envoyée',
 }
 
 export const formatDate = (iso) =>

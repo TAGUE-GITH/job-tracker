@@ -9,9 +9,11 @@ public enum TypeEtape {
     ENTRETIEN_TECHNIQUE(StatutCandidature.EN_COURS),
     ENTRETIEN_MANAGER(StatutCandidature.EN_COURS),
     OFFRE(StatutCandidature.OFFRE_RECUE),
-    REFUS(StatutCandidature.REFUSEE);
+    REFUS(StatutCandidature.REFUSEE),
+    /** Relance envoyee par le candidat : ne change pas le statut. */
+    RELANCE(null);
 
-    /** Statut que prend la candidature quand cette etape est la plus recente. */
+    /** Statut que prend la candidature quand cette etape est la plus recente (null : inchange). */
     private final StatutCandidature statutResultant;
 
     TypeEtape(StatutCandidature statutResultant) {

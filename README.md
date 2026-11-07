@@ -10,6 +10,8 @@
 - **Offres d'emploi** : recherche d'offres en direct (La bonne alternance, Jooble) par mots-clés, lieu et contrat (alternance, stage, CDI, CDD), bouton « Postuler » vers l'annonce d'origine et ajout au suivi en un clic
 - **Favori « Ajouter à Taguora »** : glissé dans la barre de favoris, il envoie n'importe quelle offre (Welcome to the Jungle, LinkedIn, Indeed, HelloWork, Apec…) dans ton suivi en un clic. Il lit les données structurées schema.org `JobPosting` de la page (titre, entreprise, lieu, contrat, description), sinon le texte sélectionné ou le contenu principal
 - **Candidatures** : entreprise, poste, lien, texte de l'offre, date, CV et lettre de motivation (facultative), recherche et filtre par statut
+- **Vue Kanban** : les candidatures en colonnes par statut, à déplacer par glisser-déposer (ou avec le menu « Déplacer vers… » sur téléphone) ; l'étape correspondante est ajoutée automatiquement
+- **Relances intelligentes** : le tableau de bord liste les candidatures sans nouvelles depuis 7 jours, TAGIA rédige l'email de relance, et « J'ai relancé » ajoute une étape *Relance* (qui ne change pas le statut)
 - **Évolution** : timeline des étapes (candidature envoyée, échange RH, test technique, entretiens, offre, refus) avec des notes. Le statut se met à jour automatiquement.
 - **CV et lettres** : import de fichiers (PDF, Word…) réutilisables d'une candidature à l'autre
 - **Tableau de bord** : candidatures par mois, répartition par statut, entonnoir de recrutement, taux de réponse, d'entretien et d'offre
@@ -136,6 +138,7 @@ Toutes les routes, sauf `/api/auth/**`, demandent l'en-tête `Authorization: Bea
 | POST / PUT / DELETE | `/api/candidatures/{id}/etapes[/{etapeId}]` | Étapes de la candidature |
 | POST | `/api/candidatures/{id}/ia` | Assistant IA (`{ typeEtape, messages }`) |
 | POST | `/api/candidatures/{id}/ia/compatibilite` | Score CV ↔ offre (`{ cvId }`, réponse JSON) |
+| POST | `/api/candidatures/{id}/ia/relance` | Brouillon d'email de relance |
 | POST | `/api/candidatures/{id}/ia/lettre` | Lettre de motivation (`{ cvId, consignes }`) |
 | POST | `/api/candidatures/{id}/lettre` | Enregistre la lettre en PDF et la rattache (`{ texte }`) |
 | POST | `/api/ia/aide` | TAGIA, aide sur l'application (`{ messages }`) |

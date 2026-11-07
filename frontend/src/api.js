@@ -75,6 +75,7 @@ export const api = {
   stats: () => request('/stats'),
   ia: (id, data) => request(`/candidatures/${id}/ia`, { method: 'POST', body: data }),
   compatibilite: (id, data) => request(`/candidatures/${id}/ia/compatibilite`, { method: 'POST', body: data }),
+  relance: (id) => request(`/candidatures/${id}/ia/relance`, { method: 'POST' }),
   lettreIa: (id, data) => request(`/candidatures/${id}/ia/lettre`, { method: 'POST', body: data }),
   enregistrerLettre: (id, texte) => request(`/candidatures/${id}/lettre`, { method: 'POST', body: { texte } }),
   aide: (data) => request('/ia/aide', { method: 'POST', body: data }),

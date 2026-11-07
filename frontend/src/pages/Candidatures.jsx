@@ -4,38 +4,65 @@ import { api } from '../api'
 import { ETAPES, STATUTS, formatDate } from '../labels'
 import StatutBadge from '../components/StatutBadge.jsx'
 import BoutonFavori from '../components/BoutonFavori.jsx'
+import Kanban from '../components/Kanban.jsx'
+
+const lireVue = () => {
+  try {
+    return localStorage.getItem('jt_vue') || 'liste'
+  } catch {
+    return 'liste'
+  }
+}
 
 export default function Candidatures() {
   const [liste, setListe] = useState(null)
   const [statut, setStatut] = useState('')
   const [q, setQ] = useState('')
   const [erreur, setErreur] = useState('')
+  const [vue, setVue] = useState(lireVue)
+
+  const changerVue = (v) => {
+    setVue(v)
+    try {
+      localStorage.setItem('jt_vue', v)
+    } catch {
+      // stockage indisponible : la vue n'est simplement pas memorisee
+    }
+  }
 
   useEffect(() => {
     const t = setTimeout(() => {
-      api.candidatures({ statut, q }).then(setListe).catch((e) => setErreur(e.message))
+      api.candidatures({ statut: vue === 'kanban' ? '' : statut, q }).then(setListe).catch((e) => setErreur(e.message))
     }, 250)
     return () => clearTimeout(t)
-  }, [statut, q])
+  }, [statut, q, vue])
 
   return (
     <>
       <div className="page-head">
         <h1>Mes candidatures</h1>
-        <Link to="/candidatures/nouvelle" className="btn primary">+ Nouvelle candidature</Link>
+        <div className="actions">
+          <div className="tabs vues" role="tablist">
+            <button type="button" className={vue === 'liste' ? 'active' : ''} onClick={() => changerVue('liste')}>☰ Liste</button>
+            <button type="button" className={vue === 'kanban' ? 'active' : ''} onClick={() => changerVue('kanban')}>▦ Kanban</button>
+          </div>
+          <Link to="/candidatures/nouvelle" className="btn primary">+ Nouvelle candidature</Link>
+        </div>
       </div>
 
       <div className="filtres">
         <input placeholder="Rechercher une entreprise ou un poste…" value={q} onChange={(e) => setQ(e.target.value)} />
-        <select value={statut} onChange={(e) => setStatut(e.target.value)}>
+        {vue === 'liste' && <select value={statut} onChange={(e) => setStatut(e.target.value)}>
           <option value="">Tous les statuts</option>
           {Object.entries(STATUTS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-        </select>
+        </select>}
       </div>
 
       {erreur && <p className="erreur">{erreur}</p>}
       {!liste ? (
         <p className="muted">Chargement…</p>
+      ) : vue === 'kanban' ? (
+        <Kanban liste={liste} onMaj={(maj) => setListe((l) => l.map((c) => (c.id === maj.id ? maj : c)))} />
       ) : liste.length === 0 ? (
         <div className="card vide"><p className="muted">Aucune candidature trouvée.</p></div>
       ) : (

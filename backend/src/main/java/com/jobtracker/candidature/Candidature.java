@@ -88,6 +88,7 @@ public class Candidature {
             return;
         }
         statut = etapes.stream()
+                .filter(e -> e.getType().statutResultant() != null)
                 .max(Comparator.comparing(Etape::getDate).thenComparing(e -> e.getType().ordinal()))
                 .map(e -> e.getType().statutResultant())
                 .orElse(StatutCandidature.EN_ATTENTE);

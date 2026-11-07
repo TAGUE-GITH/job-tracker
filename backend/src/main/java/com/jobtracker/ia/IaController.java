@@ -31,6 +31,11 @@ public class IaController {
         return iaService.compatibilite(CurrentUser.id(), id, req == null ? null : req.cvId());
     }
 
+    @PostMapping("/api/candidatures/{id}/ia/relance")
+    public IaResponse relance(@PathVariable Long id) {
+        return iaService.relance(CurrentUser.id(), id);
+    }
+
     @PostMapping("/api/candidatures/{id}/ia/lettre")
     public IaResponse lettre(@PathVariable Long id, @Valid @RequestBody(required = false) LettreIaRequest req) {
         return iaService.lettre(CurrentUser.id(), id, req == null ? null : req.cvId(),
