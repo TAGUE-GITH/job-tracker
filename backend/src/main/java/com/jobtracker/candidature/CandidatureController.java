@@ -2,6 +2,7 @@ package com.jobtracker.candidature;
 
 import com.jobtracker.candidature.CandidatureDtos.CandidatureRequest;
 import com.jobtracker.candidature.CandidatureDtos.CandidatureResponse;
+import com.jobtracker.candidature.CandidatureDtos.LettreRequest;
 import com.jobtracker.common.CurrentUser;
 import com.jobtracker.etape.EtapeDtos.EtapeRequest;
 import jakarta.validation.Valid;
@@ -54,6 +55,11 @@ public class CandidatureController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void supprimer(@PathVariable Long id) {
         service.supprimer(CurrentUser.id(), id);
+    }
+
+    @PostMapping("/{id}/lettre")
+    public CandidatureResponse enregistrerLettre(@PathVariable Long id, @Valid @RequestBody LettreRequest req) {
+        return service.enregistrerLettre(CurrentUser.id(), id, req.texte());
     }
 
     @PostMapping("/{id}/etapes")

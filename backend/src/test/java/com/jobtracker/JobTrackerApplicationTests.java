@@ -130,6 +130,50 @@ class JobTrackerApplicationTests {
     }
 
     @Test
+    void analyseCvEtLettreDeMotivation() throws Exception {
+        MockMultipartFile cv = new MockMultipartFile("fichier", "cv.txt", "text/plain",
+                "Franck Tague - Developpeur Java Spring Boot, React, Docker, GitHub Actions, PostgreSQL".getBytes());
+        String cvId = extraire(mvc.perform(multipart("/api/documents").file(cv).param("type", "CV")
+                        .header("Authorization", token))
+                .andReturn().getResponse().getContentAsString(), "id");
+
+        String sansOffre = extraire(mvc.perform(post("/api/candidatures").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nomEntreprise":"Initech","poste":"Dev","dateCandidature":"2026-11-01","cvId":%s}"""
+                                .formatted(cvId)))
+                .andReturn().getResponse().getContentAsString(), "id");
+        // Sans texte d'offre, rien a comparer
+        mvc.perform(post("/api/candidatures/" + sansOffre + "/ia/compatibilite").header("Authorization", token))
+                .andExpect(status().isBadRequest());
+
+        String id = extraire(mvc.perform(post("/api/candidatures").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nomEntreprise":"Acme/Labs","poste":"Dev Java","dateCandidature":"2026-11-01",
+                                 "texteOffre":"Alternance Java Spring Boot","cvId":%s}""".formatted(cvId)))
+                .andReturn().getResponse().getContentAsString(), "id");
+        // CV lu, mais pas de cle d'IA dans les tests
+        mvc.perform(post("/api/candidatures/" + id + "/ia/compatibilite").header("Authorization", token))
+                .andExpect(status().isServiceUnavailable());
+        mvc.perform(post("/api/candidatures/" + id + "/ia/lettre").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"consignes\":\"ton dynamique\"}"))
+                .andExpect(status().isServiceUnavailable());
+
+        // La lettre (relue par le candidat) est enregistree en PDF et rattachee
+        String body = mvc.perform(post("/api/candidatures/" + id + "/lettre").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"texte\":\"Madame, Monsieur,\\n\\nJe souhaite rejoindre Acme.\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lettre.nomFichier").value("Lettre de motivation - Acme Labs.pdf"))
+                .andReturn().getResponse().getContentAsString();
+        String lettreId = body.replaceAll("(?s).*\"lettre\":\\{\"id\":(\\d+).*", "$1");
+        mvc.perform(get("/api/documents/" + lettreId + "/fichier").header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"));
+    }
+
+    @Test
     void valideLesChampsObligatoires() throws Exception {
         mvc.perform(post("/api/candidatures").header("Authorization", token)
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))

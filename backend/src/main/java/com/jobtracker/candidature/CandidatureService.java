@@ -71,6 +71,15 @@ public class CandidatureService {
         return CandidatureResponse.from(c);
     }
 
+    /** Enregistre la lettre de motivation (redigee avec TAGIA) en PDF et la rattache a la candidature. */
+    @Transactional
+    public CandidatureResponse enregistrerLettre(Long userId, Long id, String texte) {
+        Candidature c = trouver(userId, id);
+        String nom = ("Lettre de motivation - " + c.getNomEntreprise()).replaceAll("[\\\\/:*?\"<>|]", " ").strip();
+        c.setLettre(documentService.creerLettrePdf(userId, nom + ".pdf", texte));
+        return CandidatureResponse.from(c);
+    }
+
     @Transactional
     public void supprimer(Long userId, Long id) {
         candidatureRepository.delete(trouver(userId, id));

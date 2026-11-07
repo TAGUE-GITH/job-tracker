@@ -57,6 +57,28 @@ public class DocumentService {
         return DocumentResponse.from(doc);
     }
 
+    /** Texte d'un CV, pour que l'IA puisse le comparer a une offre. */
+    @Transactional(readOnly = true)
+    public String texte(Long userId, Long documentId) {
+        Document doc = trouver(userId, documentId);
+        byte[] donnees = contenuRepository.findById(doc.getId())
+                .map(DocumentContenu::getDonnees)
+                .orElseThrow(() -> new NotFoundException("Contenu du document introuvable"));
+        return TexteDocument.extraire(donnees, doc.getNomFichier(), doc.getContentType());
+    }
+
+    /** Enregistre une lettre de motivation (texte) sous forme de PDF dans les documents de l'utilisateur. */
+    @Transactional
+    public Document creerLettrePdf(Long userId, String nomFichier, String texte) {
+        if (texte == null || texte.isBlank()) {
+            throw new IllegalArgumentException("La lettre est vide");
+        }
+        Document doc = documentRepository.save(new Document(nomFichier, TypeDocument.LETTRE, "application/pdf",
+                userRepository.getReferenceById(userId)));
+        contenuRepository.save(new DocumentContenu(doc, LettrePdf.generer(texte)));
+        return doc;
+    }
+
     public Document trouver(Long userId, Long documentId) {
         return documentRepository.findByIdAndUserId(documentId, userId)
                 .orElseThrow(() -> new NotFoundException("Document introuvable"));

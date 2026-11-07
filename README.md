@@ -13,6 +13,8 @@
 - **CV et lettres** : import de fichiers (PDF, Word…) réutilisables d'une candidature à l'autre
 - **Tableau de bord** : candidatures par mois, répartition par statut, entonnoir de recrutement, taux de réponse, d'entretien et d'offre
 - **TAGIA, l'assistant IA** : une bulle d'aide sur chaque page répond aux questions sur l'application, sur tes candidatures et sur la recherche d'emploi
+- **Compatibilité CV ↔ offre (TAGIA)** : TAGIA lit ton CV (PDF ou Word) et l'offre, donne un score sur 100, tes points forts, les compétences qui manquent et les mots-clés à ajouter pour passer les filtres des recruteurs
+- **Lettre de motivation sur mesure (TAGIA)** : rédigée à partir de ton CV et de l'offre, modifiable, puis enregistrée en PDF et rattachée à la candidature en un clic
 - **Coach d'entretien (TAGIA)** : préparation d'un entretien (questions probables et réponses conseillées, questions à poser, points à réviser) et simulation d'entretien interactive, à partir du texte de l'offre et de tes notes
 
 ## Stack technique
@@ -132,6 +134,9 @@ Toutes les routes, sauf `/api/auth/**`, demandent l'en-tête `Authorization: Bea
 | POST / GET / PUT / DELETE | `/api/candidatures[/{id}]` | CRUD des candidatures |
 | POST / PUT / DELETE | `/api/candidatures/{id}/etapes[/{etapeId}]` | Étapes de la candidature |
 | POST | `/api/candidatures/{id}/ia` | Assistant IA (`{ typeEtape, messages }`) |
+| POST | `/api/candidatures/{id}/ia/compatibilite` | Score CV ↔ offre (`{ cvId }`, réponse JSON) |
+| POST | `/api/candidatures/{id}/ia/lettre` | Lettre de motivation (`{ cvId, consignes }`) |
+| POST | `/api/candidatures/{id}/lettre` | Enregistre la lettre en PDF et la rattache (`{ texte }`) |
 | POST | `/api/ia/aide` | TAGIA, aide sur l'application (`{ messages }`) |
 | GET / POST | `/api/documents` | Liste et import (multipart : `fichier`, `type`) |
 | GET | `/api/documents/{id}/fichier` | Téléchargement |

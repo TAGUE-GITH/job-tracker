@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 public final class IaDtos {
@@ -27,6 +28,13 @@ public final class IaDtos {
 
     /** Question posee a TAGIA sur l'application Taguora (aide generale, hors candidature). */
     public record AideRequest(@NotEmpty List<@Valid Message> messages) {
+    }
+
+    /** cvId facultatif : par defaut, le CV rattache a la candidature. */
+    public record AnalyseRequest(Long cvId) {
+    }
+
+    public record LettreIaRequest(Long cvId, @Size(max = 1000) String consignes) {
     }
 
     public record IaResponse(String reponse) {

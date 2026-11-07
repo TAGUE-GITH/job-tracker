@@ -4,6 +4,7 @@ import { api } from '../api'
 import { ETAPES, aujourdhui, formatDate } from '../labels'
 import StatutBadge from '../components/StatutBadge.jsx'
 import IaAssistant from '../components/IaAssistant.jsx'
+import CvLettre from '../components/CvLettre.jsx'
 
 export default function CandidatureDetail() {
   const { id } = useParams()
@@ -66,6 +67,7 @@ export default function CandidatureDetail() {
             )}
           </div>
 
+          <CvLettre candidature={c} onChange={setC} />
           <div className="card">
             <h3>Évolution</h3>
             <ol className="timeline">

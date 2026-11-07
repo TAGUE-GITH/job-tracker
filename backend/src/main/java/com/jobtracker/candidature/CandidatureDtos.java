@@ -25,6 +25,9 @@ public final class CandidatureDtos {
             Boolean abandonnee) {
     }
 
+    public record LettreRequest(@NotBlank(message = "La lettre est vide") @Size(max = 20000) String texte) {
+    }
+
     public record CandidatureResponse(
             Long id,
             String nomEntreprise,

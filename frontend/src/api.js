@@ -74,6 +74,9 @@ export const api = {
 
   stats: () => request('/stats'),
   ia: (id, data) => request(`/candidatures/${id}/ia`, { method: 'POST', body: data }),
+  compatibilite: (id, data) => request(`/candidatures/${id}/ia/compatibilite`, { method: 'POST', body: data }),
+  lettreIa: (id, data) => request(`/candidatures/${id}/ia/lettre`, { method: 'POST', body: data }),
+  enregistrerLettre: (id, texte) => request(`/candidatures/${id}/lettre`, { method: 'POST', body: { texte } }),
   aide: (data) => request('/ia/aide', { method: 'POST', body: data }),
   offres: ({ q = '', lieu = '', contrat = '', source = '', page = 0 } = {}) =>
     request(`/offres?${new URLSearchParams({ q, lieu, contrat, source, page })}`),
