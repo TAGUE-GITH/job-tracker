@@ -65,6 +65,7 @@ export const api = {
   motDePasseOublie: (email) => request('/auth/mot-de-passe-oublie', { method: 'POST', body: { email } }),
   reinitialiser: (jeton, nouveau) => request('/auth/reinitialiser', { method: 'POST', body: { jeton, nouveau } }),
   deconnexionPartout: () => request('/compte/deconnexion-partout', { method: 'POST' }),
+  emailTest: () => request('/compte/email-test', { method: 'POST' }),
   login: (data) => request('/auth/login', { method: 'POST', body: data }),
   register: (data) => request('/auth/register', { method: 'POST', body: data }),
 

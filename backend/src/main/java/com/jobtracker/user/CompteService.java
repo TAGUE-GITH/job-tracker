@@ -4,6 +4,7 @@ import com.jobtracker.candidature.CandidatureDtos.CandidatureResponse;
 import com.jobtracker.candidature.CandidatureService;
 import com.jobtracker.common.NotFoundException;
 import com.jobtracker.document.DocumentResponse;
+import com.jobtracker.common.EmailService;
 import com.jobtracker.document.DocumentService;
 import com.jobtracker.user.AuthDtos.AuthResponse;
 import java.time.Instant;
@@ -23,16 +24,18 @@ public class CompteService {
     private final DocumentService documentService;
     private final AuthService authService;
     private final JetonReinitialisationRepository jetonRepository;
+    private final EmailService emailService;
 
     public CompteService(UserRepository userRepository, PasswordEncoder passwordEncoder,
             CandidatureService candidatureService, DocumentService documentService, AuthService authService,
-            JetonReinitialisationRepository jetonRepository) {
+            JetonReinitialisationRepository jetonRepository, EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.candidatureService = candidatureService;
         this.documentService = documentService;
         this.authService = authService;
         this.jetonRepository = jetonRepository;
+        this.emailService = emailService;
     }
 
     public record Export(Instant exporteLe, String nom, String email, List<CandidatureResponse> candidatures,
@@ -73,6 +76,19 @@ public class CompteService {
         user.changerMotDePasse(passwordEncoder.encode(nouveau));
         user.revoquerJetons();
         return authService.toResponse(user);
+    }
+
+    /** Envoie un email de test a l'adresse du compte et renvoie le diagnostic de Brevo. */
+    @Transactional(readOnly = true)
+    public EmailService.Envoi emailTest(Long userId) {
+        User user = utilisateur(userId);
+        if (user.getEmail().endsWith(AuthService.DOMAINE_DEMO)) {
+            return new EmailService.Envoi(false, "Les comptes de demonstration n'ont pas de vraie adresse email.");
+        }
+        return emailService.envoyerAvecDetail(user.getEmail(), "Test d'envoi Taguora",
+                "Bonjour " + user.getNom() + ",\n\nSi tu lis ce message, l'envoi d'emails de Taguora fonctionne.",
+                "<p>Bonjour " + user.getNom().replace("<", "&lt;") + ",</p><p>Si tu lis ce message, l'envoi "
+                        + "d'emails de <b>Taguora</b> fonctionne. ✅</p>");
     }
 
     /** Deconnecte toutes les sessions ouvertes ; renvoie un jeton neuf pour l'appareil courant. */

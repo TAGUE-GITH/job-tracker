@@ -1,6 +1,7 @@
 package com.jobtracker.user;
 
 import com.jobtracker.common.CurrentUser;
+import com.jobtracker.common.EmailService;
 import com.jobtracker.user.AuthDtos.AuthResponse;
 import com.jobtracker.user.CompteService.Export;
 import com.jobtracker.user.CompteService.Profil;
@@ -58,6 +59,12 @@ public class CompteController {
     @PutMapping("/mot-de-passe")
     public AuthResponse changerMotDePasse(@Valid @RequestBody MotDePasseRequest req) {
         return compteService.changerMotDePasse(CurrentUser.id(), req.actuel(), req.nouveau());
+    }
+
+    /** Envoie un email de test au compte connecte (diagnostic de la configuration Brevo). */
+    @PostMapping("/email-test")
+    public EmailService.Envoi emailTest() {
+        return compteService.emailTest(CurrentUser.id());
     }
 
     @PostMapping("/deconnexion-partout")

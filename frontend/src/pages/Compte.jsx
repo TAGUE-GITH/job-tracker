@@ -21,6 +21,7 @@ export default function Compte() {
       <Coordonnees />
       <MotDePasse />
       <Sessions />
+      <EmailTest />
       <Export />
       <Suppression onSupprime={() => { logout(); navigate('/accueil') }} />
     </div>
@@ -165,6 +166,42 @@ function Sessions() {
       {erreur && <p className="erreur">{erreur}</p>}
       {message && <p className="succes">{message}</p>}
       <button className="btn ghost" onClick={deconnecter}>Déconnecter mes autres appareils</button>
+    </div>
+  )
+}
+
+function EmailTest() {
+  const { user } = useAuth()
+  const [resultat, setResultat] = useState(null)
+  const [chargement, setChargement] = useState(false)
+
+  const tester = async () => {
+    setResultat(null)
+    setChargement(true)
+    try {
+      setResultat(await api.emailTest())
+    } catch (err) {
+      setResultat({ envoye: false, message: err.message })
+    } finally {
+      setChargement(false)
+    }
+  }
+
+  return (
+    <div className="card">
+      <h3>📧 Emails de Taguora</h3>
+      <p className="muted small">
+        Vérifie que Taguora peut t'envoyer des emails (comme celui de « mot de passe oublié ») :
+        un email de test part vers <b>{user.email}</b>.
+      </p>
+      {resultat && (
+        <p className={resultat.envoye ? 'succes' : 'erreur'}>
+          {resultat.envoye ? `✓ ${resultat.message} Regarde ta boîte de réception (et les spams).` : resultat.message}
+        </p>
+      )}
+      <button className="btn ghost" onClick={tester} disabled={chargement}>
+        {chargement ? 'Envoi…' : 'Envoyer un email de test'}
+      </button>
     </div>
   )
 }
