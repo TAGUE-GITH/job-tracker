@@ -60,6 +60,16 @@ async function envoyer(path, { method = 'GET', body, raw = false } = {}) {
   return res.status === 204 ? null : res.json()
 }
 
+/** Declenche l'enregistrement d'un fichier sur l'appareil, sous le nom donne. */
+export function enregistrerFichier(url, nomFichier) {
+  const lien = document.createElement('a')
+  lien.href = url
+  lien.download = nomFichier || 'document.pdf'
+  document.body.appendChild(lien)
+  lien.click()
+  lien.remove()
+}
+
 export const api = {
   demo: () => request('/auth/demo', { method: 'POST' }),
   motDePasseOublie: (email) => request('/auth/mot-de-passe-oublie', { method: 'POST', body: { email } }),
@@ -91,10 +101,26 @@ export const api = {
     return request('/documents', { method: 'POST', body: fd })
   },
   supprimerDocument: (id) => request(`/documents/${id}`, { method: 'DELETE' }),
-  ouvrirDocument: async (id) => {
+  ouvrirDocument: async (id, nomFichier) => {
+    // L'onglet est ouvert tout de suite (au clic) : sinon les navigateurs mobiles le bloquent
+    const onglet = window.open('', '_blank')
+    let url
+    try {
+      const res = await request(`/documents/${id}/fichier`, { raw: true })
+      url = URL.createObjectURL(await res.blob())
+    } catch (e) {
+      onglet?.close()
+      throw e
+    }
+    if (onglet) onglet.location.href = url
+    else enregistrerFichier(url, nomFichier)
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  },
+  /** Enregistre le fichier sur l'appareil (dossier Telechargements sur PC, Fichiers sur mobile). */
+  telechargerDocument: async (id, nomFichier) => {
     const res = await request(`/documents/${id}/fichier`, { raw: true })
     const url = URL.createObjectURL(await res.blob())
-    window.open(url, '_blank')
+    enregistrerFichier(url, nomFichier)
     setTimeout(() => URL.revokeObjectURL(url), 60_000)
   },
 

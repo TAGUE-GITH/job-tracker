@@ -4,6 +4,7 @@ import { api } from '../api'
 import { ETAPES, aujourdhui, formatDate } from '../labels'
 import StatutBadge from '../components/StatutBadge.jsx'
 import IaAssistant from '../components/IaAssistant.jsx'
+import DocumentActions from '../components/DocumentActions.jsx'
 import CvLettre from '../components/CvLettre.jsx'
 
 export default function CandidatureDetail() {
@@ -93,8 +94,7 @@ export default function CandidatureDetail() {
 }
 
 function DocLien({ doc }) {
-  if (!doc) return '—'
-  return <button className="link" onClick={() => api.ouvrirDocument(doc.id)}>{doc.nomFichier}</button>
+  return <DocumentActions doc={doc} />
 }
 
 function NouvelleEtape({ onAjout }) {

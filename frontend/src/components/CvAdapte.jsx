@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
+import DocumentActions from './DocumentActions.jsx'
+import { projetEnDoublon } from '../cvDoublons.js'
 
 // Les listes se modifient dans une zone de texte, un element par ligne
 const enLignes = (liste) => (liste ?? []).filter(Boolean).join('\n')
@@ -16,7 +18,10 @@ function versFormulaire(cv) {
   }
   LISTES.forEach((cle) => { f[cle] = enLignes(cv[cle]) })
   f.experiences = (cv.experiences ?? []).map((x) => ({ ...x, missions: enLignes(x.missions) }))
-  f.projets = (cv.projets ?? []).map((p) => ({ ...p, points: enLignes(p.points) }))
+  // Un meme travail ne doit pas apparaitre a la fois en experience et en projet
+  f.projets = (cv.projets ?? [])
+    .filter((p) => !projetEnDoublon(p, cv.experiences))
+    .map((p) => ({ ...p, points: enLignes(p.points) }))
   f.formations = cv.formations ?? []
   return f
 }
@@ -81,10 +86,10 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
     try {
       const maj = await api.enregistrerCv(candidature.id, versCv(form))
       onChange(maj)
-      setResultat({ nom: maj.cv?.nomFichier, score: null })
+      setResultat({ doc: maj.cv, score: null })
       // Note ATS du nouveau CV : on le compare a l'offre
       const { reponse } = await api.compatibilite(candidature.id, { cvId: maj.cv?.id })
-      setResultat({ nom: maj.cv?.nomFichier, score: JSON.parse(reponse) })
+      setResultat({ doc: maj.cv, score: JSON.parse(reponse) })
     } catch (e) {
       setErreur(e instanceof SyntaxError ? 'CV enregistré, mais la note ATS est illisible : relance l’analyse.' : e.message)
     } finally {
@@ -197,7 +202,8 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
 
       {resultat && (
         <div className="cv-resultat">
-          <p className="succes">« {resultat.nom} » est enregistré et rattaché à cette candidature ✓</p>
+          <p className="succes">« {resultat.doc?.nomFichier} » est enregistré et rattaché à cette candidature ✓</p>
+          <DocumentActions doc={resultat.doc} libelle="Ouvrir mon CV" />
           {resultat.score && (
             <div className="score-ligne">
               <Score valeur={Number(resultat.score.score) || 0} />

@@ -279,45 +279,76 @@ public final class CvPdf {
             y -= 5 * echelle;
         }
 
-        /** Ligne en gras a gauche (poste, diplome, projet) et texte a droite (dates). */
+        /** Ecrit sur une meme ligne, dans un seul bloc de texte, des morceaux de polices differentes. */
+        private void ecrireMorceaux(float x, String... morceaux) throws IOException {
+            flux.beginText();
+            flux.newLineAtOffset(x, y - texte);
+            for (int i = 0; i + 1 < morceaux.length; i += 2) {
+                if (!morceaux[i + 1].isEmpty()) {
+                    flux.setFont("g".equals(morceaux[i]) ? gras : normal, texte);
+                    flux.showText(morceaux[i + 1]);
+                }
+            }
+            flux.endText();
+        }
+
+        private float largeurTexte(String s, PDType1Font police) throws IOException {
+            return police.getStringWidth(s) / 1000 * texte;
+        }
+
+        /**
+         * "Poste - Entreprise | Lieu | Periode" sur la meme ligne, dans l'ordre de lecture : les ATS lisent mal
+         * les dates calees a droite (elles finissent souvent a la fin du CV). Si c'est trop long, le lieu et la
+         * periode passent a la ligne suivante.
+         */
         void entete(String gauche, String droite) throws IOException {
             place(interligne * 2);
-            String d = vide(droite) ? "" : LettrePdf.nettoyer(droite, normal).strip();
-            float largeurDroite = d.isEmpty() ? 0 : normal.getStringWidth(d) / 1000 * texte + 12;
-            List<String> lignes = LettrePdf.couper(LettrePdf.nettoyer(vide(gauche) ? "" : gauche, gras), gras,
-                    largeur - largeurDroite, texte);
-            for (int i = 0; i < lignes.size(); i++) {
-                ecrire(marge, y - texte, lignes.get(i), gras, texte, false);
-                if (i == 0 && !d.isEmpty()) {
-                    ecrire(marge + largeur - (largeurDroite - 12), y - texte, d, normal, texte, false);
-                }
+            String g = LettrePdf.nettoyer(vide(gauche) ? "" : gauche, gras).strip();
+            String d = vide(droite) ? "" : "  |  " + LettrePdf.nettoyer(droite, normal).strip();
+            if (largeurTexte(g, gras) + largeurTexte(d, normal) <= largeur) {
+                ecrireMorceaux(marge, "g", g, "n", d);
+                y -= interligne;
+                return;
+            }
+            for (String l : LettrePdf.couper(g, gras, largeur, texte)) {
+                place(interligne);
+                ecrireMorceaux(marge, "g", l);
+                y -= interligne;
+            }
+            if (!d.isEmpty()) {
+                place(interligne);
+                ecrireMorceaux(marge, "n", d.substring(5));
                 y -= interligne;
             }
         }
 
+        /** Puce "•" et texte dans le meme bloc : chaque mission reste une ligne a part pour les ATS. */
         void puce(String contenu) throws IOException {
-            float retrait = 14 * echelle;
+            String puce = "•  ";
+            float retrait = 4 + largeurTexte(puce, normal);
             List<String> lignes = LettrePdf.couper(LettrePdf.nettoyer(contenu, normal), normal, largeur - retrait, texte);
             for (int i = 0; i < lignes.size(); i++) {
                 place(interligne);
                 if (i == 0) {
-                    ecrire(marge + 2, y - texte, "-", normal, texte, false);
+                    ecrireMorceaux(marge + 4, "n", puce + lignes.get(i));
+                } else {
+                    ecrireMorceaux(marge + retrait, "n", lignes.get(i));
                 }
-                ecrire(marge + retrait, y - texte, lignes.get(i), normal, texte, false);
                 y -= interligne;
             }
         }
 
-        /** "Techniques : Java, Spring Boot..." avec le libelle en gras. */
+        /** "Techniques : Java, Spring Boot..." avec le libelle en gras, dans le meme bloc de texte. */
         void libelle(String libelle, String contenu) throws IOException {
-            float decalage = gras.getStringWidth(libelle) / 1000 * texte;
+            float decalage = largeurTexte(libelle, gras);
             List<String> lignes = LettrePdf.couper(LettrePdf.nettoyer(contenu, normal), normal, largeur - decalage, texte);
             for (int i = 0; i < lignes.size(); i++) {
                 place(interligne);
                 if (i == 0) {
-                    ecrire(marge, y - texte, libelle, gras, texte, false);
+                    ecrireMorceaux(marge, "g", libelle, "n", lignes.get(i));
+                } else {
+                    ecrireMorceaux(marge + decalage, "n", lignes.get(i));
                 }
-                ecrire(marge + decalage, y - texte, lignes.get(i), normal, texte, false);
                 y -= interligne;
             }
         }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
+import DocumentActions from '../components/DocumentActions.jsx'
 import { formatDate } from '../labels'
 
 export default function Documents() {
@@ -58,7 +59,7 @@ export default function Documents() {
             <tbody>
               {docs.map((d) => (
                 <tr key={d.id}>
-                  <td data-label="Fichier"><button className="link" onClick={() => api.ouvrirDocument(d.id)}>{d.nomFichier}</button></td>
+                  <td data-label="Fichier"><DocumentActions doc={d} /></td>
                   <td data-label="Type">{d.type === 'CV' ? 'CV' : 'Lettre'}</td>
                   <td data-label="Ajouté le">{formatDate(d.dateAjout)}</td>
                   <td className="right td-actions"><button className="btn danger small" onClick={() => supprimer(d)}>Supprimer</button></td>

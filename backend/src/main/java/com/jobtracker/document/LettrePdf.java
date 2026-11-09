@@ -152,7 +152,7 @@ public final class LettrePdf {
         String t = texte.replace("\r", "")
                 .replace('’', '\'').replace('‘', '\'')
                 .replace('“', '"').replace('”', '"')
-                .replace('–', '-').replace('—', '-').replace("…", "...")
+                .replace('–', '-').replace('—', '-').replace('‐', '-').replace('‑', '-').replace('−', '-').replace("…", "...")
                 .replace(' ', ' ').replace(' ', ' ').replace("\t", "    ")
                 .replaceAll("\\*\\*|__", "").replaceAll("(?m)^#+\\s*", "");
         StringBuilder sb = new StringBuilder();

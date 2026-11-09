@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api } from '../api'
 import TagiaAvatar from './TagiaAvatar.jsx'
 import CvAdapte from './CvAdapte.jsx'
+import DocumentActions from './DocumentActions.jsx'
 
 // TAGIA compare le CV a l'offre (score, competences manquantes) et redige la lettre de motivation
 export default function CvLettre({ candidature, onChange }) {
@@ -171,6 +172,7 @@ function Lettre({ candidature, cvId, onChange }) {
   const [chargement, setChargement] = useState(false)
   const [enregistrement, setEnregistrement] = useState(false)
   const [message, setMessage] = useState('')
+  const [lettrePdf, setLettrePdf] = useState(null)
   const [erreur, setErreur] = useState('')
 
   useEffect(() => {
@@ -216,7 +218,9 @@ function Lettre({ candidature, cvId, onChange }) {
     setErreur('')
     setEnregistrement(true)
     try {
-      onChange(await api.enregistrerLettre(candidature.id, { texte, ...entete }))
+      const maj = await api.enregistrerLettre(candidature.id, { texte, ...entete })
+      onChange(maj)
+      setLettrePdf(maj.lettre)
       setMessage('Lettre enregistrée en PDF et rattachée à la candidature ✓')
     } catch (e) {
       setErreur(e.message)
@@ -277,6 +281,7 @@ function Lettre({ candidature, cvId, onChange }) {
         </>
       )}
       {message && <p className="succes">{message}</p>}
+      {lettrePdf && <DocumentActions doc={lettrePdf} libelle="Ouvrir ma lettre" />}
     </div>
   )
 }
