@@ -275,14 +275,23 @@ public class IaService {
                         - profil : 3 a 4 phrases percutantes, orientees vers l'offre, sans "je" repete ;
                         - competences : integre TOUTES les competences demandees par l'offre, sauf celles trop \
                         eloignees du profil ; les plus pertinentes pour l'offre en premier, avec les termes exacts de l'offre ;
-                        - projets : choisis parmi les projets du CV les 1 ou 2 PLUS pertinents pour le poste et ignore \
-                        les autres ; detaille chacun : une phrase de contexte (description), puis 3 a 4 points concrets \
-                        (fonctionnalites realisees, architecture, outils, resultats) qui reprennent les mots-cles de \
-                        l'offre, et la liste des technologies ;
-                        - PAS DE DOUBLON : un travail realise pendant une experience professionnelle (meme                         entreprise, meme mission, meme client) se decrit UNIQUEMENT dans cette experience, jamais aussi                         dans les projets. Les projets sont des projets personnels, academiques ou open source distincts                         des experiences ; s'il n'y en a aucun, renvoie "projets": [] ;
-                        - experiences et formations : du plus recent au plus ancien, chacune avec sa periode                         ("Juin 2026 - Sept. 2026") et son lieu tels qu'ecrits dans le CV ; garde l'orthographe exacte                         des noms propres (villes, entreprises, ecoles) ;
-                        - le CV doit tenir sur UNE page : sois concis, garde les experiences et formations les plus \
-                        utiles pour l'offre, 2 a 3 missions par experience, phrases courtes ;
+                        - experiences : garde EXACTEMENT les 2 experiences professionnelles les PLUS pertinentes pour \
+                        l'offre (toutes s'il y en a moins de 2) et ignore les autres ; pour chacune, 3 missions qui \
+                        reprennent les mots-cles de l'offre ;
+                        - projets : garde EXACTEMENT les 2 projets personnels (ou academiques, open source) les PLUS \
+                        pertinents pour l'offre (tous s'il y en a moins de 2) et ignore les autres ; detaille chacun : \
+                        une phrase de contexte (description), puis 3 points concrets (fonctionnalites realisees, \
+                        architecture, outils, resultats) qui reprennent les mots-cles de l'offre, et la liste des \
+                        technologies ;
+                        - PAS DE DOUBLON : un travail realise pendant une experience professionnelle (meme entreprise, \
+                        meme mission, meme client) se decrit UNIQUEMENT dans cette experience, jamais dans les projets ; \
+                        les 2 projets sont donc des projets distincts des experiences ; s'il n'y en a aucun, renvoie \
+                        "projets": [] ;
+                        - experiences et formations : du plus recent au plus ancien, chacune avec sa periode \
+                        ("Juin 2026 - Sept. 2026") et son lieu tels qu'ecrits dans le CV ; garde l'orthographe exacte \
+                        des noms propres (villes, entreprises, ecoles) ;
+                        - le CV doit tenir sur UNE page : sois concis, phrases courtes, garde les formations les plus \
+                        utiles pour l'offre ;
                         - missions : verbes d'action, resultats chiffres si le CV les donne ;
                         - atouts : 3 a 5 qualites prouvees par le CV ; centres d'interet : ceux du CV (ou vide) ;
                         - motsClesAjoutes : mots-cles de l'offre que tu as integres ;

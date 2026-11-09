@@ -60,6 +60,60 @@ class CvPdfTests {
         }
     }
 
+    /** Format demande : 2 experiences pro et 2 projets perso detailles, sur une seule page. */
+    @Test
+    void deuxExperiencesEtDeuxProjetsTiennentSurUnePage() throws Exception {
+        CvPdf.Cv cv = new CvPdf.Cv(
+                "Développeur Python / Anvil - Stage 6 mois",
+                "Étudiant en ingénierie logicielle, spécialisé en développement Python et intégration d'APIs REST. "
+                        + "Expérience confirmée dans la création de sites vitrines et d'interfaces modernes. Maîtrise "
+                        + "des architectures orientées services (SOA) et des environnements lowcode.",
+                List.of("Python", "Flask", "Django REST Framework", "API REST", "Anvil (lowcode)", "Tryton",
+                        "Middleware", "Git", "GitHub Actions", "Docker", "CSS", "UX design", "PostgreSQL", "SQLite"),
+                List.of("Analyse fonctionnelle", "Documentation technique et fonctionnelle", "Tests automatisés (pytest)",
+                        "Méthodes agiles Scrum/Kanban", "Intégration continue"),
+                List.of(new CvPdf.Experience("Développeur fullstack (stage)", "DITS Group", "Livry-sur-Seine",
+                                "Juin 2026 - Sept. 2026",
+                                List.of("Conception d'un site vitrine client avec API REST sécurisée (JWT) en Python/Flask et React",
+                                        "Intégration continue via GitHub Actions et déploiement sur Render et Vercel",
+                                        "Rédaction de la documentation fonctionnelle et technique pour les équipes commerciales")),
+                        new CvPdf.Experience("Développeur fullstack (stage)", "Yamo Group Sarl", "Yaoundé",
+                                "Févr. 2025 - Juil. 2025",
+                                List.of("Développement d'une API Flask de recherche documentaire intégrée au middleware interne",
+                                        "Mise en place de tests automatisés (pytest) et conteneurisation Docker",
+                                        "Documentation technique et guide d'utilisation pour les équipes internes"))),
+                List.of(new CvPdf.Projet("ShoeManager - interface de gestion (Django)",
+                                "Application web de gestion de magasin de chaussures, avec API REST et interface utilisateur.",
+                                "Python, Django REST Framework, React, Tailwind CSS, PostgreSQL, Docker",
+                                List.of("API Django REST documentée (OpenAPI) et gestion des rôles utilisateurs",
+                                        "Interface responsive en React et Tailwind CSS orientée expérience utilisateur",
+                                        "Tests unitaires pytest et conteneurisation Docker")),
+                        new CvPdf.Projet("Taguora - suivi de candidatures avec IA",
+                                "Application complète de suivi de candidatures déployée en production.",
+                                "Java, Spring Boot, React, PostgreSQL, Docker, GitHub Actions",
+                                List.of("API REST sécurisée par JWT, migrations Flyway et base PostgreSQL",
+                                        "Intégration d'APIs d'offres d'emploi et d'un assistant IA",
+                                        "CI/CD GitHub Actions, déploiement Render et Vercel"))),
+                List.of(new CvPdf.Formation("Cycle Expert en architecture et développement logiciel",
+                                "3IL Ingénieurs, Limoges", "Sept. 2025 - présent",
+                                "Spécialisation en architectures SOA, développement fullstack et intégration d'APIs"),
+                        new CvPdf.Formation("Diplôme d'ingénieur en génie informatique et télécommunications",
+                                "École nationale supérieure polytechnique de Douala", "2020 - 2025", null)),
+                List.of("Français (natif)", "Anglais (B1)", "Allemand (débutant)"),
+                List.of("Rigueur et sens de l'analyse", "Autonomie", "Esprit d'équipe", "Orientation UX"),
+                List.of("Enseignement des mathématiques et de l'informatique", "Football", "Tennis de table"),
+                List.of("https://linkedin.com/in/tague-franck", "https://github.com/TAGUE-GITH",
+                        "https://portfoliofranck-tague.vercel.app"));
+        byte[] pdf = CvPdf.generer(new CvPdf.Contact("Franck Tague", "francktague.devfull@gmail.com",
+                "06 59 90 93 37", "rue du Pont Saint-Martial"), cv);
+        org.junit.jupiter.api.Assertions.assertEquals(1, CvPdf.pages(pdf));
+        String texte = TexteDocument.extraire(pdf, "cv.pdf", "application/pdf");
+        assertTrue(texte.contains("Livry-sur-Seine"), texte);
+        try (var doc = Loader.loadPDF(pdf)) {
+            ImageIO.write(new PDFRenderer(doc).renderImageWithDPI(0, 70), "png", new File("target/cv-2x2-apercu.png"));
+        }
+    }
+
     @Test
     void cvPresqueVideNePlantePas() {
         byte[] pdf = CvPdf.generer(new CvPdf.Contact("Franck", null, null, null),

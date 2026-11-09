@@ -102,8 +102,8 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
       {!form && !chargement && (
         <p className="muted small">
           TAGIA réécrit ton CV pour cette offre : titre, profil, compétences dans l'ordre de l'offre (avec celles de
-          l'offre proches des tiennes), missions reformulées avec ses mots-clés, ton projet le plus pertinent
-          détaillé, atouts et centres d'intérêt, le tout sur une page. Il n'invente ni expérience ni diplôme.
+          l'offre proches des tiennes), tes 2 expériences pro et tes 2 projets perso les plus proches du poste,
+          détaillés avec ses mots-clés, atouts et centres d'intérêt, le tout sur une page. Il n'invente ni expérience ni diplôme.
           Le PDF est pensé pour les logiciels de tri (ATS) : une colonne, du vrai texte, des rubriques classiques.
         </p>
       )}
@@ -147,7 +147,7 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
             <Liste titre="Compétences transverses" valeur={form.competencesTransverses} onChange={(v) => changer('competencesTransverses', v)} />
           </div>
 
-          <Groupe titre="Expériences" onAjouter={() => ajouter('experiences')}>
+          <Groupe titre="Expériences pro les plus pertinentes pour le poste (2 conseillées)"onAjouter={() => ajouter('experiences')}>
             {form.experiences.map((x, i) => (
               <Bloc key={i} onRetirer={() => retirer('experiences', i)}>
                 <div className="grid-2">
@@ -161,7 +161,7 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
             ))}
           </Groupe>
 
-          <Groupe titre="Projets les plus pertinents pour le poste" onAjouter={() => ajouter('projets')}>
+          <Groupe titre="Projets perso les plus pertinents pour le poste (2 conseillés)" onAjouter={() => ajouter('projets')}>
             {form.projets.map((p, i) => (
               <Bloc key={i} onRetirer={() => retirer('projets', i)}>
                 <div className="grid-2">
