@@ -47,6 +47,10 @@ public class User {
     @Column(nullable = false)
     private boolean administrateur;
 
+    /** Date d'acceptation des conditions d'utilisation (null : compte cree avant leur mise en place). */
+    @Column(name = "conditions_acceptees_le")
+    private LocalDateTime conditionsAccepteesLe;
+
     protected User() {
     }
 
@@ -99,6 +103,14 @@ public class User {
     /** Invalide tous les jetons de connexion deja emis pour ce compte. */
     public void revoquerJetons() {
         this.versionJeton++;
+    }
+
+    public LocalDateTime getConditionsAccepteesLe() {
+        return conditionsAccepteesLe;
+    }
+
+    public void accepterConditions() {
+        this.conditionsAccepteesLe = LocalDateTime.now();
     }
 
     public boolean isAdministrateur() {

@@ -11,7 +11,7 @@ export default function Login() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const [mode, setMode] = useState(params.get('mode') === 'inscription' ? 'register' : 'login')
-  const [form, setForm] = useState({ nom: '', email: '', password: '' })
+  const [form, setForm] = useState({ nom: '', email: '', password: '', accepteConditions: false })
   const [erreur, setErreur] = useState('')
   const [chargement, setChargement] = useState(false)
 
@@ -24,6 +24,10 @@ export default function Login() {
   const onSubmit = async (e) => {
     e.preventDefault()
     setErreur('')
+    if (mode === 'register' && !form.accepteConditions) {
+      setErreur('Pour créer ton compte, accepte les conditions d’utilisation.')
+      return
+    }
     if (mode === 'register' && !regleRespectee(form.password)) {
       setErreur('Mot de passe trop faible : 8 caractères minimum, avec au moins une lettre et un chiffre.')
       return
@@ -70,6 +74,16 @@ export default function Login() {
           <ChampMotDePasse name="password" value={form.password} onChange={onChange} required
             avecForce={mode === 'register'} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
         </label>
+        {mode === 'register' && (
+          <label className="checkbox case-conditions">
+            <input type="checkbox" checked={form.accepteConditions}
+              onChange={(e) => setForm({ ...form, accepteConditions: e.target.checked })} required />
+            <span>
+              J'accepte les <Link to="/conditions" target="_blank">conditions d'utilisation</Link> et
+              la <Link to="/conditions#confidentialite" target="_blank">politique de confidentialité</Link>.
+            </span>
+          </label>
+        )}
         <Link to="/mot-de-passe-oublie" className="small lien-oubli">Mot de passe oublié ?</Link>
 
         {erreur && <p className="erreur">{erreur}</p>}

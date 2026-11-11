@@ -3,14 +3,22 @@ import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { api } from '../api'
 import OrvynaAvatar from './OrvynaAvatar.jsx'
-import { Send, X } from 'lucide-react'
+import { LifeBuoy, Send, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const SUGGESTIONS = [
   'Comment ajouter une candidature ?',
   'Où en sont mes candidatures ?',
   'Comment préparer un entretien avec toi ?',
   'Quand relancer un recruteur ?',
+  'J’ai un problème avec l’application',
 ]
+
+// Les liens internes proposes par ORVYNA (ex. /contact) restent dans l'application
+function LienMarkdown({ href = '', children }) {
+  if (href.startsWith('/')) return <Link to={href}>{children}</Link>
+  return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+}
 
 // Bulle d'aide flottante : ORVYNA repond aux questions sur l'application, sur toutes les pages
 export default function OrvynaWidget() {
@@ -74,7 +82,7 @@ export default function OrvynaWidget() {
             )}
             {messages.map((m, i) => (
               <div key={i} className={`bulle ${m.role}`}>
-                {m.role === 'assistant' ? <Markdown remarkPlugins={[remarkGfm]}>{m.content}</Markdown> : m.content}
+                {m.role === 'assistant' ? <Markdown remarkPlugins={[remarkGfm]} components={{ a: LienMarkdown }}>{m.content}</Markdown> : m.content}
               </div>
             ))}
             {chargement && <div className="bulle assistant orvyna-ecrit"><span /><span /><span /></div>}
@@ -82,6 +90,9 @@ export default function OrvynaWidget() {
             <div ref={finRef} />
           </div>
 
+          <Link to="/contact" className="orvyna-support" onClick={() => setOuvert(false)}>
+            <LifeBuoy size={14} /> Un problème non résolu ? Contacter l'équipe
+          </Link>
           <form className="orvyna-saisie" onSubmit={onSubmit}>
             <input value={saisie} onChange={(e) => setSaisie(e.target.value)}
               placeholder="Écris ta question…" disabled={chargement} autoFocus />

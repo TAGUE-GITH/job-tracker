@@ -27,7 +27,7 @@ class AdminTests {
     /** Inscrit le compte et renvoie l'en-tete Authorization ; le corps contient l'indicateur admin. */
     private String inscrire(String email, boolean adminAttendu) throws Exception {
         String corps = mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nom\":\"Test\",\"email\":\"%s\",\"password\":\"secret123\"}".formatted(email)))
+                        .content("{\"nom\":\"Test\",\"email\":\"%s\",\"password\":\"secret123\",\"accepteConditions\":true}".formatted(email)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.admin").value(adminAttendu))
                 .andReturn().getResponse().getContentAsString();

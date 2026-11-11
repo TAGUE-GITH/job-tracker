@@ -29,6 +29,8 @@ services:
         sync: false
       - key: JOOBLE_HOST
         sync: false # fr.jooble.org pour une cle demandee sur le site francais
+      - key: JOOBLE_CLES_PAYS
+        sync: false # facultatif, autres pays : be=CLE,ca=CLE,ch=CLE (une cle gratuite par site Jooble)
       - key: FT_CLIENT_ID
         sync: false
       - key: FT_CLIENT_SECRET
@@ -40,6 +42,9 @@ services:
       # Emails "mot de passe oublie" (https://www.brevo.com, gratuit) : cle API et adresse d'expediteur verifiee
       # Comptes administrateurs (page Administration) : emails separes par des virgules
       - key: ADMIN_EMAILS
+        sync: false
+      # Facultatif : adresse qui recoit les messages de la page Contact (sinon les emails de ADMIN_EMAILS)
+      - key: CONTACT_EMAIL
         sync: false
       - key: BREVO_API_KEY
         sync: false

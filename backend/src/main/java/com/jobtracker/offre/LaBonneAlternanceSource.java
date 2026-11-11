@@ -127,7 +127,7 @@ public class LaBonneAlternanceSource implements SourceOffres {
 
     @Override
     public ResultatSource rechercher(Recherche r) {
-        List<String> romes = romes(r.motsCles());
+        List<String> romes = romes(r.requeteFr());
         double[] coordonnees = DEPARTEMENT.matcher(r.lieu()).matches() || r.lieu().isBlank()
                 ? null : geocoder(r.lieu());
         Reponse res = restClient.get()
@@ -150,7 +150,7 @@ public class LaBonneAlternanceSource implements SourceOffres {
         }
 
         // Pas de pagination dans l'API : on classe par pertinence puis on decoupe en pages
-        Set<String> mots = mots(r.motsCles());
+        Set<String> mots = mots(r.requeteFr());
         List<OffreExterne> offres = res.jobs().stream()
                 .filter(o -> o.offer() == null || o.offer().status() == null
                         || "Active".equalsIgnoreCase(o.offer().status()))

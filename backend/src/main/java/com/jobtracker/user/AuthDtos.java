@@ -12,7 +12,10 @@ public final class AuthDtos {
     public record RegisterRequest(
             @NotBlank(message = "Le nom est obligatoire") String nom,
             @NotBlank(message = "L'email est obligatoire") @Email(message = "Email invalide") String email,
-            @NotBlank @Pattern(regexp = MotDePasse.REGLE, message = MotDePasse.MESSAGE) String password) {
+            @NotBlank @Pattern(regexp = MotDePasse.REGLE, message = MotDePasse.MESSAGE) String password,
+            @jakarta.validation.constraints.NotNull(message = "Tu dois accepter les conditions d'utilisation pour creer un compte")
+            @jakarta.validation.constraints.AssertTrue(
+                    message = "Tu dois accepter les conditions d'utilisation pour creer un compte") Boolean accepteConditions) {
     }
 
     public record LoginRequest(@NotBlank String email, @NotBlank String password) {

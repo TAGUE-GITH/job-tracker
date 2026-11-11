@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import {
-  ArrowRight, BarChart3, Briefcase, Check, FileText, GitBranch, Search, Sparkles,
+  ArrowRight, BarChart3, Briefcase, Check, FileText, GitBranch, Minus, Search, Sparkles, X,
 } from 'lucide-react'
 import { useAuth } from '../auth.jsx'
 import Logo from '../components/Logo.jsx'
+import { PiedDePage } from '../components/PagePublique.jsx'
 import OrvynaAvatar from '../components/OrvynaAvatar.jsx'
 import '../landing.css'
 
@@ -46,7 +47,41 @@ const ETAPES = [
   { num: '03', titre: 'Préparez-vous avec ORVYNA', texte: "CV adapté, lettre, questions probables et entretien blanc, à partir de l'annonce." },
 ]
 
-const ANNEE = new Date().getFullYear()
+// Photos libres de droits (licence Unsplash), servies et redimensionnees par Unsplash
+const photo = (id, largeur = 900) => `https://images.unsplash.com/photo-${id}?w=${largeur}&q=75&auto=format&fit=crop`
+const PHOTOS = {
+  decourage: '1758874572670-63042c5448c6',
+  postIt: '1758876019043-cedb0b6f56ea',
+  sereine: '1765648763848-665267cf9929',
+  souriante: '1688646583123-16844c80e78a',
+  hero: '1765648684555-de2d0f6af467',
+}
+
+const DIFFICULTES = [
+  'Un tableur à mettre à jour à la main, vite oublié',
+  'Des post-it et des dizaines d’onglets ouverts',
+  'Des relances oubliées, des réponses qui se perdent',
+  'Le même CV envoyé partout, filtré par les logiciels de tri',
+  'Des entretiens préparés à la dernière minute',
+]
+
+// Comparatif : oui, partiel, non
+const COMPARATIF = [
+  ['Toutes les candidatures et leur historique au même endroit', 'partiel', 'oui'],
+  ['Rappel des candidatures à relancer', 'non', 'oui'],
+  ['Offres de plusieurs pays et domaines, ajoutées en un clic', 'non', 'oui'],
+  ['CV adapté à chaque offre et compatible ATS', 'non', 'oui'],
+  ['Lettre de motivation rédigée à partir de l’offre', 'non', 'oui'],
+  ['Simulation d’entretien, à l’écrit ou à l’oral', 'non', 'oui'],
+  ['Statistiques : taux de réponse, CV et sources qui marchent', 'partiel', 'oui'],
+  ['Accessible sur ordinateur et téléphone', 'partiel', 'oui'],
+]
+
+function Cellule({ valeur }) {
+  if (valeur === 'oui') return <span className="cmp-oui"><Check size={18} /> Oui</span>
+  if (valeur === 'partiel') return <span className="cmp-partiel"><Minus size={18} /> À la main</span>
+  return <span className="cmp-non"><X size={18} /> Non</span>
+}
 
 export default function Landing() {
   const { user } = useAuth()
@@ -61,6 +96,7 @@ export default function Landing() {
         <nav>
           <a href="#fonctionnalites">Fonctionnalités</a>
           <a href="#ia">Assistante IA</a>
+          <a href="#comparatif">Pourquoi Postulyn</a>
           <a href="#etapes">Fonctionnement</a>
         </nav>
         <div className="landing-nav-actions">
@@ -90,6 +126,7 @@ export default function Landing() {
         </div>
 
         <div className="hero-visual" aria-hidden="true">
+          <img src={`${photo(PHOTOS.hero, 1000)}&crop=faces&h=750`} alt="" className="hero-photo" />
           <div className="mock">
             <div className="mock-side">
               <span className="mock-logo" />
@@ -114,6 +151,24 @@ export default function Landing() {
         </div>
       </section>
 
+      <section className="section probleme">
+        <div className="probleme-photos" aria-hidden="true">
+          <img src={photo(PHOTOS.decourage, 700)} alt="" loading="lazy" className="photo-a" />
+          <img src={photo(PHOTOS.postIt, 700)} alt="" loading="lazy" className="photo-b" />
+        </div>
+        <div className="probleme-texte">
+          <span className="eyebrow">Le constat</span>
+          <h2>Chercher un emploi ne devrait pas devenir un second emploi</h2>
+          <p>
+            Des dizaines de candidatures, autant d'annonces, de versions de CV et d'échanges : sans outil adapté,
+            on s'épuise à tout garder en tête et les opportunités passent.
+          </p>
+          <ul className="liste-difficultes">
+            {DIFFICULTES.map((d) => <li key={d}><X size={16} /> {d}</li>)}
+          </ul>
+        </div>
+      </section>
+
       <section id="fonctionnalites" className="section">
         <div className="section-head">
           <span className="eyebrow">Fonctionnalités</span>
@@ -128,6 +183,38 @@ export default function Landing() {
               <p>{texte}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section id="comparatif" className="section comparatif">
+        <div className="section-head">
+          <span className="eyebrow">Pourquoi Postulyn</span>
+          <h2>Ce qui change par rapport à un tableur, des post-it et vos e-mails</h2>
+        </div>
+        <div className="comparatif-grille">
+          <div className="comparatif-photo">
+            <img src={photo(PHOTOS.sereine, 800)} alt="Jeune femme souriante à son bureau devant son ordinateur" loading="lazy" />
+            <div className="comparatif-legende">
+              <strong>Une recherche organisée, sereine</strong>
+              <span>Chaque offre, chaque échange et chaque document au même endroit, avec une assistante pour vous préparer.</span>
+            </div>
+          </div>
+          <div className="card table-comparatif">
+            <table>
+              <thead>
+                <tr><th>Fonctionnalité</th><th>Tableur et outils dispersés</th><th className="col-postulyn">Postulyn</th></tr>
+              </thead>
+              <tbody>
+                {COMPARATIF.map(([libelle, autres, nous]) => (
+                  <tr key={libelle}>
+                    <td>{libelle}</td>
+                    <td><Cellule valeur={autres} /></td>
+                    <td className="col-postulyn"><Cellule valeur={nous} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -172,6 +259,7 @@ export default function Landing() {
       </section>
 
       <section className="final-cta">
+        <img src={photo(PHOTOS.souriante, 300)} alt="" loading="lazy" className="final-photo" aria-hidden="true" />
         <div>
           <h2>Prêt à structurer votre recherche ?</h2>
           <p>Créez votre espace en moins d'une minute.</p>
@@ -179,10 +267,7 @@ export default function Landing() {
         <Link to={cta.to} className="btn btn-lg btn-white">{cta.label} <ArrowRight size={18} /></Link>
       </section>
 
-      <footer className="landing-footer">
-        <Logo size={22} />
-        <span>© {ANNEE} Postulyn. Tous droits réservés.</span>
-      </footer>
+      <PiedDePage />
     </div>
   )
 }

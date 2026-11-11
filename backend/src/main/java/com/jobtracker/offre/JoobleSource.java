@@ -4,6 +4,7 @@ import com.jobtracker.offre.OffreDtos.OffreExterne;
 import com.jobtracker.offre.OffreDtos.Recherche;
 import com.jobtracker.offre.OffreDtos.ResultatSource;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -15,9 +16,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 /**
- * API REST de Jooble (moteur de recherche d'emploi, tous contrats). Cle gratuite sur
- * https://fr.jooble.org/api/about : une cle demandee sur le site francais donne les offres francaises
- * (JOOBLE_HOST=fr.jooble.org), une cle du site international passe par jooble.org.
+ * API REST de Jooble (moteur de recherche d'emploi, tous contrats et tous domaines). Chaque site national de
+ * Jooble a ses propres cles, gratuites (page "API" du site du pays, ex. https://fr.jooble.org/api/about) :
+ * - JOOBLE_API_KEY + JOOBLE_HOST : la cle principale (fr.jooble.org pour la France) ;
+ * - JOOBLE_CLES_PAYS (facultatif) : d'autres pays, au format "be=CLE,ca=CLE,ch=CLE" (code pays = sous-domaine).
  */
 @Component
 @Order(2)
@@ -27,16 +29,43 @@ public class JoobleSource implements SourceOffres {
     private static final Map<String, String> MOTS_CONTRAT = Map.of(
             "ALTERNANCE", "alternance", "STAGE", "stage", "CDI", "CDI", "CDD", "CDD");
 
+    /** Pays (code ISO) -> site Jooble a interroger et sa cle. */
+    record Acces(String hote, String cle) {
+    }
+
     private final RestClient restClient = RestClient.create();
-    private final String cle;
-    private final String hote;
+    private final Map<String, Acces> acces = new LinkedHashMap<>();
+    private final String hotePrincipal;
 
     public JoobleSource(
             @Value("${app.offres.jooble.api-key:}") String cle,
-            @Value("${app.offres.jooble.host:jooble.org}") String hote) {
-        this.cle = SourceOffres.nettoyer(cle);
+            @Value("${app.offres.jooble.host:jooble.org}") String hote,
+            @Value("${app.offres.jooble.cles-pays:}") String clesPays) {
+        String c = SourceOffres.nettoyer(cle);
         String h = SourceOffres.nettoyer(hote);
-        this.hote = h.isBlank() ? "jooble.org" : h.replaceFirst("^https?://", "").replaceAll("/+$", "");
+        this.hotePrincipal = h.isBlank() ? "jooble.org" : h.replaceFirst("^https?://", "").replaceAll("/+$", "");
+        if (!c.isBlank()) {
+            acces.put(paysDuHote(hotePrincipal), new Acces(hotePrincipal, c));
+        }
+        for (String paire : clesPays.split("[,;]")) {
+            String[] morceaux = paire.split("=", 2);
+            if (morceaux.length == 2 && !morceaux[0].isBlank() && !SourceOffres.nettoyer(morceaux[1]).isBlank()) {
+                String pays = morceaux[0].strip().toLowerCase(Locale.ROOT);
+                // Le site britannique de Jooble est uk.jooble.org (code ISO : GB)
+                String sousDomaine = "gb".equals(pays) ? "uk" : pays;
+                acces.put(("uk".equals(pays) ? "GB" : pays.toUpperCase(Locale.ROOT)),
+                        new Acces(sousDomaine + ".jooble.org", SourceOffres.nettoyer(morceaux[1])));
+            }
+        }
+    }
+
+    /** fr.jooble.org -> FR ; uk.jooble.org -> GB ; jooble.org (site international) -> US. */
+    static String paysDuHote(String hote) {
+        String prefixe = hote.contains(".jooble.") ? hote.substring(0, hote.indexOf('.')) : "";
+        if (prefixe.isEmpty() || "www".equals(prefixe)) {
+            return "US";
+        }
+        return "uk".equals(prefixe) ? "GB" : prefixe.toUpperCase(Locale.ROOT);
     }
 
     record Requete(String keywords, String location, String page, String ResultOnPage) {
@@ -56,7 +85,12 @@ public class JoobleSource implements SourceOffres {
 
     @Override
     public boolean configuree() {
-        return !cle.isBlank();
+        return !acces.isEmpty();
+    }
+
+    @Override
+    public boolean couvre(String pays) {
+        return acces.containsKey(pays.toUpperCase(Locale.ROOT));
     }
 
     @Override
@@ -64,22 +98,25 @@ public class JoobleSource implements SourceOffres {
         if (statut != 403) {
             return "";
         }
-        return ". Jooble ne reconnait pas la cle sur " + hote + " : une cle demandee sur fr.jooble.org "
-                + "demande JOOBLE_HOST=fr.jooble.org, une cle demandee sur jooble.org demande "
-                + "JOOBLE_HOST=jooble.org (variables du service sur Render).";
+        return ". Jooble ne reconnait pas la cle : chaque cle ne marche que sur le site du pays ou elle a ete "
+                + "demandee (ex. une cle de fr.jooble.org demande JOOBLE_HOST=fr.jooble.org sur Render).";
     }
 
     @Override
     public ResultatSource rechercher(Recherche r) {
-        String motsCles = r.motsCles();
+        Acces a = acces.get(r.pays().toUpperCase(Locale.ROOT));
+        if (a == null) {
+            return new ResultatSource(List.of(), 0);
+        }
+        String motsCles = r.requeteFr();
         String motContrat = MOTS_CONTRAT.get(r.contrat());
         if (motContrat != null && !motsCles.toLowerCase(Locale.ROOT).contains(motContrat.toLowerCase(Locale.ROOT))) {
             motsCles = (motsCles + " " + motContrat).strip();
         }
         Reponse res = restClient.post()
-                .uri("https://" + hote + "/api/" + cle)
+                .uri("https://" + a.hote() + "/api/" + a.cle())
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new Requete(motsCles, lieu(r.lieu()), String.valueOf(r.page() + 1),
+                .body(new Requete(motsCles, lieu(r.lieu(), r.pays(), a.hote()), String.valueOf(r.page() + 1),
                         String.valueOf(TAILLE_PAGE)))
                 .retrieve()
                 .body(Reponse.class);
@@ -90,12 +127,18 @@ public class JoobleSource implements SourceOffres {
         return new ResultatSource(offres, res.totalCount() != null ? res.totalCount() : offres.size());
     }
 
-    /** Sur jooble.org, "Paris" designerait aussi Paris (Texas) : on precise le pays. */
-    private String lieu(String lieu) {
-        if (lieu.isBlank() || DEPARTEMENT.matcher(lieu).matches()) {
-            return "France";
+    /**
+     * Sur le site international, "Paris" designerait aussi Paris (Texas) : on precise le pays. Un numero de
+     * departement francais ou un lieu vide donne tout le pays.
+     */
+    private static String lieu(String lieu, String pays, String hote) {
+        String nomPays = Catalogue.pays(pays).map(Catalogue.Pays::nom).orElse("");
+        if (lieu.isBlank() || "FR".equals(pays) && DEPARTEMENT.matcher(lieu).matches()) {
+            return nomPays;
         }
-        return hote.startsWith("fr.") || lieu.toLowerCase(Locale.ROOT).contains("france") ? lieu : lieu + ", France";
+        boolean siteNational = !hote.equals("jooble.org") && !hote.startsWith("www.");
+        return siteNational || lieu.toLowerCase(Locale.ROOT).contains(nomPays.toLowerCase(Locale.ROOT))
+                ? lieu : lieu + ", " + nomPays;
     }
 
     private OffreExterne convertir(Offre o) {

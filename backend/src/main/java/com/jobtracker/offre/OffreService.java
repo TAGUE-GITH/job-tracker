@@ -25,13 +25,17 @@ public class OffreService {
                     + "(https://api.apprentissage.beta.gouv.fr, offres d'alternance) ou JOOBLE_API_KEY "
                     + "(https://fr.jooble.org/api/about, tous contrats)");
         }
-        List<SourceOffres> compatibles = disponibles.stream()
+        String nomPays = Catalogue.pays(recherche.pays()).map(Catalogue.Pays::nom).orElse(recherche.pays());
+        List<SourceOffres> duPays = disponibles.stream().filter(s -> s.couvre(recherche.pays())).toList();
+        if (duPays.isEmpty()) {
+            throw new OffresIndisponiblesException("Aucune source d'offres pour ce pays (" + nomPays + ") pour l'instant.");
+        }
+        List<SourceOffres> compatibles = duPays.stream()
                 .filter(s -> s.supporte(recherche.contrat()))
                 .toList();
         if (compatibles.isEmpty()) {
-            throw new OffresIndisponiblesException("Aucune source configuree ne propose ce type de contrat : "
-                    + "La bonne alternance ne publie que des offres en alternance. Pour les stages, CDI et CDD, "
-                    + "ajoute une cle Jooble (JOOBLE_API_KEY).");
+            throw new OffresIndisponiblesException("Aucune source ne propose ce type de contrat pour " + nomPays
+                    + " : essaie \"Tous les contrats\".");
         }
         disponibles = compatibles;
         SourceOffres source = disponibles.stream()
@@ -59,6 +63,7 @@ public class OffreService {
                 resultat.offres(),
                 resultat.total(),
                 recherche.page(),
-                resultat.offres().size() == SourceOffres.TAILLE_PAGE && vus < resultat.total());
+                resultat.offres().size() == SourceOffres.TAILLE_PAGE && vus < resultat.total(),
+                source.remarque(recherche));
     }
 }

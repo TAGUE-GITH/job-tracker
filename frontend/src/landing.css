@@ -126,3 +126,60 @@
   .mock { grid-template-columns: 1fr; }
   .mock-side { display: none; }
 }
+
+/* Hero : photo avec l'apercu de l'application en surimpression */
+.hero-visual { position: relative; padding-bottom: 9rem; }
+.hero-photo { width: 82%; margin-left: 18%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; display: block; }
+.hero-visual .mock { position: absolute; left: 0; bottom: 0; width: 66%; }
+.hero-visual .mock-chart { display: none; }
+.hero-visual .mock-rows div:nth-child(3) { display: none; }
+
+/* Le constat */
+.probleme { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem; align-items: center; border-top: 1px solid var(--border); }
+.probleme-photos { position: relative; min-height: 420px; }
+.probleme-photos img { position: absolute; object-fit: cover; border-radius: 12px; box-shadow: 0 25px 50px -25px rgba(15, 23, 42, 0.45); }
+.probleme-photos .photo-a { width: 72%; aspect-ratio: 4 / 3; top: 0; left: 0; }
+.probleme-photos .photo-b { width: 58%; aspect-ratio: 4 / 3; right: 0; bottom: 0; border: 6px solid var(--surface); }
+.probleme-texte h2 { font-size: clamp(1.6rem, 3vw, 2.15rem); line-height: 1.2; margin: 0 0 0.9rem; }
+.probleme-texte p { color: var(--muted); line-height: 1.7; }
+.liste-difficultes { list-style: none; padding: 0; margin: 1.3rem 0 0; display: flex; flex-direction: column; gap: 0.7rem; }
+.liste-difficultes li { display: flex; gap: 0.6rem; align-items: flex-start; }
+.liste-difficultes svg { flex-shrink: 0; margin-top: 0.15rem; color: #dc2626; }
+
+/* Comparatif */
+.comparatif { border-top: 1px solid var(--border); }
+.comparatif-grille { display: grid; grid-template-columns: 0.8fr 1.4fr; gap: 1.5rem; align-items: stretch; }
+.comparatif-photo { position: relative; border-radius: 12px; overflow: hidden; min-height: 360px; }
+.comparatif-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.comparatif-legende {
+  position: absolute; left: 1rem; right: 1rem; bottom: 1rem; padding: 0.9rem 1rem; border-radius: 10px;
+  background: rgba(11, 19, 36, 0.82); color: #fff; display: flex; flex-direction: column; gap: 0.25rem; backdrop-filter: blur(6px);
+}
+.comparatif-legende span { color: #cbd5e1; font-size: 0.88rem; line-height: 1.5; }
+.table-comparatif { padding: 0; overflow-x: auto; margin: 0; }
+.table-comparatif th:not(:first-child), .table-comparatif td:not(:first-child) { white-space: nowrap; }
+.table-comparatif td { font-size: 0.92rem; }
+.table-comparatif .col-postulyn { background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.table-comparatif th.col-postulyn { color: var(--primary); }
+.cmp-oui, .cmp-non, .cmp-partiel { display: inline-flex; align-items: center; gap: 0.3rem; font-weight: 600; font-size: 0.86rem; }
+.cmp-oui { color: var(--success); }
+.cmp-non { color: #dc2626; }
+.cmp-partiel { color: #d97706; }
+
+/* Appel final avec photo */
+.final-cta { position: relative; }
+.final-photo { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255, 255, 255, 0.25); }
+.final-cta > div { flex: 1; min-width: 240px; }
+
+@media (max-width: 900px) {
+  .probleme, .comparatif-grille { grid-template-columns: 1fr; gap: 2rem; }
+  .probleme-photos { min-height: 320px; }
+  .comparatif-photo { min-height: 300px; }
+}
+@media (max-width: 600px) {
+  .hero-visual { padding: 0; }
+  .hero-photo { width: 100%; margin: 0; }
+  .hero-visual .mock { position: relative; width: 92%; margin: -2.5rem auto 0; }
+  .probleme-photos { min-height: 260px; }
+  .final-photo { display: none; }
+}

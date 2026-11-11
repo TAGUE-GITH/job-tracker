@@ -46,8 +46,9 @@ public class AuthService {
         if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Un compte existe deja avec cet email");
         }
-        User user = userRepository.save(new User(req.nom().trim(), email, passwordEncoder.encode(req.password())));
-        return toResponse(user);
+        User user = new User(req.nom().trim(), email, passwordEncoder.encode(req.password()));
+        user.accepterConditions();
+        return toResponse(userRepository.save(user));
     }
 
     public AuthResponse login(LoginRequest req) {

@@ -80,6 +80,12 @@ export const api = {
   adminUtilisateurs: () => request('/admin/utilisateurs'),
   adminDeconnecter: (id) => request(`/admin/utilisateurs/${id}/deconnexion`, { method: 'POST' }),
   adminRole: (id, admin) => request(`/admin/utilisateurs/${id}/role`, { method: 'PUT', body: { admin } }),
+  adminMessages: () => request('/admin/messages'),
+  adminTraiterMessage: (id, traite) => request(`/admin/messages/${id}`, { method: 'PUT', body: { traite } }),
+  adminSupprimerMessage: (id) => request(`/admin/messages/${id}`, { method: 'DELETE' }),
+  adminAvis: () => request('/admin/avis'),
+  contact: (data) => request('/contact', { method: 'POST', body: data }),
+  donnerAvis: (data) => request('/avis', { method: 'POST', body: data }),
   adminSupprimer: (id) => request(`/admin/utilisateurs/${id}`, { method: 'DELETE' }),
   login: (data) => request('/auth/login', { method: 'POST', body: data }),
   register: (data) => request('/auth/register', { method: 'POST', body: data }),
@@ -143,6 +149,7 @@ export const api = {
   lettreIa: (id, data) => request(`/candidatures/${id}/ia/lettre`, { method: 'POST', body: data }),
   enregistrerLettre: (id, lettre) => request(`/candidatures/${id}/lettre`, { method: 'POST', body: lettre }),
   aide: (data) => request('/ia/aide', { method: 'POST', body: data }),
-  offres: ({ q = '', lieu = '', contrat = '', source = '', page = 0 } = {}) =>
-    request(`/offres?${new URLSearchParams({ q, lieu, contrat, source, page })}`),
+  offres: ({ q = '', lieu = '', contrat = '', source = '', page = 0, pays = 'FR', domaine = '' } = {}) =>
+    request(`/offres?${new URLSearchParams({ q, lieu, contrat, source, page, pays, domaine })}`),
+  criteresOffres: () => request('/offres/criteres'),
 }

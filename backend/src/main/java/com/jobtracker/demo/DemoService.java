@@ -63,6 +63,7 @@ public class DemoService {
         }
         String email = "demo-" + UUID.randomUUID().toString().substring(0, 8) + AuthService.DOMAINE_DEMO;
         User user = new User("Alex Martin", email, passwordEncoder.encode(UUID.randomUUID().toString()));
+        user.accepterConditions();
         user.modifierProfil("Alex Martin", "06 00 00 00 00", "1 rue de l'Exemple\n75001 Paris", "Paris");
         user = userRepository.save(user);
         remplir(user);

@@ -3,6 +3,7 @@ package com.jobtracker.admin;
 import com.jobtracker.admin.AdminService.Statistiques;
 import com.jobtracker.admin.AdminService.Utilisateur;
 import com.jobtracker.common.CurrentUser;
+import com.jobtracker.support.SupportService;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,9 +22,40 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminController {
 
     private final AdminService adminService;
+    private final SupportService supportService;
 
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService, SupportService supportService) {
         this.adminService = adminService;
+        this.supportService = supportService;
+    }
+
+    public record TraiteRequest(boolean traite) {
+    }
+
+    @GetMapping("/messages")
+    public List<SupportService.MessageVue> messages() {
+        adminService.verifierAdmin(CurrentUser.id());
+        return supportService.messages();
+    }
+
+    @PutMapping("/messages/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void marquerTraite(@PathVariable Long id, @RequestBody TraiteRequest req) {
+        adminService.verifierAdmin(CurrentUser.id());
+        supportService.marquerTraite(id, req.traite());
+    }
+
+    @DeleteMapping("/messages/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void supprimerMessage(@PathVariable Long id) {
+        adminService.verifierAdmin(CurrentUser.id());
+        supportService.supprimerMessage(id);
+    }
+
+    @GetMapping("/avis")
+    public SupportService.SyntheseAvis avis() {
+        adminService.verifierAdmin(CurrentUser.id());
+        return supportService.avis();
     }
 
     @GetMapping("/statistiques")

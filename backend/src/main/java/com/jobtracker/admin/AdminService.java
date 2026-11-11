@@ -4,6 +4,7 @@ import com.jobtracker.candidature.CandidatureRepository;
 import com.jobtracker.candidature.StatutCandidature;
 import com.jobtracker.common.NotFoundException;
 import com.jobtracker.document.DocumentRepository;
+import com.jobtracker.support.SupportService;
 import com.jobtracker.user.Administrateurs;
 import com.jobtracker.user.AuthService;
 import com.jobtracker.user.CompteService;
@@ -37,9 +38,12 @@ public class AdminService {
     private final DocumentRepository documentRepository;
     private final CompteService compteService;
     private final Administrateurs administrateurs;
+    private final SupportService supportService;
 
     public AdminService(UserRepository userRepository, CandidatureRepository candidatureRepository,
-            DocumentRepository documentRepository, CompteService compteService, Administrateurs administrateurs) {
+            DocumentRepository documentRepository, CompteService compteService, Administrateurs administrateurs,
+            SupportService supportService) {
+        this.supportService = supportService;
         this.userRepository = userRepository;
         this.candidatureRepository = candidatureRepository;
         this.documentRepository = documentRepository;
@@ -53,7 +57,7 @@ public class AdminService {
     /** Chiffres hors comptes de demonstration (sauf comptesDemo). */
     public record Statistiques(long utilisateurs, long comptesDemo, long inscrits7Jours, long inscrits30Jours,
             long candidatures, long documents, Map<StatutCandidature, Long> candidaturesParStatut,
-            List<Semaine> activite) {
+            List<Semaine> activite, long messagesNonTraites) {
     }
 
     /** principal : administrateur defini par ADMIN_EMAILS, dont les droits ne peuvent pas etre retires ici. */
@@ -87,7 +91,8 @@ public class AdminService {
                 parStatut.values().stream().mapToLong(Long::longValue).sum(),
                 documentRepository.compterHors(DEMO),
                 parStatut,
-                activite(maintenant.toLocalDate()));
+                activite(maintenant.toLocalDate()),
+                supportService.messagesNonTraites());
     }
 
     /** Inscriptions et candidatures des 8 dernieres semaines (du lundi au dimanche). */

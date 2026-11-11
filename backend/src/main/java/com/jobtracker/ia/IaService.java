@@ -45,12 +45,17 @@ public class IaService {
 
     private static final String GUIDE_POSTULYN = """
             Fonctionnement de l'application Postulyn (a utiliser pour repondre aux questions d'aide) :
-            - Menu du haut : "Tableau de bord", "Offres", "Candidatures", "CV & lettres", et le bouton \
-            "Deconnexion" (sur telephone, ils sont dans le menu a trois traits en haut a droite).
-            - Offres : recherche d'offres en direct par mots-cles, lieu (ville ou numero de departement) \
-            et contrat. La bonne alternance fournit les offres d'alternance de toute la France (recherche \
-            par metier, codes ROME) ; Jooble couvre les stages, CDI et CDD si sa cle est configuree. \
-            "Postuler" ouvre l'annonce sur le site d'origine pour candidater ; "Ajouter au suivi" cree \
+            - Barre laterale a gauche : "Tableau de bord", "Offres d'emploi", "Candidatures", "CV et lettres", \
+            "Parametres du compte", "Donner mon avis", "Aide et contact", "Page d'accueil" (et "Administration" pour \
+            les administrateurs) ; en bas, le nom de l'utilisateur et le bouton de deconnexion. Sur telephone, la barre \
+            s'ouvre avec le bouton a trois traits en haut a droite.
+            - Offres d'emploi : recherche par mots-cles et lieu, avec les filtres Pays (France, Belgique, Suisse, \
+            Canada, Allemagne, Royaume-Uni, Espagne, Etats-Unis, Maroc, Senegal, Cameroun...), Domaine (informatique, \
+            marketing, finance, sante, logistique, BTP...) et Contrat. Selon le pays, plusieurs sources (onglets) : \
+            La bonne alternance (alternance en France), Jooble (tous contrats en France), Himalayas (teletravail \
+            ouvert aux candidats du pays choisi, souvent en anglais) et Arbeitnow (Allemagne). Les filtres choisis \
+            sont retenus pour la visite suivante. Liens "Voir aussi" vers LinkedIn, Indeed, Welcome to the Jungle, \
+            HelloWork et Apec. "Postuler" ouvre l'annonce sur le site d'origine ; "Ajouter au suivi" cree \
             automatiquement la candidature avec le texte de l'offre. On ne peut pas envoyer sa candidature \
             directement depuis Postulyn : la candidature se fait toujours sur le site du recruteur.
             - Favori "Ajouter a Postulyn" (en bas des pages Offres et Candidatures) : on le glisse dans la barre \
@@ -91,9 +96,13 @@ public class IaService {
             au micro (bouton micro) ; apres deux reponses, "Terminer et obtenir mon bilan" donne une note sur 10, \
             les points forts et les axes d'amelioration.
             - ORVYNA (la bulle en bas a droite) repond aux questions sur l'application et sur la recherche d'emploi.
-            - Compte : inscription avec nom, email et mot de passe (6 caracteres minimum). La session dure \
-            24 h. Page "Mon compte" (clic sur son nom en haut) : changer de mot de passe, exporter ses donnees \
-            (fichier JSON), supprimer son compte, "Deconnecter mes autres appareils".
+            - Compte : inscription avec nom, email, mot de passe et acceptation des conditions d'utilisation \
+            (page /conditions, lien en bas de la page d'accueil). La session dure 24 h. "Parametres du compte" : \
+            coordonnees, mot de passe, email de test, exporter ses donnees (fichier JSON), supprimer son compte, \
+            "Deconnecter mes autres appareils".
+            - "Donner mon avis" : une note de 1 a 5 etoiles et un commentaire, lus par l'equipe Postulyn.
+            - "Aide et contact" (page /contact, accessible meme sans compte) : formulaire pour ecrire a l'equipe \
+            (probleme, question, suggestion) ; un accuse de reception arrive par email.
             - Mot de passe oublie : lien "Mot de passe oublie ?" sous le formulaire de connexion ; un email avec un \
             lien valable 30 minutes est envoye. Mot de passe : 8 caracteres minimum avec une lettre et un chiffre ; \
             5 echecs de connexion bloquent le compte 15 minutes.
@@ -101,6 +110,28 @@ public class IaService {
             moyen avant une premiere reponse.
             - Application installable : dans Chrome ou Edge, icone "Installer" dans la barre d'adresse ; sur \
             iPhone, Partager puis "Sur l'ecran d'accueil".
+            Depannage (propose ces solutions, une ou deux a la fois, avant de renvoyer vers le support) :
+            - Premier chargement tres lent ou message "le serveur se reveille" : le serveur gratuit s'endort apres \
+            15 minutes, il faut patienter jusqu'a une minute puis recharger la page.
+            - Page blanche, bouton sans effet ou affichage ancien : recharger avec Ctrl + F5 (Cmd + Maj + R sur Mac), \
+            vider le cache du site, ou essayer en navigation privee ; si l'application est installee, la fermer et la rouvrir.
+            - Deconnexion inattendue ("Session expiree") : la session dure 24 h, ou un changement de mot de passe a \
+            deconnecte les autres appareils : se reconnecter.
+            - Connexion refusee : verifier l'email et le mot de passe (majuscules), utiliser "Mot de passe oublie ?" ; \
+            apres 5 echecs, attendre 15 minutes.
+            - Email de reinitialisation non recu : regarder les spams, attendre quelques minutes, verifier l'adresse ; \
+            au plus 3 demandes par heure.
+            - Aucune offre : elargir les mots-cles, choisir "Tous les contrats" ou "Tous les domaines", essayer un \
+            autre onglet de source ou un autre pays ; l'alternance n'existe qu'en France.
+            - Import de document refuse : 10 Mo maximum ; pour l'IA, preferer un PDF avec du vrai texte (pas un scan) \
+            ou un Word .docx.
+            - Les fonctions IA repondent "service indisponible" : reessayer dans une minute (limite du fournisseur d'IA).
+            - Micro du mode oral inactif : utiliser Chrome ou Edge et autoriser le micro dans le navigateur.
+            Quand renvoyer vers le support : si le probleme persiste apres ces solutions, si c'est un bug, des donnees \
+            perdues ou incorrectes, un compte bloque ou pirate, une demande sur les donnees personnelles, ou toute \
+            question que tu ne peux pas resoudre, reponds : "Le plus simple est d'ecrire a l'equipe Postulyn : \
+            [Contacter le support](/contact). Decris ce que tu faisais et le message d'erreur exact." N'invente \
+            jamais de solution technique ni de fonctionnalite.
             Si une fonctionnalite demandee n'existe pas, dis-le simplement sans l'inventer.
             """;
 

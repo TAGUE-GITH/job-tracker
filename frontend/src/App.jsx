@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import {
-  Briefcase, FileText, Home, LayoutDashboard, LogOut, Menu, Search, Settings, ShieldCheck, X,
+  Briefcase, FileText, Home, LayoutDashboard, LifeBuoy, LogOut, Menu, MessageSquareHeart, Search, Settings,
+  ShieldCheck, X,
 } from 'lucide-react'
 import { useAuth } from './auth.jsx'
 import { api } from './api'
@@ -24,6 +25,9 @@ import BandeauDemo from './components/BandeauDemo.jsx'
 import Demo from './pages/Demo.jsx'
 import MotDePasseOublie from './pages/MotDePasseOublie.jsx'
 import Reinitialiser from './pages/Reinitialiser.jsx'
+import Contact from './pages/Contact.jsx'
+import Conditions from './pages/Conditions.jsx'
+import Avis from './pages/Avis.jsx'
 
 const NAVIGATION = [
   { to: '/', label: 'Tableau de bord', icone: LayoutDashboard, end: true },
@@ -48,6 +52,8 @@ function Sidebar({ user, onFermer, onDeconnexion }) {
         <NavLink to="/compte"><Settings size={18} strokeWidth={1.9} />Paramètres du compte</NavLink>
         {user.admin && <NavLink to="/administration"><ShieldCheck size={18} strokeWidth={1.9} />Administration</NavLink>}
         <span className="sidebar-section">Postulyn</span>
+        <NavLink to="/avis"><MessageSquareHeart size={18} strokeWidth={1.9} />Donner mon avis</NavLink>
+        <NavLink to="/contact"><LifeBuoy size={18} strokeWidth={1.9} />Aide et contact</NavLink>
         <NavLink to="/accueil"><Home size={18} strokeWidth={1.9} />Page d'accueil</NavLink>
       </nav>
       <div className="sidebar-user">
@@ -115,6 +121,8 @@ export default function App() {
         <Route path="/demo" element={<Demo />} />
         <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
         <Route path="/reinitialiser" element={<Reinitialiser />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/conditions" element={<Conditions />} />
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="candidatures" element={<Candidatures />} />
@@ -125,6 +133,7 @@ export default function App() {
           <Route path="offres" element={<Offres />} />
           <Route path="compte" element={<Compte />} />
           <Route path="administration" element={<Administration />} />
+          <Route path="avis" element={<Avis />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

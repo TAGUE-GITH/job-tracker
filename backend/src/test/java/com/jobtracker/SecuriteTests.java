@@ -35,7 +35,7 @@ class SecuriteTests {
 
     private void inscrire(String email, String motDePasse) throws Exception {
         mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nom\":\"Franck\",\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, motDePasse)))
+                        .content("{\"nom\":\"Franck\",\"email\":\"%s\",\"password\":\"%s\",\"accepteConditions\":true}".formatted(email, motDePasse)))
                 .andExpect(status().isCreated());
     }
 
@@ -47,7 +47,7 @@ class SecuriteTests {
     @Test
     void motDePasseTropFaibleRefuseALInscription() throws Exception {
         mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nom\":\"A\",\"email\":\"faible@test.fr\",\"password\":\"motdepasse\"}"))
+                        .content("{\"nom\":\"A\",\"email\":\"faible@test.fr\",\"password\":\"motdepasse\",\"accepteConditions\":true}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.erreurs.password").exists());
     }

@@ -4,7 +4,8 @@ import {
   Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import {
-  Briefcase, FileText, LogOut, RefreshCw, Search, ShieldCheck, ShieldOff, Trash2, UserPlus, Users,
+  Briefcase, Check, FileText, Inbox, LayoutDashboard, LogOut, RefreshCw, Reply, RotateCcw, Search, ShieldCheck,
+  ShieldOff, Star, Trash2, UserPlus, Users,
 } from 'lucide-react'
 import { api } from '../api'
 import { useAuth } from '../auth.jsx'
@@ -23,6 +24,7 @@ export default function Administration() {
   const [filtre, setFiltre] = useState('')
   const [avecDemo, setAvecDemo] = useState(false)
   const [chargement, setChargement] = useState(true)
+  const [onglet, setOnglet] = useState('apercu')
 
   const recuperer = () => Promise.all([api.adminStatistiques(), api.adminUtilisateurs()])
     .then(([s, u]) => { setStats(s); setUtilisateurs(u); setErreur('') })
@@ -100,7 +102,22 @@ export default function Administration() {
       {erreur && <p className="erreur">{erreur}</p>}
       {message && <p className="succes">{message}</p>}
 
-      {stats && (
+      <div className="tabs onglets-admin" role="tablist">
+        <button type="button" role="tab" aria-selected={onglet === 'apercu'} className={onglet === 'apercu' ? 'active' : ''}
+          onClick={() => setOnglet('apercu')}><LayoutDashboard size={16} /> Vue d'ensemble</button>
+        <button type="button" role="tab" aria-selected={onglet === 'messages'} className={onglet === 'messages' ? 'active' : ''}
+          onClick={() => setOnglet('messages')}>
+          <Inbox size={16} /> Messages
+          {stats?.messagesNonTraites > 0 && <span className="pastille">{stats.messagesNonTraites}</span>}
+        </button>
+        <button type="button" role="tab" aria-selected={onglet === 'avis'} className={onglet === 'avis' ? 'active' : ''}
+          onClick={() => setOnglet('avis')}><Star size={16} /> Avis</button>
+      </div>
+
+      {onglet === 'messages' && <MessagesAdmin onChange={charger} />}
+      {onglet === 'avis' && <AvisAdmin />}
+
+      {onglet === 'apercu' && stats && (
         <>
           <div className="admin-kpis">
             <Kpi icone={Users} titre="Utilisateurs" valeur={stats.utilisateurs}
@@ -146,6 +163,7 @@ export default function Administration() {
         </>
       )}
 
+      {onglet === 'apercu' && (
       <div className="card table-wrap table-cards">
         <div className="admin-outils">
           <h3>Comptes ({visibles.length})</h3>
@@ -216,7 +234,140 @@ export default function Administration() {
           </table>
         )}
       </div>
+      )}
     </>
+  )
+}
+
+const CATEGORIES = { PROBLEME: ['Problème', 'rouge'], QUESTION: ['Question', 'bleu'], SUGGESTION: ['Suggestion', 'vert'], AUTRE: ['Autre', 'gris'] }
+const dateHeure = (iso) => new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+
+/** Messages envoyes depuis la page Contact : non traites en premier. */
+function MessagesAdmin({ onChange }) {
+  const [messages, setMessages] = useState(null)
+  const [ouvert, setOuvert] = useState(null)
+  const [erreur, setErreur] = useState('')
+
+  useEffect(() => { api.adminMessages().then(setMessages).catch((e) => setErreur(e.message)) }, [])
+
+  const traiter = async (m, traite) => {
+    try {
+      await api.adminTraiterMessage(m.id, traite)
+      setMessages((liste) => liste.map((x) => (x.id === m.id ? { ...x, traite } : x)))
+      onChange()
+    } catch (e) {
+      setErreur(e.message)
+    }
+  }
+
+  const supprimer = async (m) => {
+    if (!confirm(`Supprimer le message « ${m.sujet} » de ${m.nom} ?`)) return
+    try {
+      await api.adminSupprimerMessage(m.id)
+      setMessages((liste) => liste.filter((x) => x.id !== m.id))
+      onChange()
+    } catch (e) {
+      setErreur(e.message)
+    }
+  }
+
+  if (erreur) return <p className="erreur">{erreur}</p>
+  if (!messages) return <p className="muted">Chargement…</p>
+  if (messages.length === 0) {
+    return <div className="card vide"><p className="muted">Aucun message pour l'instant.</p></div>
+  }
+
+  return (
+    <div className="card liste-messages">
+      {messages.map((m) => {
+        const [libelle, couleur] = CATEGORIES[m.categorie] ?? [m.categorie, 'gris']
+        const deplie = ouvert === m.id
+        return (
+          <article key={m.id} className={`message-admin ${m.traite ? 'traite' : ''}`}>
+            <button type="button" className="message-entete" onClick={() => setOuvert(deplie ? null : m.id)} aria-expanded={deplie}>
+              <span className={`point ${m.traite ? '' : 'non-lu'}`} aria-hidden="true" />
+              <span className="message-titre">
+                <strong>{m.sujet}</strong>
+                <small>{m.nom} · {m.email}{m.userId ? '' : ' · visiteur'}</small>
+              </span>
+              <span className={`badge ${couleur}`}>{libelle}</span>
+              <small className="muted nowrap">{dateHeure(m.dateCreation)}</small>
+            </button>
+            {deplie && (
+              <div className="message-corps">
+                <p>{m.message}</p>
+                <div className="row">
+                  <a className="btn primary small" href={`mailto:${m.email}?subject=${encodeURIComponent(`Re: ${m.sujet}`)}`}>
+                    <Reply size={14} /> Répondre par email
+                  </a>
+                  <button className="btn ghost small" onClick={() => traiter(m, !m.traite)}>
+                    {m.traite ? <><RotateCcw size={14} /> Marquer non traité</> : <><Check size={14} /> Marquer traité</>}
+                  </button>
+                  <button className="btn danger small" onClick={() => supprimer(m)}><Trash2 size={14} /> Supprimer</button>
+                </div>
+              </div>
+            )}
+          </article>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Avis des utilisateurs : note moyenne, repartition et commentaires. */
+function AvisAdmin() {
+  const [synthese, setSynthese] = useState(null)
+  const [erreur, setErreur] = useState('')
+  useEffect(() => { api.adminAvis().then(setSynthese).catch((e) => setErreur(e.message)) }, [])
+
+  if (erreur) return <p className="erreur">{erreur}</p>
+  if (!synthese) return <p className="muted">Chargement…</p>
+  const max = Math.max(1, ...Object.values(synthese.parNote))
+
+  return (
+    <>
+      <div className="admin-grille">
+        <div className="card avis-synthese">
+          <span className="muted">Note moyenne</span>
+          <strong>{synthese.nombre ? synthese.moyenne.toLocaleString('fr-FR') : '—'}<small> / 5</small></strong>
+          <Etoiles note={Math.round(synthese.moyenne)} />
+          <span className="muted small">{synthese.nombre} avis</span>
+        </div>
+        <div className="card groupes">
+          <h3>Répartition des notes</h3>
+          <ul className="statuts-liste">
+            {[5, 4, 3, 2, 1].map((n) => (
+              <li key={n}>
+                <div className="groupe-ligne"><span>{n} étoile{n > 1 ? 's' : ''}</span><strong>{synthese.parNote[n] ?? 0}</strong></div>
+                <div className="jauge"><span style={{ width: `${((synthese.parNote[n] ?? 0) / max) * 100}%` }} /></div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className="card liste-messages">
+        {synthese.avis.length === 0 && <p className="muted">Aucun avis pour l'instant.</p>}
+        {synthese.avis.map((a) => (
+          <article key={a.id} className="avis-admin">
+            <div className="avis-tete">
+              <Etoiles note={a.note} />
+              <strong>{a.nom}</strong>
+              {a.email && <small className="muted">{a.email}</small>}
+              <small className="muted nowrap">{dateHeure(a.dateCreation)}</small>
+            </div>
+            {a.commentaire ? <p>{a.commentaire}</p> : <p className="muted small">Sans commentaire.</p>}
+          </article>
+        ))}
+      </div>
+    </>
+  )
+}
+
+function Etoiles({ note }) {
+  return (
+    <span className="etoiles-lecture" aria-label={`${note} sur 5`}>
+      {[1, 2, 3, 4, 5].map((n) => <Star key={n} size={15} className={n <= note ? 'pleine' : ''} />)}
+    </span>
   )
 }
 

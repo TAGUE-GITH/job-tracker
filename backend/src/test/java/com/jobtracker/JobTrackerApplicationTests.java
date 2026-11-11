@@ -24,7 +24,8 @@ import org.springframework.test.web.servlet.MockMvc;
         "app.offres.france-travail.client-id=",
         "app.offres.lba.api-key=",
         "app.offres.jooble.api-key=",
-        "app.offres.adzuna.app-id="
+        "app.offres.adzuna.app-id=",
+        "app.offres.sources-publiques=false"
 })
 @AutoConfigureMockMvc
 class JobTrackerApplicationTests {
@@ -40,7 +41,7 @@ class JobTrackerApplicationTests {
         String body = mvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"nom":"Franck","email":"%s","password":"secret123"}""".formatted(email)))
+                                {"nom":"Franck","email":"%s","password":"secret123","accepteConditions":true}""".formatted(email)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         token = "Bearer " + extraire(body, "token");

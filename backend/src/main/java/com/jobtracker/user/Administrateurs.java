@@ -25,6 +25,11 @@ public class Administrateurs {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
+    /** Emails des administrateurs principaux (destinataires des messages de contact par defaut). */
+    public Set<String> principaux() {
+        return principaux;
+    }
+
     /** Administrateur principal (ADMIN_EMAILS). */
     public boolean estPrincipal(String email) {
         return email != null && principaux.contains(email.strip().toLowerCase(Locale.ROOT));

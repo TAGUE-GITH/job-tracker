@@ -21,6 +21,16 @@ public interface SourceOffres {
         return "";
     }
 
+    /** Vrai si la source publie des offres pour ce pays (code ISO). Par defaut : la France. */
+    default boolean couvre(String pays) {
+        return "FR".equalsIgnoreCase(pays);
+    }
+
+    /** Precision affichee sous les resultats (ex. "offres en teletravail"), ou null. */
+    default String remarque(Recherche recherche) {
+        return null;
+    }
+
     /** Faux si la source ne propose pas ce type de contrat (vide = tous). */
     default boolean supporte(String contrat) {
         return true;
