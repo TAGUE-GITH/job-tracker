@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:securite;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
-        "app.frontend-url=https://postilyn.test"
+        "app.frontend-url=https://postulyn.test"
 })
 @AutoConfigureMockMvc
 class SecuriteTests {
@@ -81,7 +81,7 @@ class SecuriteTests {
                 .andExpect(status().isNoContent());
         ArgumentCaptor<String> texte = ArgumentCaptor.forClass(String.class);
         verify(emailService).envoyer(eq("oubli@test.fr"), anyString(), texte.capture(), anyString());
-        assertTrue(texte.getValue().contains("https://postilyn.test/reinitialiser?jeton="), texte.getValue());
+        assertTrue(texte.getValue().contains("https://postulyn.test/reinitialiser?jeton="), texte.getValue());
         String jeton = texte.getValue().replaceAll("(?s).*reinitialiser\\?jeton=([A-Za-z0-9_-]+).*", "$1");
 
         String corps = "{\"jeton\":\"%s\",\"nouveau\":\"nouveau123\"}".formatted(jeton);

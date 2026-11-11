@@ -1,4 +1,4 @@
-/* Postilyn : design sobre et professionnel (bleu marine, neutres, une seule couleur d'accent) */
+/* Postulyn : design sobre et professionnel (bleu marine, neutres, une seule couleur d'accent) */
 :root {
   --bg: #f4f6f9;
   --surface: #ffffff;
@@ -371,7 +371,7 @@ tbody tr:hover { background: var(--bg); }
   .analyse > .btn, .lettre > .btn { align-self: stretch; }
 }
 
-/* Favori "Ajouter a Postilyn" */
+/* Favori "Ajouter a Postulyn" */
 .favori { margin-top: 1.5rem; border-style: dashed; border-color: color-mix(in srgb, var(--primary) 40%, var(--border)); }
 .favori-tete { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
 .favori-tete h3 { margin: 0 0 0.3rem; }
@@ -578,3 +578,5 @@ kbd { font: inherit; font-size: 0.8rem; padding: 0.05rem 0.4rem; border: 1px sol
 button.icon { display: inline-flex; align-items: center; }
 .chip-ajout button { display: inline-flex; }
 .lien-externe, .voir-aussi a { display: inline-flex; align-items: center; gap: 0.25rem; }
+.btn.small.carre { padding: 0.35rem; width: 32px; height: 30px; }
+.td-actions { width: 1%; white-space: nowrap; }

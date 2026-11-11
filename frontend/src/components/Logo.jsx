@@ -1,4 +1,4 @@
-// Logo Postilyn : monogramme "P" sobre sur un carre aux angles doux, suivi du nom
+// Logo Postulyn : monogramme "P" sobre sur un carre aux angles doux, suivi du nom
 export function LogoMark({ size = 32 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" className="logo-mark">
@@ -14,7 +14,7 @@ export default function Logo({ size = 32 }) {
   return (
     <span className="brand">
       <LogoMark size={size} />
-      <span className="brand-name">Postilyn</span>
+      <span className="brand-name">Postulyn</span>
     </span>
   )
 }

@@ -1,4 +1,4 @@
-/* Page d'accueil publique de Postilyn : sobre, contrastee, sans effets decoratifs */
+/* Page d'accueil publique de Postulyn : sobre, contrastee, sans effets decoratifs */
 .landing { min-height: 100vh; background: var(--surface); overflow-x: hidden; }
 .landing h1, .landing h2, .landing h3 { letter-spacing: -0.02em; color: var(--text); }
 

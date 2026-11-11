@@ -7,8 +7,8 @@ export default function BandeauReveil() {
 
   useEffect(() => {
     const ecouter = (e) => setVisible(e.detail)
-    window.addEventListener('postilyn:lent', ecouter)
-    return () => window.removeEventListener('postilyn:lent', ecouter)
+    window.addEventListener('postulyn:lent', ecouter)
+    return () => window.removeEventListener('postulyn:lent', ecouter)
   }, [])
 
   if (!visible) return null
@@ -16,7 +16,7 @@ export default function BandeauReveil() {
     <div className="bandeau-reveil" role="status">
       <span className="sablier"><LoaderCircle size={18} /></span>
       <span>
-        <strong>Le serveur se réveille…</strong> Postilyn est hébergé gratuitement : après une pause, le premier
+        <strong>Le serveur se réveille…</strong> Postulyn est hébergé gratuitement : après une pause, le premier
         chargement peut prendre jusqu'à une minute.
       </span>
     </div>

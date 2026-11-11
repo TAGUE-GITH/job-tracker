@@ -1,6 +1,6 @@
-// Service worker de Postilyn : rend l'application installable et ouvre l'interface meme hors connexion.
+// Service worker de Postulyn : rend l'application installable et ouvre l'interface meme hors connexion.
 // Les appels a l'API ne sont jamais mis en cache (donnees toujours a jour).
-const CACHE = 'postilyn-v1'
+const CACHE = 'postulyn-v1'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(['/', '/favicon.svg', '/icon-192.png'])))
@@ -35,7 +35,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Fichiers du build (noms uniques) et icones : le cache d'abord
-  if (url.pathname.startsWith('/assets/') || /\.(png|svg|webmanifest)$/.test(url.pathname)) {
+  if (url.pathname.startsWith('/assets/') || /\.(png|svg|ico|webmanifest)$/.test(url.pathname)) {
     event.respondWith(
       caches.match(requete).then((enCache) => enCache || fetch(requete).then((reponse) => {
         if (reponse.ok) {

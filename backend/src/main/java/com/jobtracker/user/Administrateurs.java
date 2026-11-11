@@ -8,22 +8,29 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Comptes administrateurs : les emails listes dans ADMIN_EMAILS (separes par des virgules).
- * Rien n'est stocke en base : pour nommer ou retirer un administrateur, on modifie la variable sur Render.
+ * Qui est administrateur :
+ * - les administrateurs principaux, dont l'email figure dans ADMIN_EMAILS (variable Render, separee par des
+ *   virgules) : ils ne peuvent pas perdre leurs droits depuis l'application ;
+ * - les comptes nommes administrateurs depuis la page Administration (colonne users.administrateur).
  */
 @Component
 public class Administrateurs {
 
-    private final Set<String> emails;
+    private final Set<String> principaux;
 
     public Administrateurs(@Value("${app.admin.emails:}") String liste) {
-        this.emails = Arrays.stream(liste.split(","))
+        this.principaux = Arrays.stream(liste.split(","))
                 .map(e -> e.strip().toLowerCase(Locale.ROOT))
                 .filter(e -> !e.isEmpty())
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public boolean estAdmin(String email) {
-        return email != null && emails.contains(email.strip().toLowerCase(Locale.ROOT));
+    /** Administrateur principal (ADMIN_EMAILS). */
+    public boolean estPrincipal(String email) {
+        return email != null && principaux.contains(email.strip().toLowerCase(Locale.ROOT));
+    }
+
+    public boolean estAdmin(User user) {
+        return user != null && (user.isAdministrateur() || estPrincipal(user.getEmail()));
     }
 }

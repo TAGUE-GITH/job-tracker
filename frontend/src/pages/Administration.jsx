@@ -3,7 +3,9 @@ import { Navigate } from 'react-router-dom'
 import {
   Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
-import { Briefcase, FileText, LogOut, RefreshCw, Search, Trash2, UserPlus, Users } from 'lucide-react'
+import {
+  Briefcase, FileText, LogOut, RefreshCw, Search, ShieldCheck, ShieldOff, Trash2, UserPlus, Users,
+} from 'lucide-react'
 import { api } from '../api'
 import { useAuth } from '../auth.jsx'
 import { STATUTS, initiales } from '../labels'
@@ -49,6 +51,21 @@ export default function Administration() {
     try {
       await api.adminDeconnecter(u.id)
       setMessage(`Les sessions de ${u.nom} ont été fermées.`)
+    } catch (e) {
+      setErreur(e.message)
+    }
+  }
+
+  const changerRole = async (u, admin) => {
+    const question = admin
+      ? `Nommer ${u.nom} (${u.email}) administrateur ? Il aura accès à cette page et pourra gérer tous les comptes.`
+      : `Retirer les droits d'administrateur de ${u.nom} (${u.email}) ?`
+    if (!confirm(question)) return
+    setErreur('')
+    try {
+      await api.adminRole(u.id, admin)
+      setMessage(admin ? `${u.nom} est maintenant administrateur.` : `${u.nom} n'est plus administrateur.`)
+      setUtilisateurs((liste) => liste.map((x) => (x.id === u.id ? { ...x, admin } : x)))
     } catch (e) {
       setErreur(e.message)
     }
@@ -156,22 +173,36 @@ export default function Administration() {
                       <div><strong>{u.nom}</strong><small>{u.email}</small></div>
                     </div>
                   </td>
-                  <td data-label="Inscription">{dateCourte(u.dateCreation)}</td>
+                  <td data-label="Inscription" className="nowrap">{dateCourte(u.dateCreation)}</td>
                   <td data-label="Candidatures">{u.candidatures}</td>
                   <td data-label="Documents">{u.documents}</td>
                   <td data-label="Rôle">
-                    {u.admin ? <span className="badge bleu">Administrateur</span>
-                      : u.demo ? <span className="badge orange">Démo</span>
-                        : <span className="badge gris">Utilisateur</span>}
+                    {u.principal ? <span className="badge bleu" title="Défini par ADMIN_EMAILS sur Render">Administrateur principal</span>
+                      : u.admin ? <span className="badge bleu">Administrateur</span>
+                        : u.demo ? <span className="badge orange">Démo</span>
+                          : <span className="badge gris">Utilisateur</span>}
                   </td>
                   <td className="td-actions">
                     <div className="row">
-                      <button className="btn ghost small" onClick={() => deconnecter(u)} title="Fermer toutes ses sessions">
-                        <LogOut size={14} /> Déconnecter
+                      {u.id !== user.id && !u.principal && !u.demo && (u.admin ? (
+                        <button className="btn ghost small carre" onClick={() => changerRole(u, false)}
+                          title="Retirer les droits d'administrateur" aria-label={`Retirer les droits d'administrateur de ${u.nom}`}>
+                          <ShieldOff size={15} />
+                        </button>
+                      ) : (
+                        <button className="btn ghost small carre" onClick={() => changerRole(u, true)}
+                          title="Nommer administrateur" aria-label={`Nommer ${u.nom} administrateur`}>
+                          <ShieldCheck size={15} />
+                        </button>
+                      ))}
+                      <button className="btn ghost small carre" onClick={() => deconnecter(u)}
+                        title="Déconnecter toutes ses sessions" aria-label={`Déconnecter ${u.nom}`}>
+                        <LogOut size={15} />
                       </button>
                       {!u.admin && (
-                        <button className="btn danger small" onClick={() => supprimer(u)} title="Supprimer le compte et ses données">
-                          <Trash2 size={14} /> Supprimer
+                        <button className="btn danger small carre" onClick={() => supprimer(u)}
+                          title="Supprimer le compte et ses données" aria-label={`Supprimer le compte de ${u.nom}`}>
+                          <Trash2 size={15} />
                         </button>
                       )}
                     </div>

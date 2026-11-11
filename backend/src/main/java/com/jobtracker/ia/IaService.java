@@ -26,7 +26,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 /**
- * ORVYNA, l'assistant IA de Postilyn : coach d'entretien et aide sur l'application.
+ * ORVYNA, l'assistant IA de Postulyn : coach d'entretien et aide sur l'application.
  * Utilise n'importe quelle API compatible OpenAI
  * (Groq et OpenRouter ont des offres gratuites, Ollama tourne en local sans cle).
  */
@@ -43,8 +43,8 @@ public class IaService {
             dans une colonne etroite.
             """;
 
-    private static final String GUIDE_POSTILYN = """
-            Fonctionnement de l'application Postilyn (a utiliser pour repondre aux questions d'aide) :
+    private static final String GUIDE_POSTULYN = """
+            Fonctionnement de l'application Postulyn (a utiliser pour repondre aux questions d'aide) :
             - Menu du haut : "Tableau de bord", "Offres", "Candidatures", "CV & lettres", et le bouton \
             "Deconnexion" (sur telephone, ils sont dans le menu a trois traits en haut a droite).
             - Offres : recherche d'offres en direct par mots-cles, lieu (ville ou numero de departement) \
@@ -52,10 +52,10 @@ public class IaService {
             par metier, codes ROME) ; Jooble couvre les stages, CDI et CDD si sa cle est configuree. \
             "Postuler" ouvre l'annonce sur le site d'origine pour candidater ; "Ajouter au suivi" cree \
             automatiquement la candidature avec le texte de l'offre. On ne peut pas envoyer sa candidature \
-            directement depuis Postilyn : la candidature se fait toujours sur le site du recruteur.
-            - Favori "Ajouter a Postilyn" (en bas des pages Offres et Candidatures) : on le glisse dans la barre \
+            directement depuis Postulyn : la candidature se fait toujours sur le site du recruteur.
+            - Favori "Ajouter a Postulyn" (en bas des pages Offres et Candidatures) : on le glisse dans la barre \
             de favoris du navigateur (Ctrl+Maj+B pour l'afficher) ; sur la page d'une offre de n'importe quel site, \
-            un clic ouvre Postilyn avec la candidature preremplie (entreprise, poste, lien, texte de l'offre).
+            un clic ouvre Postulyn avec la candidature preremplie (entreprise, poste, lien, texte de l'offre).
             - Ajouter une candidature : menu Candidatures > bouton "Nouvelle candidature". Champs : entreprise \
             et poste (obligatoires), lien de l'offre, texte de l'offre (a coller : il sert a l'IA), date, \
             CV et lettre de motivation (facultative) choisis parmi les documents importes.
@@ -162,7 +162,7 @@ public class IaService {
 
     private String promptSysteme(Candidature c, TypeEtape etape) {
         StringBuilder sb = new StringBuilder("""
-                Tu es ORVYNA, le coach IA de l'application Postilyn, expert en recrutement tech. Tu aides \
+                Tu es ORVYNA, le coach IA de l'application Postulyn, expert en recrutement tech. Tu aides \
                 un candidat a preparer ses entretiens. Pour chaque question, ecris la question en gras \
                 puis la reponse conseillee en liste a puces. \
                 Si le candidat te demande de simuler l'entretien, pose une seule question a la fois \
@@ -199,14 +199,14 @@ public class IaService {
 
     private String promptAide(Long userId) {
         StringBuilder sb = new StringBuilder("""
-                Tu es ORVYNA, l'assistant IA de Postilyn, une application de suivi de candidatures. \
+                Tu es ORVYNA, l'assistant IA de Postulyn, une application de suivi de candidatures. \
                 Tu es chaleureux, encourageant et bref (en general moins de 150 mots). Tu reponds \
                 aux questions sur l'utilisation de l'application, sur les candidatures de l'utilisateur \
                 et, plus largement, sur la recherche d'emploi (CV, lettre, relances, entretiens). \
                 Pour preparer un entretien precis, invite l'utilisateur a ouvrir la candidature et a \
                 utiliser le coach d'entretien.
                 """);
-        sb.append(FORMAT).append('\n').append(GUIDE_POSTILYN);
+        sb.append(FORMAT).append('\n').append(GUIDE_POSTULYN);
 
         List<Candidature> candidatures = candidatureService.toutes(userId);
         sb.append("\nCandidatures de l'utilisateur (").append(candidatures.size())

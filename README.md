@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="frontend/public/icon-192.png" alt="Logo Postilyn" width="88" />
+<img src="frontend/public/icon-192.png" alt="Logo Postulyn" width="88" />
 
-# Postilyn
+# Postulyn
 
 **Le copilote de ta recherche d'alternance, de stage ou d'emploi.**
 Suis tes candidatures, trouve des offres, et laisse **ORVYNA**, l'assistant IA, adapter ton CV, écrire tes lettres et t'entraîner aux entretiens.
@@ -17,13 +17,13 @@ Suis tes candidatures, trouve des offres, et laisse **ORVYNA**, l'assistant IA, 
 
 <sub>Le serveur est hébergé gratuitement : après une pause, le premier chargement peut prendre jusqu'à une minute.</sub>
 
-<img src="docs/captures/tableau-de-bord.png" alt="Tableau de bord de Postilyn" width="900" />
+<img src="docs/captures/tableau-de-bord.png" alt="Tableau de bord de Postulyn" width="900" />
 
 </div>
 
-## Pourquoi Postilyn ?
+## Pourquoi Postulyn ?
 
-Chercher une alternance, c'est des dizaines de candidatures, des tableurs oubliés, des relances qu'on ne fait pas et des entretiens qu'on prépare seul. Postilyn réunit tout au même endroit et ajoute une IA qui **connaît l'offre et ton CV** :
+Chercher une alternance, c'est des dizaines de candidatures, des tableurs oubliés, des relances qu'on ne fait pas et des entretiens qu'on prépare seul. Postulyn réunit tout au même endroit et ajoute une IA qui **connaît l'offre et ton CV** :
 
 - 🎯 **Score de compatibilité CV ↔ offre** avec les compétences manquantes et les mots-clés à ajouter
 - 📄 **CV réécrit pour chaque offre**, en PDF d'une page lisible par les logiciels de tri (ATS)
@@ -37,7 +37,7 @@ Chercher une alternance, c'est des dizaines de candidatures, des tableurs oubli�
 |---|---|
 | <img src="docs/captures/candidature.png" alt="Fiche d'une candidature avec ORVYNA" /> | <img src="docs/captures/kanban.png" alt="Vue Kanban des candidatures" /> |
 | **CV généré, compatible ATS (une page)** | **Page d'accueil** |
-| <img src="docs/captures/cv-ats.png" alt="CV au format ATS généré par Postilyn" /> | <img src="docs/captures/accueil.png" alt="Page d'accueil de Postilyn" /> |
+| <img src="docs/captures/cv-ats.png" alt="CV au format ATS généré par Postulyn" /> | <img src="docs/captures/accueil.png" alt="Page d'accueil de Postulyn" /> |
 
 ## Fonctionnalités
 
@@ -57,7 +57,7 @@ Chercher une alternance, c'est des dizaines de candidatures, des tableurs oubli�
 
 ### Trouver des offres
 - **Recherche en direct** : La bonne alternance (toutes les offres d'alternance en France) et Jooble (stages, CDI, CDD)
-- **Favori « Ajouter à Postilyn »** : envoie n'importe quelle offre (Welcome to the Jungle, LinkedIn, Indeed, HelloWork, Apec…) dans le suivi en un clic, en lisant les données schema.org `JobPosting` de la page
+- **Favori « Ajouter à Postulyn »** : envoie n'importe quelle offre (Welcome to the Jungle, LinkedIn, Indeed, HelloWork, Apec…) dans le suivi en un clic, en lisant les données schema.org `JobPosting` de la page
 - Liens « Voir aussi » vers Welcome to the Jungle, HelloWork et l'Apec avec la même recherche
 
 ### Sécurité
@@ -133,7 +133,7 @@ export AI_API_KEY="gsk_..."
 
 La page **Offres** a besoin d'au moins une de ces API (gratuites) :
 
-- **La bonne alternance** (offres d'alternance de toute la France, dont celles de France Travail) : crée un compte sur https://api.apprentissage.beta.gouv.fr, génère une clé d'API et renseigne `LBA_API_KEY`. Cette API cherche par métier (codes ROME) : Postilyn traduit les mots-clés (développeur, data, réseau, RH, marketing…) en codes ROME, ou tu peux taper directement un code comme `M1805`. Le lieu est un département (`75`) ou une ville (rayon de 30 km).
+- **La bonne alternance** (offres d'alternance de toute la France, dont celles de France Travail) : crée un compte sur https://api.apprentissage.beta.gouv.fr, génère une clé d'API et renseigne `LBA_API_KEY`. Cette API cherche par métier (codes ROME) : Postulyn traduit les mots-clés (développeur, data, réseau, RH, marketing…) en codes ROME, ou tu peux taper directement un code comme `M1805`. Le lieu est un département (`75`) ou une ville (rayon de 30 km).
 - **Jooble** (tous contrats : stage, CDI, CDD) : demande une clé gratuite sur https://fr.jooble.org/api/about et renseigne `JOOBLE_API_KEY`. Une clé obtenue sur le site français donne surtout des offres françaises : mets alors `JOOBLE_HOST=fr.jooble.org` (par défaut `jooble.org`, le site international).
 - **Adzuna** (`ADZUNA_APP_ID`, `ADZUNA_APP_KEY`) : devenu payant (25 appels d'essai gratuits), le code reste disponible.
 - **France Travail** (`FT_CLIENT_ID`, `FT_CLIENT_SECRET`) : l'API « Offres d'emploi v2 » n'est plus en accès libre sur francetravail.io. Le code reste prêt si ton application y a accès.

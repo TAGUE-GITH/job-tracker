@@ -55,14 +55,14 @@ export default function OrvynaWidget() {
             <OrvynaAvatar size={40} />
             <div>
               <strong>ORVYNA</strong>
-              <small><span className="orvyna-dot" /> Ton assistant Postilyn</small>
+              <small><span className="orvyna-dot" /> Ton assistant Postulyn</small>
             </div>
             <button className="orvyna-fermer" onClick={() => setOuvert(false)} aria-label="Fermer"><X size={20} /></button>
           </header>
 
           <div className="orvyna-messages">
             <div className="bulle assistant">
-              Bonjour, je suis <b>ORVYNA</b>. Pose-moi une question sur Postilyn, sur tes candidatures
+              Bonjour, je suis <b>ORVYNA</b>. Pose-moi une question sur Postulyn, sur tes candidatures
               ou sur ta recherche d'emploi.
             </div>
             {messages.length === 0 && (

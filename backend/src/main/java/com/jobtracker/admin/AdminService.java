@@ -56,15 +56,15 @@ public class AdminService {
             List<Semaine> activite) {
     }
 
+    /** principal : administrateur defini par ADMIN_EMAILS, dont les droits ne peuvent pas etre retires ici. */
     public record Utilisateur(Long id, String nom, String email, LocalDateTime dateCreation, long candidatures,
-            long documents, boolean demo, boolean admin) {
+            long documents, boolean demo, boolean admin, boolean principal) {
     }
 
     /** Refuse l'acces (403) si l'utilisateur connecte n'est pas administrateur. */
     @Transactional(readOnly = true)
     public void verifierAdmin(Long userId) {
-        String email = userRepository.findById(userId).map(User::getEmail).orElse(null);
-        if (!administrateurs.estAdmin(email)) {
+        if (!administrateurs.estAdmin(userRepository.findById(userId).orElse(null))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acces reserve aux administrateurs");
         }
     }
@@ -119,7 +119,8 @@ public class AdminService {
                 .sorted(Comparator.comparing(User::getDateCreation, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(u -> new Utilisateur(u.getId(), u.getNom(), u.getEmail(), u.getDateCreation(),
                         candidatures.getOrDefault(u.getId(), 0L), documents.getOrDefault(u.getId(), 0L),
-                        u.getEmail().endsWith(AuthService.DOMAINE_DEMO), administrateurs.estAdmin(u.getEmail())))
+                        u.getEmail().endsWith(AuthService.DOMAINE_DEMO), administrateurs.estAdmin(u),
+                        administrateurs.estPrincipal(u.getEmail())))
                 .toList();
     }
 
@@ -139,9 +140,29 @@ public class AdminService {
     @Transactional
     public void supprimer(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Compte introuvable"));
-        if (administrateurs.estAdmin(user.getEmail())) {
-            throw new IllegalArgumentException("Un compte administrateur ne peut pas etre supprime depuis cette page");
+        if (administrateurs.estAdmin(user)) {
+            throw new IllegalArgumentException("Retire d'abord ses droits d'administrateur pour supprimer ce compte");
         }
         compteService.effacer(userId);
+    }
+
+    /**
+     * Nomme un utilisateur administrateur, ou lui retire ce role. Garde-fous : on ne modifie pas son propre role
+     * (pour ne pas perdre l'acces), ni celui d'un administrateur principal (ADMIN_EMAILS), et un compte de
+     * demonstration ne peut pas devenir administrateur.
+     */
+    @Transactional
+    public void changerRole(Long adminId, Long userId, boolean admin) {
+        if (adminId.equals(userId)) {
+            throw new IllegalArgumentException("Tu ne peux pas modifier ton propre role");
+        }
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Compte introuvable"));
+        if (administrateurs.estPrincipal(user.getEmail())) {
+            throw new IllegalArgumentException("Ce compte est administrateur principal (ADMIN_EMAILS) : son role ne se modifie que sur Render");
+        }
+        if (admin && user.getEmail().endsWith(AuthService.DOMAINE_DEMO)) {
+            throw new IllegalArgumentException("Un compte de demonstration ne peut pas etre administrateur");
+        }
+        user.definirAdministrateur(admin);
     }
 }

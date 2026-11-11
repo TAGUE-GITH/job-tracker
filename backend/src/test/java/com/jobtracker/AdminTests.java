@@ -3,6 +3,7 @@ package com.jobtracker;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,7 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:admin;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
-        "app.admin.emails=Chef@Postilyn.test, autre@postilyn.test"
+        "app.admin.emails=Chef@Postulyn.test, autre@postulyn.test"
 })
 @AutoConfigureMockMvc
 class AdminTests {
@@ -42,7 +43,7 @@ class AdminTests {
     @Test
     void seulUnAdministrateurAccedeALAdministration() throws Exception {
         String membre = inscrire("membre@test.fr", false);
-        String chef = inscrire("chef@postilyn.test", true);
+        String chef = inscrire("chef@postulyn.test", true);
 
         mvc.perform(get("/api/admin/statistiques")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/admin/statistiques").header("Authorization", membre)).andExpect(status().isForbidden());
@@ -56,8 +57,39 @@ class AdminTests {
                 .andExpect(jsonPath("$.candidaturesParStatut.EN_ATTENTE").value(0));
         mvc.perform(get("/api/admin/utilisateurs").header("Authorization", chef))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.email == 'chef@postilyn.test')].admin").value(true))
+                .andExpect(jsonPath("$[?(@.email == 'chef@postulyn.test')].admin").value(true))
                 .andExpect(jsonPath("$[?(@.email == 'membre@test.fr')].admin").value(false));
+
+        // Nommer un administrateur depuis l'application, puis lui retirer ce role
+        long idPromu = id(chef);
+        mvc.perform(put("/api/admin/utilisateurs/" + idPromu + "/role").header("Authorization", chef)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"admin\":true}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/api/admin/statistiques").header("Authorization", membre)).andExpect(status().isOk());
+        mvc.perform(get("/api/compte/profil").header("Authorization", membre)).andExpect(jsonPath("$.admin").value(true));
+        // Un administrateur nomme ne peut pas etre supprime tant qu'il a ses droits
+        mvc.perform(delete("/api/admin/utilisateurs/" + idPromu).header("Authorization", chef))
+                .andExpect(status().isBadRequest());
+        // Il ne peut ni changer son propre role, ni retirer ses droits a un administrateur principal
+        mvc.perform(put("/api/admin/utilisateurs/" + idPromu + "/role").header("Authorization", membre)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"admin\":false}"))
+                .andExpect(status().isBadRequest());
+        String idChef = mvc.perform(get("/api/compte/profil").header("Authorization", chef)).andReturn().getResponse()
+                .getContentAsString();
+        String liste = mvc.perform(get("/api/admin/utilisateurs").header("Authorization", chef)).andReturn()
+                .getResponse().getContentAsString();
+        String idPrincipal = liste.replaceAll("(?s).*\"id\":(\\d+),\"nom\":\"Test\",\"email\":\"chef@postulyn.test\".*", "$1");
+        mvc.perform(put("/api/admin/utilisateurs/" + idPrincipal + "/role").header("Authorization", membre)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"admin\":false}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("principal")));
+        mvc.perform(get("/api/admin/utilisateurs").header("Authorization", chef))
+                .andExpect(jsonPath("$[?(@.email == 'chef@postulyn.test')].principal").value(true));
+        mvc.perform(put("/api/admin/utilisateurs/" + idPromu + "/role").header("Authorization", chef)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"admin\":false}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/api/admin/statistiques").header("Authorization", membre)).andExpect(status().isForbidden());
+        org.junit.jupiter.api.Assertions.assertTrue(idChef.contains("\"admin\":true"), idChef);
 
         // Les comptes de demonstration ne gonflent pas les statistiques
         String avant = mvc.perform(get("/api/admin/statistiques").header("Authorization", chef))
@@ -85,10 +117,10 @@ class AdminTests {
 
     @Test
     void unAdministrateurNePeutPasEtreSupprime() throws Exception {
-        String chef = inscrire("autre@postilyn.test", true);
+        String chef = inscrire("autre@postulyn.test", true);
         String corps = mvc.perform(get("/api/admin/utilisateurs").header("Authorization", chef))
                 .andReturn().getResponse().getContentAsString();
-        String idChef = corps.replaceAll("(?s).*\"id\":(\\d+),\"nom\":\"Test\",\"email\":\"autre@postilyn.test\".*", "$1");
+        String idChef = corps.replaceAll("(?s).*\"id\":(\\d+),\"nom\":\"Test\",\"email\":\"autre@postulyn.test\".*", "$1");
         mvc.perform(delete("/api/admin/utilisateurs/" + idChef).header("Authorization", chef))
                 .andExpect(status().isBadRequest());
     }

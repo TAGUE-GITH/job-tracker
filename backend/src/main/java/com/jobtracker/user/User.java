@@ -43,6 +43,10 @@ public class User {
     @Column(name = "version_jeton", nullable = false)
     private int versionJeton;
 
+    /** Nomme administrateur depuis la page Administration. */
+    @Column(nullable = false)
+    private boolean administrateur;
+
     protected User() {
     }
 
@@ -95,6 +99,14 @@ public class User {
     /** Invalide tous les jetons de connexion deja emis pour ce compte. */
     public void revoquerJetons() {
         this.versionJeton++;
+    }
+
+    public boolean isAdministrateur() {
+        return administrateur;
+    }
+
+    public void definirAdministrateur(boolean administrateur) {
+        this.administrateur = administrateur;
     }
 
     public void changerMotDePasse(String hash) {

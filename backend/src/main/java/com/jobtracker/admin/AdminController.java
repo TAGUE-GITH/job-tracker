@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,6 +43,17 @@ public class AdminController {
     public void deconnecter(@PathVariable Long id) {
         adminService.verifierAdmin(CurrentUser.id());
         adminService.deconnecter(id);
+    }
+
+    public record RoleRequest(boolean admin) {
+    }
+
+    @PutMapping("/utilisateurs/{id}/role")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changerRole(@PathVariable Long id, @RequestBody RoleRequest req) {
+        Long adminId = CurrentUser.id();
+        adminService.verifierAdmin(adminId);
+        adminService.changerRole(adminId, id, req.admin());
     }
 
     @DeleteMapping("/utilisateurs/{id}")

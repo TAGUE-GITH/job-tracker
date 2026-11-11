@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import {
-  Briefcase, FileText, LayoutDashboard, LogOut, Menu, Search, Settings, ShieldCheck, X,
+  Briefcase, FileText, Home, LayoutDashboard, LogOut, Menu, Search, Settings, ShieldCheck, X,
 } from 'lucide-react'
 import { useAuth } from './auth.jsx'
 import { api } from './api'
@@ -36,7 +36,7 @@ function Sidebar({ user, onFermer, onDeconnexion }) {
   return (
     <aside className="sidebar" aria-label="Navigation principale">
       <div className="sidebar-head">
-        <Link to="/" onClick={onFermer}><Logo size={28} /></Link>
+        <Link to="/accueil" onClick={onFermer} title="Page d'accueil de Postulyn"><Logo size={28} /></Link>
         <button className="btn-icone sidebar-fermer" onClick={onFermer} aria-label="Fermer le menu"><X size={20} /></button>
       </div>
       <nav className="sidebar-nav" onClick={onFermer}>
@@ -47,6 +47,8 @@ function Sidebar({ user, onFermer, onDeconnexion }) {
         <span className="sidebar-section">Compte</span>
         <NavLink to="/compte"><Settings size={18} strokeWidth={1.9} />Paramètres du compte</NavLink>
         {user.admin && <NavLink to="/administration"><ShieldCheck size={18} strokeWidth={1.9} />Administration</NavLink>}
+        <span className="sidebar-section">Postulyn</span>
+        <NavLink to="/accueil"><Home size={18} strokeWidth={1.9} />Page d'accueil</NavLink>
       </nav>
       <div className="sidebar-user">
         <span className="avatar-initiales" aria-hidden="true">{initiales(user.nom)}</span>
@@ -87,7 +89,7 @@ function Layout() {
       <div className="contenu">
         <BandeauDemo />
         <header className="topbar-mobile">
-          <Link to="/"><Logo size={26} /></Link>
+          <Link to="/accueil" title="Page d'accueil de Postulyn"><Logo size={26} /></Link>
           <button className="btn-icone" onClick={() => setMenuOuvert(true)} aria-label="Ouvrir le menu"
             aria-expanded={menuOuvert}>
             <Menu size={20} />

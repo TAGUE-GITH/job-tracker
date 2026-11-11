@@ -1,6 +1,6 @@
 import { Sparkles } from 'lucide-react'
 
-// Pastille de ORVYNA, l'assistante IA de Postilyn : icone sobre sur fond de la couleur de marque
+// Pastille de ORVYNA, l'assistante IA de Postulyn : icone sobre sur fond de la couleur de marque
 export default function OrvynaAvatar({ size = 40 }) {
   return (
     <span className="orvyna-avatar" role="img" aria-label="ORVYNA"

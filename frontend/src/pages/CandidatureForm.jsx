@@ -11,7 +11,7 @@ const VIDE = {
 export default function CandidatureForm() {
   const { id } = useParams()
   const navigate = useNavigate()
-  // Offre envoyee par le favori "Ajouter a Postilyn" ou par la page Offres
+  // Offre envoyee par le favori "Ajouter a Postulyn" ou par la page Offres
   const offre = useLocation().state?.offre
   const [form, setForm] = useState(() => (offre && !id ? { ...VIDE, ...offre } : VIDE))
   const [documents, setDocuments] = useState([])

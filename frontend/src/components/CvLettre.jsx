@@ -235,7 +235,7 @@ function Lettre({ candidature, cvId, onChange }) {
       <label>
         Consignes pour ORVYNA <span className="muted small">(facultatif)</span>
         <input value={consignes} onChange={(e) => setConsignes(e.target.value)} maxLength={1000}
-          placeholder="ex. insiste sur mon projet Postilyn, ton plus dynamique, disponible en septembre…" />
+          placeholder="ex. insiste sur mon projet Postulyn, ton plus dynamique, disponible en septembre…" />
       </label>
       <button className="btn primary" onClick={rediger} disabled={chargement}>
         {chargement ? 'ORVYNA rédige ta lettre…' : texte ? 'Réécrire la lettre' : 'Rédiger ma lettre'}

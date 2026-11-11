@@ -75,7 +75,7 @@ export default function Landing() {
           <span className="eyebrow">Plateforme de suivi de candidatures</span>
           <h1>Pilotez votre recherche d'emploi avec méthode.</h1>
           <p className="hero-sub">
-            Postilyn centralise vos offres, suit chaque étape du recrutement, mesure vos résultats et vous
+            Postulyn centralise vos offres, suit chaque étape du recrutement, mesure vos résultats et vous
             prépare aux entretiens grâce à ORVYNA, une assistante IA qui connaît l'annonce.
           </p>
           <div className="hero-actions">
@@ -181,7 +181,7 @@ export default function Landing() {
 
       <footer className="landing-footer">
         <Logo size={22} />
-        <span>© {ANNEE} Postilyn. Tous droits réservés.</span>
+        <span>© {ANNEE} Postulyn. Tous droits réservés.</span>
       </footer>
     </div>
   )

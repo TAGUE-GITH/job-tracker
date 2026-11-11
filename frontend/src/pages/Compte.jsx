@@ -190,9 +190,9 @@ function EmailTest() {
 
   return (
     <div className="card">
-      <h3><Mail size={18} /> Emails de Postilyn</h3>
+      <h3><Mail size={18} /> Emails de Postulyn</h3>
       <p className="muted small">
-        Vérifie que Postilyn peut t'envoyer des emails (comme celui de « mot de passe oublié ») :
+        Vérifie que Postulyn peut t'envoyer des emails (comme celui de « mot de passe oublié ») :
         un email de test part vers <b>{user.email}</b>.
       </p>
       {resultat && (
@@ -219,7 +219,7 @@ function Export() {
       const url = URL.createObjectURL(new Blob([JSON.stringify(donnees, null, 2)], { type: 'application/json' }))
       const lien = document.createElement('a')
       lien.href = url
-      lien.download = `postilyn-export-${aujourdhui()}.json`
+      lien.download = `postulyn-export-${aujourdhui()}.json`
       lien.click()
       setTimeout(() => URL.revokeObjectURL(url), 10000)
     } catch (err) {

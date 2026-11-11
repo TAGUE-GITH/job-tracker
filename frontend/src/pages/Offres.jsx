@@ -108,7 +108,7 @@ export default function Offres() {
       <div className="page-head">
         <div>
           <h1>Offres d'emploi</h1>
-          <p className="muted">Trouve une offre, postule en un clic et suis-la dans Postilyn.</p>
+          <p className="muted">Trouve une offre, postule en un clic et suis-la dans Postulyn.</p>
         </div>
       </div>
 

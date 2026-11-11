@@ -3,7 +3,7 @@ import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
 import { lireOffreImportee, mettreOffreDeCote, oublierOffre } from '../importOffre.js'
 
-// Arrivee depuis le favori "Ajouter a Postilyn" : on ouvre le formulaire de candidature prerempli
+// Arrivee depuis le favori "Ajouter a Postulyn" : on ouvre le formulaire de candidature prerempli
 export default function Importer() {
   const { user } = useAuth()
   const { hash } = useLocation()
@@ -21,7 +21,7 @@ export default function Importer() {
       <div className="container">
         <div className="card vide">
           <p>Aucune offre à importer.</p>
-          <p className="muted small">Utilise le favori « Ajouter à Postilyn » sur la page d'une offre d'emploi.</p>
+          <p className="muted small">Utilise le favori « Ajouter à Postulyn » sur la page d'une offre d'emploi.</p>
           <Link to="/offres" className="btn primary">Retour aux offres</Link>
         </div>
       </div>

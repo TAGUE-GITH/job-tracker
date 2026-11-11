@@ -3,7 +3,7 @@ import { codeFavori, importEnAttente, lireOffreImportee, mettreOffreDeCote, oubl
 
 const hash = (o) => `#${encodeURIComponent(JSON.stringify(o))}`
 
-describe('favori Ajouter a Postilyn', () => {
+describe('favori Ajouter a Postulyn', () => {
   it('produit un lien javascript: qui ouvre la page /importer du site', () => {
     const code = codeFavori('https://taguora.vercel.app')
     expect(code.startsWith('javascript:')).toBe(true)

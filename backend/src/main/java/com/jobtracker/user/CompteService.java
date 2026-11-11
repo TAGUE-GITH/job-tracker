@@ -51,7 +51,7 @@ public class CompteService {
 
     private Profil profilDe(User u) {
         return new Profil(u.getNom(), u.getEmail(), u.getTelephone(), u.getAdresse(), u.getVille(),
-                administrateurs.estAdmin(u.getEmail()));
+                administrateurs.estAdmin(u));
     }
 
     @Transactional(readOnly = true)
@@ -90,10 +90,10 @@ public class CompteService {
         if (user.getEmail().endsWith(AuthService.DOMAINE_DEMO)) {
             return new EmailService.Envoi(false, "Les comptes de demonstration n'ont pas de vraie adresse email.");
         }
-        return emailService.envoyerAvecDetail(user.getEmail(), "Test d'envoi Postilyn",
-                "Bonjour " + user.getNom() + ",\n\nSi tu lis ce message, l'envoi d'emails de Postilyn fonctionne.",
+        return emailService.envoyerAvecDetail(user.getEmail(), "Test d'envoi Postulyn",
+                "Bonjour " + user.getNom() + ",\n\nSi tu lis ce message, l'envoi d'emails de Postulyn fonctionne.",
                 "<p>Bonjour " + user.getNom().replace("<", "&lt;") + ",</p><p>Si tu lis ce message, l'envoi "
-                        + "d'emails de <b>Postilyn</b> fonctionne. ✅</p>");
+                        + "d'emails de <b>Postulyn</b> fonctionne. ✅</p>");
     }
 
     /** Deconnecte toutes les sessions ouvertes ; renvoie un jeton neuf pour l'appareil courant. */

@@ -15,7 +15,7 @@ export default function Login() {
   const [erreur, setErreur] = useState('')
   const [chargement, setChargement] = useState(false)
 
-  // Apres une connexion demandee par le favori "Ajouter a Postilyn", on reprend l'import
+  // Apres une connexion demandee par le favori "Ajouter a Postulyn", on reprend l'import
   const suite = importEnAttente() ? '/importer' : '/'
   if (user) return <Navigate to={suite} replace />
 
