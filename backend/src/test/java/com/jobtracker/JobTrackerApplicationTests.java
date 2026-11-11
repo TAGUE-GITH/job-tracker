@@ -240,7 +240,7 @@ class JobTrackerApplicationTests {
                         .content("""
                                 {"titre":"Developpeur Java - Alternance","profil":"Developpeur Spring Boot motive.",
                                  "competencesTechniques":["Java","Spring Boot"],
-                                 "experiences":[{"poste":"Stagiaire","entreprise":"Acme","periode":"2025",
+                                 "experiences":[{"poste":"Sorvynaire","entreprise":"Acme","periode":"2025",
                                                  "missions":["API REST"]}]}"""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cv.nomFichier").value("CV Franck - Globex.pdf"))

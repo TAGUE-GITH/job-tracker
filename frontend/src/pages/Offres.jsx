@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { aujourdhui, formatDate } from '../labels'
 import BoutonFavori from '../components/BoutonFavori.jsx'
+import { ExternalLink, Plus } from 'lucide-react'
 
 const CONTRATS = [
   { valeur: '', label: 'Tous les contrats' },
@@ -107,7 +108,7 @@ export default function Offres() {
       <div className="page-head">
         <div>
           <h1>Offres d'emploi</h1>
-          <p className="muted">Trouve une offre, postule en un clic et suis-la dans Taguora.</p>
+          <p className="muted">Trouve une offre, postule en un clic et suis-la dans Postilyn.</p>
         </div>
       </div>
 
@@ -145,7 +146,7 @@ export default function Offres() {
         <span className="muted small">Voir aussi :</span>
         {liensExternes(form).map((l) => (
           <a key={l.nom} href={l.url} target="_blank" rel="noopener noreferrer" className="btn ghost small">
-            {l.nom} ↗{l.note && <span className="muted"> · {l.note}</span>}
+            {l.nom} <ExternalLink size={13} />{l.note && <span className="muted"> · {l.note}</span>}
           </a>
         ))}
         <span className="muted small">puis ajoute l'offre avec « + Nouvelle candidature ».</span>
@@ -213,7 +214,7 @@ function CarteOffre({ offre, candidatureId, onAjouter, onOuvrir }) {
       <div className="offre-tags">
         {offre.contrat && <span className="badge bleu">{offre.contrat}</span>}
         {offre.salaire && <span className="badge vert">{offre.salaire}</span>}
-        {candidatureId && <span className="badge orange">✓ Dans ton suivi</span>}
+        {candidatureId && <span className="badge orange">Dans ton suivi</span>}
       </div>
 
       {offre.description && (
@@ -239,12 +240,12 @@ function CarteOffre({ offre, candidatureId, onAjouter, onOuvrir }) {
         {candidatureId ? (
           <Link to={`/candidatures/${candidatureId}`} className="btn ghost">Voir dans mon suivi</Link>
         ) : (
-          <button className="btn ghost" onClick={ajouter} disabled={envoi}>+ Ajouter au suivi</button>
+          <button className="btn ghost" onClick={ajouter} disabled={envoi}><Plus size={16} /> Ajouter au suivi</button>
         )}
         {offre.url && (
           <a href={offre.url} target="_blank" rel="noopener noreferrer" className="btn primary"
             onClick={() => setAPostule(true)}>
-            Postuler ↗
+            Postuler <ExternalLink size={15} />
           </a>
         )}
       </div>

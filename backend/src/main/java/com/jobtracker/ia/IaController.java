@@ -47,7 +47,7 @@ public class IaController {
                 req == null ? null : req.consignes());
     }
 
-    /** TAGIA repond aux questions sur l'application et sur les candidatures de l'utilisateur. */
+    /** ORVYNA repond aux questions sur l'application et sur les candidatures de l'utilisateur. */
     @PostMapping("/api/ia/aide")
     public IaResponse aide(@Valid @RequestBody AideRequest req) {
         return iaService.aide(CurrentUser.id(), req.messages());

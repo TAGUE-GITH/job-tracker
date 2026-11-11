@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-// Voix du navigateur, sans service payant : synthese vocale (speechSynthesis) pour que TAGIA parle,
+// Voix du navigateur, sans service payant : synthese vocale (speechSynthesis) pour que ORVYNA parle,
 // reconnaissance vocale (SpeechRecognition, Chrome et Edge) pour dicter ses reponses.
 
 const Reconnaissance = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)

@@ -97,7 +97,7 @@ public class DemoService {
         atlas.setCv(cv);
         atlas.setLettre(lettre);
         etape(atlas, TypeEtape.ECHANGE_RH, t.minusDays(28), "Appel de 20 min avec la RH : motivation, rythme de "
-                + "l'alternance, projet Taguora apprécié.");
+                + "l'alternance, projet Postilyn apprécié.");
         etape(atlas, TypeEtape.ENTRETIEN_TECHNIQUE, t.minusDays(20), "Questions sur Spring Security, JPA (lazy "
                 + "loading), tests JUnit. Exercice : concevoir une API de réservation.");
         etape(atlas, TypeEtape.OFFRE, t.minusDays(6), "Offre reçue ! Début en septembre, 3 jours en entreprise.");
@@ -176,7 +176,7 @@ public class DemoService {
             Votre équipe produit développe des API REST en Java et Spring Boot avec une vraie culture de la qualité : \
             c'est exactement l'environnement dans lequel je veux progresser pendant mon alternance.
 
-            J'ai conçu et déployé Taguora, une application complète de suivi de candidatures : API Spring Boot \
+            J'ai conçu et déployé Postilyn, une application complète de suivi de candidatures : API Spring Boot \
             sécurisée par JWT, base PostgreSQL, interface React, tests automatisés et intégration continue GitHub \
             Actions. Ce projet m'a appris à livrer un produit utilisé, de la conception au déploiement.
 
@@ -197,7 +197,7 @@ public class DemoService {
             List.of(new CvPdf.Experience("Développeur web (stage)", "Agence Web Exemple", "Paris", "Avril - Juin 2025",
                     List.of("Développement de fonctionnalités en PHP et JavaScript pour des sites clients",
                             "Mise en place de tests et correction d'anomalies en équipe"))),
-            List.of(new CvPdf.Projet("Taguora - suivi de candidatures avec IA",
+            List.of(new CvPdf.Projet("Postilyn - suivi de candidatures avec IA",
                     "Application web complète pour organiser sa recherche d'alternance.",
                     "Java 21, Spring Boot, PostgreSQL, React, Docker, GitHub Actions",
                     List.of("API REST Spring Boot sécurisée par JWT, migrations Flyway, base PostgreSQL",

@@ -15,7 +15,7 @@ export default function Login() {
   const [erreur, setErreur] = useState('')
   const [chargement, setChargement] = useState(false)
 
-  // Apres une connexion demandee par le favori "Ajouter a Taguora", on reprend l'import
+  // Apres une connexion demandee par le favori "Ajouter a Postilyn", on reprend l'import
   const suite = importEnAttente() ? '/importer' : '/'
   if (user) return <Navigate to={suite} replace />
 
@@ -70,7 +70,7 @@ export default function Login() {
           <ChampMotDePasse name="password" value={form.password} onChange={onChange} required
             avecForce={mode === 'register'} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
         </label>
-        <Link to="/mot-de-passe-oublie" className="small lien-oubli">🔑 Mot de passe oublié ?</Link>
+        <Link to="/mot-de-passe-oublie" className="small lien-oubli">Mot de passe oublié ?</Link>
 
         {erreur && <p className="erreur">{erreur}</p>}
         <button className="btn primary" disabled={chargement}>

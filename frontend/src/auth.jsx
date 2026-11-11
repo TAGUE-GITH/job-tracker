@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
 
   const connecter = (res) => {
     setToken(res.token)
-    const u = { id: res.id, nom: res.nom, email: res.email, demo: !!res.demo }
+    const u = { id: res.id, nom: res.nom, email: res.email, demo: !!res.demo, admin: !!res.admin }
     localStorage.setItem(USER_KEY, JSON.stringify(u))
     setUser(u)
   }

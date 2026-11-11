@@ -14,7 +14,7 @@ const DELAI_LENT = 4000
 let requetesLentes = 0
 const signalerLenteur = (delta) => {
   requetesLentes += delta
-  window.dispatchEvent(new CustomEvent('taguora:lent', { detail: requetesLentes > 0 }))
+  window.dispatchEvent(new CustomEvent('postilyn:lent', { detail: requetesLentes > 0 }))
 }
 
 async function request(path, options = {}) {
@@ -76,6 +76,10 @@ export const api = {
   reinitialiser: (jeton, nouveau) => request('/auth/reinitialiser', { method: 'POST', body: { jeton, nouveau } }),
   deconnexionPartout: () => request('/compte/deconnexion-partout', { method: 'POST' }),
   emailTest: () => request('/compte/email-test', { method: 'POST' }),
+  adminStatistiques: () => request('/admin/statistiques'),
+  adminUtilisateurs: () => request('/admin/utilisateurs'),
+  adminDeconnecter: (id) => request(`/admin/utilisateurs/${id}/deconnexion`, { method: 'POST' }),
+  adminSupprimer: (id) => request(`/admin/utilisateurs/${id}`, { method: 'DELETE' }),
   login: (data) => request('/auth/login', { method: 'POST', body: data }),
   register: (data) => request('/auth/register', { method: 'POST', body: data }),
 

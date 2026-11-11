@@ -6,6 +6,7 @@ import {
 import { api } from '../api'
 import { STATUTS } from '../labels'
 import ARelancer from '../components/ARelancer.jsx'
+import { Plus } from 'lucide-react'
 
 // Pas d'animation des graphiques si l'utilisateur a demande a reduire les animations (accessibilite)
 const ANIMER = !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -31,9 +32,9 @@ export default function Dashboard() {
   if (stats.total === 0) {
     return (
       <div className="card vide">
-        <h2>Bienvenue 👋</h2>
+        <h2>Bienvenue</h2>
         <p className="muted">Ajoute ta première candidature pour voir tes statistiques.</p>
-        <Link to="/candidatures/nouvelle" className="btn primary">+ Nouvelle candidature</Link>
+        <Link to="/candidatures/nouvelle" className="btn primary"><Plus size={16} /> Nouvelle candidature</Link>
       </div>
     )
   }
@@ -46,7 +47,7 @@ export default function Dashboard() {
     <>
       <div className="page-head">
         <h1>Tableau de bord</h1>
-        <Link to="/candidatures/nouvelle" className="btn primary">+ Nouvelle candidature</Link>
+        <Link to="/candidatures/nouvelle" className="btn primary"><Plus size={16} /> Nouvelle candidature</Link>
       </div>
 
       <div className="kpis">
@@ -71,7 +72,7 @@ export default function Dashboard() {
               <XAxis dataKey="mois" />
               <YAxis allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="count" name="Candidatures" fill="#6366f1" radius={[4, 4, 0, 0]} isAnimationActive={ANIMER} />
+              <Bar dataKey="count" name="Candidatures" fill="#1e3a8a" radius={[4, 4, 0, 0]} isAnimationActive={ANIMER} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -91,9 +92,9 @@ export default function Dashboard() {
       </div>
 
       <div className="grid-2">
-        <Groupes titre="📄 Quel CV marche le mieux ?" groupes={stats.parCv}
+        <Groupes titre="Performance par CV" groupes={stats.parCv}
           aide="Taux de réponse selon le CV envoyé. Compare deux versions de ton CV sur plusieurs candidatures." />
-        <Groupes titre="🌐 D'où viennent tes réponses ?" groupes={stats.parSource}
+        <Groupes titre="Performance par source" groupes={stats.parSource}
           aide="Taux de réponse selon le site de l'offre (d'après le lien de l'offre)." />
       </div>
 
@@ -105,7 +106,7 @@ export default function Dashboard() {
             <XAxis type="number" allowDecimals={false} />
             <YAxis type="category" dataKey="etape" width={110} />
             <Tooltip />
-            <Bar dataKey="count" name="Candidatures" fill="#22c55e" radius={[0, 4, 4, 0]} isAnimationActive={ANIMER} />
+            <Bar dataKey="count" name="Candidatures" fill="#2563eb" radius={[0, 4, 4, 0]} isAnimationActive={ANIMER} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -137,7 +138,7 @@ function Groupes({ titre, groupes, aide }) {
             <div className="groupe-ligne">
               <span className="groupe-nom" title={g.nom}>
                 {g.nom}
-                {g.total >= 2 && g.tauxReponse === meilleur && meilleur > 0 && <span className="badge vert">🏆 meilleur</span>}
+                {g.total >= 2 && g.tauxReponse === meilleur && meilleur > 0 && <span className="badge vert">Meilleur</span>}
               </span>
               <span className="muted small nowrap">{g.reponses}/{g.total} · <strong>{g.tauxReponse} %</strong></span>
             </div>

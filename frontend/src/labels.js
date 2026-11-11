@@ -21,3 +21,7 @@ export const formatDate = (iso) =>
   iso ? new Date(`${iso}T00:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
 
 export const aujourdhui = () => new Date().toISOString().slice(0, 10)
+
+/** "Franck Tague" -> "FT" (pastille de profil) */
+export const initiales = (nom) => (nom ?? '?').split(/\s+/).filter(Boolean).slice(0, 2)
+  .map((m) => m[0].toUpperCase()).join('') || '?'

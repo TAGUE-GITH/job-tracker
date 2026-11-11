@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { api } from '../api'
-import TagiaAvatar from './TagiaAvatar.jsx'
+import OrvynaAvatar from './OrvynaAvatar.jsx'
+import { Send, X } from 'lucide-react'
 
 const SUGGESTIONS = [
   'Comment ajouter une candidature ?',
@@ -11,8 +12,8 @@ const SUGGESTIONS = [
   'Quand relancer un recruteur ?',
 ]
 
-// Bulle d'aide flottante : TAGIA repond aux questions sur l'application, sur toutes les pages
-export default function TagiaWidget() {
+// Bulle d'aide flottante : ORVYNA repond aux questions sur l'application, sur toutes les pages
+export default function OrvynaWidget() {
   const [ouvert, setOuvert] = useState(false)
   const [messages, setMessages] = useState([])
   const [saisie, setSaisie] = useState('')
@@ -47,25 +48,25 @@ export default function TagiaWidget() {
   }
 
   return (
-    <div className={`tagia ${ouvert ? 'tagia-ouvert' : ''}`}>
+    <div className={`orvyna ${ouvert ? 'orvyna-ouvert' : ''}`}>
       {ouvert && (
-        <section className="tagia-panel" aria-label="Discuter avec TAGIA">
-          <header className="tagia-head">
-            <TagiaAvatar size={40} />
+        <section className="orvyna-panel" aria-label="Discuter avec ORVYNA">
+          <header className="orvyna-head">
+            <OrvynaAvatar size={40} />
             <div>
-              <strong>TAGIA</strong>
-              <small><span className="tagia-dot" /> Ton assistant Taguora</small>
+              <strong>ORVYNA</strong>
+              <small><span className="orvyna-dot" /> Ton assistant Postilyn</small>
             </div>
-            <button className="tagia-fermer" onClick={() => setOuvert(false)} aria-label="Fermer">×</button>
+            <button className="orvyna-fermer" onClick={() => setOuvert(false)} aria-label="Fermer"><X size={20} /></button>
           </header>
 
-          <div className="tagia-messages">
+          <div className="orvyna-messages">
             <div className="bulle assistant">
-              Salut 👋 Je suis <b>TAGIA</b>. Pose-moi une question sur Taguora, sur tes candidatures
+              Bonjour, je suis <b>ORVYNA</b>. Pose-moi une question sur Postilyn, sur tes candidatures
               ou sur ta recherche d'emploi.
             </div>
             {messages.length === 0 && (
-              <div className="tagia-suggestions">
+              <div className="orvyna-suggestions">
                 {SUGGESTIONS.map((s) => (
                   <button key={s} type="button" onClick={() => demander(s)}>{s}</button>
                 ))}
@@ -76,23 +77,23 @@ export default function TagiaWidget() {
                 {m.role === 'assistant' ? <Markdown remarkPlugins={[remarkGfm]}>{m.content}</Markdown> : m.content}
               </div>
             ))}
-            {chargement && <div className="bulle assistant tagia-ecrit"><span /><span /><span /></div>}
+            {chargement && <div className="bulle assistant orvyna-ecrit"><span /><span /><span /></div>}
             {erreur && <p className="erreur">{erreur}</p>}
             <div ref={finRef} />
           </div>
 
-          <form className="tagia-saisie" onSubmit={onSubmit}>
+          <form className="orvyna-saisie" onSubmit={onSubmit}>
             <input value={saisie} onChange={(e) => setSaisie(e.target.value)}
               placeholder="Écris ta question…" disabled={chargement} autoFocus />
-            <button className="btn primary" disabled={chargement || !saisie.trim()} aria-label="Envoyer">➤</button>
+            <button className="btn primary" disabled={chargement || !saisie.trim()} aria-label="Envoyer"><Send size={16} /></button>
           </form>
         </section>
       )}
 
-      <button className="tagia-bouton" onClick={() => setOuvert(!ouvert)}
-        aria-label={ouvert ? 'Fermer TAGIA' : 'Ouvrir TAGIA, ton assistant'}>
-        <TagiaAvatar size={46} />
-        {!ouvert && <span className="tagia-label">Besoin d'aide ?</span>}
+      <button className="orvyna-bouton" onClick={() => setOuvert(!ouvert)}
+        aria-label={ouvert ? 'Fermer ORVYNA' : 'Ouvrir ORVYNA, ton assistant'}>
+        <OrvynaAvatar size={46} />
+        {!ouvert && <span className="orvyna-label">Besoin d'aide ?</span>}
       </button>
     </div>
   )

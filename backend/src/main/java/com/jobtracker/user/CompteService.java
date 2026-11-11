@@ -25,10 +25,13 @@ public class CompteService {
     private final AuthService authService;
     private final JetonReinitialisationRepository jetonRepository;
     private final EmailService emailService;
+    private final Administrateurs administrateurs;
 
     public CompteService(UserRepository userRepository, PasswordEncoder passwordEncoder,
             CandidatureService candidatureService, DocumentService documentService, AuthService authService,
-            JetonReinitialisationRepository jetonRepository, EmailService emailService) {
+            JetonReinitialisationRepository jetonRepository, EmailService emailService,
+            Administrateurs administrateurs) {
+        this.administrateurs = administrateurs;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.candidatureService = candidatureService;
@@ -42,23 +45,25 @@ public class CompteService {
             List<DocumentResponse> documents) {
     }
 
-    public record Profil(String nom, String email, String telephone, String adresse, String ville) {
+    /** admin : vrai si l'email figure dans ADMIN_EMAILS (affiche le menu Administration). */
+    public record Profil(String nom, String email, String telephone, String adresse, String ville, boolean admin) {
+    }
 
-        static Profil de(User u) {
-            return new Profil(u.getNom(), u.getEmail(), u.getTelephone(), u.getAdresse(), u.getVille());
-        }
+    private Profil profilDe(User u) {
+        return new Profil(u.getNom(), u.getEmail(), u.getTelephone(), u.getAdresse(), u.getVille(),
+                administrateurs.estAdmin(u.getEmail()));
     }
 
     @Transactional(readOnly = true)
     public Profil profil(Long userId) {
-        return Profil.de(utilisateur(userId));
+        return profilDe(utilisateur(userId));
     }
 
     @Transactional
     public Profil modifierProfil(Long userId, String nom, String telephone, String adresse, String ville) {
         User user = utilisateur(userId);
         user.modifierProfil(nom.strip(), vide(telephone), vide(adresse), vide(ville));
-        return Profil.de(user);
+        return profilDe(user);
     }
 
     private static String vide(String valeur) {
@@ -85,10 +90,10 @@ public class CompteService {
         if (user.getEmail().endsWith(AuthService.DOMAINE_DEMO)) {
             return new EmailService.Envoi(false, "Les comptes de demonstration n'ont pas de vraie adresse email.");
         }
-        return emailService.envoyerAvecDetail(user.getEmail(), "Test d'envoi Taguora",
-                "Bonjour " + user.getNom() + ",\n\nSi tu lis ce message, l'envoi d'emails de Taguora fonctionne.",
+        return emailService.envoyerAvecDetail(user.getEmail(), "Test d'envoi Postilyn",
+                "Bonjour " + user.getNom() + ",\n\nSi tu lis ce message, l'envoi d'emails de Postilyn fonctionne.",
                 "<p>Bonjour " + user.getNom().replace("<", "&lt;") + ",</p><p>Si tu lis ce message, l'envoi "
-                        + "d'emails de <b>Taguora</b> fonctionne. ✅</p>");
+                        + "d'emails de <b>Postilyn</b> fonctionne. ✅</p>");
     }
 
     /** Deconnecte toutes les sessions ouvertes ; renvoie un jeton neuf pour l'appareil courant. */

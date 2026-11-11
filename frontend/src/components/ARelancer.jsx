@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { ETAPES, aujourdhui } from '../labels'
 import { DELAI_RELANCE, aRelancer } from '../relances.js'
+import { Bell, Check } from 'lucide-react'
 
-// Carte du tableau de bord : les candidatures sans nouvelles, avec un email de relance redige par TAGIA
+// Carte du tableau de bord : les candidatures sans nouvelles, avec un email de relance redige par ORVYNA
 export default function ARelancer() {
   const [liste, setListe] = useState(null)
 
@@ -16,10 +17,10 @@ export default function ARelancer() {
   if (!liste) return null
   return (
     <div className="card relances">
-      <h3>🔔 À relancer {liste.length > 0 && <span className="badge orange">{liste.length}</span>}</h3>
+      <h3><Bell size={18} /> À relancer {liste.length > 0 && <span className="badge orange">{liste.length}</span>}</h3>
       {liste.length === 0 ? (
         <p className="muted small">
-          Rien à relancer : aucune candidature sans nouvelles depuis plus de {DELAI_RELANCE} jours. 👍
+          Rien à relancer : aucune candidature sans nouvelles depuis plus de {DELAI_RELANCE} jours.
         </p>
       ) : (
         <>
@@ -83,10 +84,10 @@ function Relance({ c, derniere, jours, onFait }) {
         </div>
         <div className="relance-actions">
           <button className="btn ghost small" onClick={rediger} disabled={chargement}>
-            {chargement ? 'TAGIA écrit…' : brouillon ? 'Réécrire' : '✉️ Rédiger la relance'}
+            {chargement ? 'ORVYNA écrit…' : brouillon ? 'Réécrire' : 'Rédiger la relance'}
           </button>
           <button className="btn primary small" onClick={marquerRelancee} title="Ajoute une étape Relance aujourd'hui">
-            ✓ J'ai relancé
+            <Check size={14} /> J'ai relancé
           </button>
         </div>
       </div>
@@ -94,7 +95,7 @@ function Relance({ c, derniere, jours, onFait }) {
       {brouillon && (
         <div className="relance-brouillon">
           <textarea value={brouillon} onChange={(e) => { setBrouillon(e.target.value); setCopie(false) }} rows={9} />
-          <button className="btn ghost small" onClick={copier}>{copie ? 'Copié ✓' : 'Copier'}</button>
+          <button className="btn ghost small" onClick={copier}>{copie ? 'Copié' : 'Copier'}</button>
         </div>
       )}
     </li>

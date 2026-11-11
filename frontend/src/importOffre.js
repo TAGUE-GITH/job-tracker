@@ -1,6 +1,6 @@
-// Favori "Ajouter a Taguora" : un petit script que l'utilisateur glisse dans sa barre de favoris.
+// Favori "Ajouter a Postilyn" : un petit script que l'utilisateur glisse dans sa barre de favoris.
 // Sur la page d'une offre (Welcome to the Jungle, LinkedIn, Indeed, HelloWork...), il lit l'offre
-// et ouvre Taguora sur /importer avec les informations dans l'URL (apres le #, jamais envoyees au serveur).
+// et ouvre Postilyn sur /importer avec les informations dans l'URL (apres le #, jamais envoyees au serveur).
 
 const CLE_ATTENTE = 'jt_import'
 

@@ -1,13 +1,13 @@
 {
-  "name": "Taguora · Suivi de candidatures",
-  "short_name": "Taguora",
-  "description": "Suis tes candidatures, prépare tes entretiens avec TAGIA et trouve des offres.",
+  "name": "Postilyn · Suivi de candidatures",
+  "short_name": "Postilyn",
+  "description": "Suis tes candidatures, prépare tes entretiens avec ORVYNA et trouve des offres.",
   "lang": "fr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f6f7fb",
-  "theme_color": "#6366f1",
+  "background_color": "#f4f6f9",
+  "theme_color": "#0b1324",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

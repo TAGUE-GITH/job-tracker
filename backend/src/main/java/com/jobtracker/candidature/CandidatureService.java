@@ -75,7 +75,7 @@ public class CandidatureService {
         return CandidatureResponse.from(c);
     }
 
-    /** Enregistre la lettre de motivation (redigee avec TAGIA) en PDF et la rattache a la candidature. */
+    /** Enregistre la lettre de motivation (redigee avec ORVYNA) en PDF et la rattache a la candidature. */
     @Transactional
     public CandidatureResponse enregistrerLettre(Long userId, Long id, LettreRequest req) {
         Candidature c = trouver(userId, id);

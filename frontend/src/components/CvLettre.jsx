@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
-import TagiaAvatar from './TagiaAvatar.jsx'
+import OrvynaAvatar from './OrvynaAvatar.jsx'
 import CvAdapte from './CvAdapte.jsx'
 import DocumentActions from './DocumentActions.jsx'
+import { FileText, Info, Mail, Target } from 'lucide-react'
 
-// TAGIA compare le CV a l'offre (score, competences manquantes) et redige la lettre de motivation
+// ORVYNA compare le CV a l'offre (score, competences manquantes) et redige la lettre de motivation
 export default function CvLettre({ candidature, onChange }) {
   const [onglet, setOnglet] = useState('analyse')
   const [cvs, setCvs] = useState(null)
@@ -22,7 +23,7 @@ export default function CvLettre({ candidature, onChange }) {
   }, [])
 
   const manque = !candidature.texteOffre
-    ? <>Ajoute le texte de l'offre (bouton <Link to={`/candidatures/${candidature.id}/modifier`}>Modifier</Link>) pour que TAGIA puisse la comparer à ton CV.</>
+    ? <>Ajoute le texte de l'offre (bouton <Link to={`/candidatures/${candidature.id}/modifier`}>Modifier</Link>) pour que ORVYNA puisse la comparer à ton CV.</>
     : cvs && cvs.length === 0
       ? <>Importe ton CV (PDF ou Word) dans <Link to="/documents">CV & lettres</Link> pour l'analyser.</>
       : null
@@ -30,22 +31,22 @@ export default function CvLettre({ candidature, onChange }) {
   return (
     <div className="card cv-lettre">
       <div className="ia-head">
-        <TagiaAvatar size={44} />
+        <OrvynaAvatar size={44} />
         <div>
-          <h3>TAGIA · CV & lettre</h3>
+          <h3>ORVYNA · CV & lettre</h3>
           <p className="muted small">Ton CV face à cette offre, un CV adapté et une lettre de motivation sur mesure.</p>
         </div>
       </div>
 
       <div className="tabs">
         <button type="button" className={onglet === 'analyse' ? 'active' : ''} onClick={() => setOnglet('analyse')}>
-          🎯 Compatibilité
+          <Target size={16} /> Compatibilité
         </button>
         <button type="button" className={onglet === 'lettre' ? 'active' : ''} onClick={() => setOnglet('lettre')}>
-          ✉️ Lettre
+          <Mail size={16} /> Lettre
         </button>
         <button type="button" className={onglet === 'cv' ? 'active' : ''} onClick={() => setOnglet('cv')}>
-          📄 CV adapté
+          <FileText size={16} /> CV adapté
         </button>
       </div>
 
@@ -82,7 +83,7 @@ function Analyse({ candidatureId, cvId }) {
       const { reponse } = await api.compatibilite(candidatureId, { cvId: cvId || null })
       setAnalyse(JSON.parse(reponse))
     } catch (e) {
-      setErreur(e instanceof SyntaxError ? "TAGIA a renvoyé une analyse illisible, réessaie." : e.message)
+      setErreur(e instanceof SyntaxError ? "ORVYNA a renvoyé une analyse illisible, réessaie." : e.message)
     } finally {
       setChargement(false)
     }
@@ -92,12 +93,12 @@ function Analyse({ candidatureId, cvId }) {
     <div className="analyse">
       {!analyse && !chargement && (
         <p className="muted small">
-          TAGIA lit ton CV et l'offre, puis donne un score d'adéquation, ce qui te manque et les mots-clés à ajouter
+          ORVYNA lit ton CV et l'offre, puis donne un score d'adéquation, ce qui te manque et les mots-clés à ajouter
           pour passer les filtres des recruteurs.
         </p>
       )}
       <button className="btn primary" onClick={analyser} disabled={chargement}>
-        {chargement ? 'TAGIA analyse ton CV…' : analyse ? 'Relancer l’analyse' : 'Analyser mon CV'}
+        {chargement ? 'ORVYNA analyse ton CV…' : analyse ? 'Relancer l’analyse' : 'Analyser mon CV'}
       </button>
       {erreur && <p className="erreur">{erreur}</p>}
 
@@ -107,15 +108,15 @@ function Analyse({ candidatureId, cvId }) {
             <Score valeur={Number(analyse.score) || 0} />
             <p>{analyse.resume}</p>
           </div>
-          <Liste titre="✅ Tes points forts" items={analyse.pointsForts} classe="ok" />
-          <Liste titre="⚠️ Ce qui te manque" items={analyse.competencesManquantes} classe="manque" />
+          <Liste titre="Points forts" items={analyse.pointsForts} classe="ok" />
+          <Liste titre="Points à renforcer" items={analyse.competencesManquantes} classe="manque" />
           {analyse.motsCles?.length > 0 && (
             <div>
-              <h4>🔑 Mots-clés à ajouter à ton CV <span className="muted small">(s'ils sont vrais pour toi)</span></h4>
+              <h4>Mots-clés à ajouter à ton CV <span className="muted small">(s'ils sont vrais pour toi)</span></h4>
               <div className="chips">{analyse.motsCles.map((m) => <span key={m} className="chip">{m}</span>)}</div>
             </div>
           )}
-          <Liste titre="💡 Pour adapter ton CV" items={analyse.conseils} />
+          <Liste titre="Recommandations pour ton CV" items={analyse.conseils} />
         </div>
       )}
     </div>
@@ -208,7 +209,7 @@ function Lettre({ candidature, cvId, onChange }) {
       .map((b) => b.trim()).filter(Boolean).join('\n\n')
     try {
       await navigator.clipboard.writeText(complet)
-      setMessage('Lettre copiée avec l’en-tête ✓')
+      setMessage('Lettre copiée avec l’en-tête.')
     } catch {
       setMessage('Copie impossible : sélectionne le texte puis Ctrl + C')
     }
@@ -221,7 +222,7 @@ function Lettre({ candidature, cvId, onChange }) {
       const maj = await api.enregistrerLettre(candidature.id, { texte, ...entete })
       onChange(maj)
       setLettrePdf(maj.lettre)
-      setMessage('Lettre enregistrée en PDF et rattachée à la candidature ✓')
+      setMessage('Lettre enregistrée en PDF et rattachée à la candidature.')
     } catch (e) {
       setErreur(e.message)
     } finally {
@@ -232,12 +233,12 @@ function Lettre({ candidature, cvId, onChange }) {
   return (
     <div className="lettre">
       <label>
-        Consignes pour TAGIA <span className="muted small">(facultatif)</span>
+        Consignes pour ORVYNA <span className="muted small">(facultatif)</span>
         <input value={consignes} onChange={(e) => setConsignes(e.target.value)} maxLength={1000}
-          placeholder="ex. insiste sur mon projet Taguora, ton plus dynamique, disponible en septembre…" />
+          placeholder="ex. insiste sur mon projet Postilyn, ton plus dynamique, disponible en septembre…" />
       </label>
       <button className="btn primary" onClick={rediger} disabled={chargement}>
-        {chargement ? 'TAGIA rédige ta lettre…' : texte ? 'Réécrire la lettre' : 'Rédiger ma lettre'}
+        {chargement ? 'ORVYNA rédige ta lettre…' : texte ? 'Réécrire la lettre' : 'Rédiger ma lettre'}
       </button>
       {erreur && <p className="erreur">{erreur}</p>}
 
@@ -246,7 +247,7 @@ function Lettre({ candidature, cvId, onChange }) {
           <p className="muted small">Relis et corrige la lettre avant de l'envoyer : c'est toi qui signes.</p>
           {profilIncomplet && (
             <p className="import-info">
-              📇 Complète ton téléphone, ton adresse et ta ville dans <Link to="/compte">Mon compte</Link> pour
+              <Info size={16} /> Complète ton téléphone, ton adresse et ta ville dans <Link to="/compte">Mon compte</Link> pour
               qu'ils s'ajoutent automatiquement en haut de tes lettres.
             </p>
           )}

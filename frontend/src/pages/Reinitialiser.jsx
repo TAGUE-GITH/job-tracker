@@ -52,7 +52,7 @@ export default function Reinitialiser() {
           </>
         ) : fait ? (
           <p className="succes-bloc">
-            ✅ Mot de passe modifié. Tes autres sessions ont été déconnectées. Redirection vers la connexion…
+            Mot de passe modifié. Tes autres sessions ont été déconnectées. Redirection vers la connexion…
           </p>
         ) : (
           <>

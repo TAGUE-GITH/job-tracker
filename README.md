@@ -1,11 +1,11 @@
 <div align="center">
 
-<img src="frontend/public/icon-192.png" alt="Logo Taguora" width="88" />
+<img src="frontend/public/icon-192.png" alt="Logo Postilyn" width="88" />
 
-# Taguora
+# Postilyn
 
 **Le copilote de ta recherche d'alternance, de stage ou d'emploi.**
-Suis tes candidatures, trouve des offres, et laisse **TAGIA**, l'assistant IA, adapter ton CV, écrire tes lettres et t'entraîner aux entretiens.
+Suis tes candidatures, trouve des offres, et laisse **ORVYNA**, l'assistant IA, adapter ton CV, écrire tes lettres et t'entraîner aux entretiens.
 
 [![CI](https://github.com/TAGUE-GITH/job-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/TAGUE-GITH/job-tracker/actions/workflows/ci.yml)
 ![Java 21](https://img.shields.io/badge/Java-21-orange)
@@ -17,27 +17,27 @@ Suis tes candidatures, trouve des offres, et laisse **TAGIA**, l'assistant IA, a
 
 <sub>Le serveur est hébergé gratuitement : après une pause, le premier chargement peut prendre jusqu'à une minute.</sub>
 
-<img src="docs/captures/tableau-de-bord.png" alt="Tableau de bord de Taguora" width="900" />
+<img src="docs/captures/tableau-de-bord.png" alt="Tableau de bord de Postilyn" width="900" />
 
 </div>
 
-## Pourquoi Taguora ?
+## Pourquoi Postilyn ?
 
-Chercher une alternance, c'est des dizaines de candidatures, des tableurs oubliés, des relances qu'on ne fait pas et des entretiens qu'on prépare seul. Taguora réunit tout au même endroit et ajoute une IA qui **connaît l'offre et ton CV** :
+Chercher une alternance, c'est des dizaines de candidatures, des tableurs oubliés, des relances qu'on ne fait pas et des entretiens qu'on prépare seul. Postilyn réunit tout au même endroit et ajoute une IA qui **connaît l'offre et ton CV** :
 
 - 🎯 **Score de compatibilité CV ↔ offre** avec les compétences manquantes et les mots-clés à ajouter
 - 📄 **CV réécrit pour chaque offre**, en PDF d'une page lisible par les logiciels de tri (ATS)
 - ✉️ **Lettre de motivation sur mesure** avec un en-tête à la française
-- 🎙️ **Entretien blanc à l'oral** : TAGIA pose les questions à voix haute et note tes réponses
+- 🎙️ **Entretien blanc à l'oral** : ORVYNA pose les questions à voix haute et note tes réponses
 - 🔔 **Relances intelligentes** et **📊 statistiques** qui montrent ce qui marche vraiment
 
 ## Captures d'écran
 
-| Fiche candidature et TAGIA | Vue Kanban |
+| Fiche candidature et ORVYNA | Vue Kanban |
 |---|---|
-| <img src="docs/captures/candidature.png" alt="Fiche d'une candidature avec TAGIA" /> | <img src="docs/captures/kanban.png" alt="Vue Kanban des candidatures" /> |
+| <img src="docs/captures/candidature.png" alt="Fiche d'une candidature avec ORVYNA" /> | <img src="docs/captures/kanban.png" alt="Vue Kanban des candidatures" /> |
 | **CV généré, compatible ATS (une page)** | **Page d'accueil** |
-| <img src="docs/captures/cv-ats.png" alt="CV au format ATS généré par Taguora" /> | <img src="docs/captures/accueil.png" alt="Page d'accueil de Taguora" /> |
+| <img src="docs/captures/cv-ats.png" alt="CV au format ATS généré par Postilyn" /> | <img src="docs/captures/accueil.png" alt="Page d'accueil de Postilyn" /> |
 
 ## Fonctionnalités
 
@@ -45,19 +45,19 @@ Chercher une alternance, c'est des dizaines de candidatures, des tableurs oubli�
 - **Candidatures** : entreprise, poste, lien et texte de l'offre, CV et lettre utilisés, recherche et filtre par statut
 - **Timeline des étapes** (échange RH, tests, entretiens, offre, refus, relance) avec notes ; le statut se met à jour tout seul
 - **Vue Kanban** par glisser-déposer (menu « Déplacer vers… » sur téléphone)
-- **Relances intelligentes** : candidatures sans nouvelles depuis 7 jours, email de relance rédigé par TAGIA
+- **Relances intelligentes** : candidatures sans nouvelles depuis 7 jours, email de relance rédigé par ORVYNA
 - **Tableau de bord** : taux de réponse, d'entretien et d'offre, délai moyen de réponse, candidatures par mois, entonnoir, **taux de réponse par CV et par site d'offres**
 
-### TAGIA, l'assistant IA
+### ORVYNA, l'assistant IA
 - **Compatibilité CV ↔ offre** : score sur 100, points forts, compétences manquantes, mots-clés ATS
 - **CV adapté à l'offre** : titre, profil, compétences de l'offre proches des tiennes, projet le plus pertinent détaillé ; sans inventer d'expérience ni de diplôme ; PDF « ATS » d'une page, rattaché à la candidature et noté
 - **Lettre de motivation** modifiable, PDF avec tes coordonnées, le destinataire, le lieu et la date
 - **Coach d'entretien** : questions probables et réponses STAR, simulation à l'écrit ou **à l'oral** (synthèse et reconnaissance vocale du navigateur), bilan noté sur 10
-- **Bulle d'aide** sur chaque page : TAGIA répond aux questions sur l'application et sur la recherche d'emploi
+- **Bulle d'aide** sur chaque page : ORVYNA répond aux questions sur l'application et sur la recherche d'emploi
 
 ### Trouver des offres
 - **Recherche en direct** : La bonne alternance (toutes les offres d'alternance en France) et Jooble (stages, CDI, CDD)
-- **Favori « Ajouter à Taguora »** : envoie n'importe quelle offre (Welcome to the Jungle, LinkedIn, Indeed, HelloWork, Apec…) dans le suivi en un clic, en lisant les données schema.org `JobPosting` de la page
+- **Favori « Ajouter à Postilyn »** : envoie n'importe quelle offre (Welcome to the Jungle, LinkedIn, Indeed, HelloWork, Apec…) dans le suivi en un clic, en lisant les données schema.org `JobPosting` de la page
 - Liens « Voir aussi » vers Welcome to the Jungle, HelloWork et l'Apec avec la même recherche
 
 ### Sécurité
@@ -133,7 +133,7 @@ export AI_API_KEY="gsk_..."
 
 La page **Offres** a besoin d'au moins une de ces API (gratuites) :
 
-- **La bonne alternance** (offres d'alternance de toute la France, dont celles de France Travail) : crée un compte sur https://api.apprentissage.beta.gouv.fr, génère une clé d'API et renseigne `LBA_API_KEY`. Cette API cherche par métier (codes ROME) : Taguora traduit les mots-clés (développeur, data, réseau, RH, marketing…) en codes ROME, ou tu peux taper directement un code comme `M1805`. Le lieu est un département (`75`) ou une ville (rayon de 30 km).
+- **La bonne alternance** (offres d'alternance de toute la France, dont celles de France Travail) : crée un compte sur https://api.apprentissage.beta.gouv.fr, génère une clé d'API et renseigne `LBA_API_KEY`. Cette API cherche par métier (codes ROME) : Postilyn traduit les mots-clés (développeur, data, réseau, RH, marketing…) en codes ROME, ou tu peux taper directement un code comme `M1805`. Le lieu est un département (`75`) ou une ville (rayon de 30 km).
 - **Jooble** (tous contrats : stage, CDI, CDD) : demande une clé gratuite sur https://fr.jooble.org/api/about et renseigne `JOOBLE_API_KEY`. Une clé obtenue sur le site français donne surtout des offres françaises : mets alors `JOOBLE_HOST=fr.jooble.org` (par défaut `jooble.org`, le site international).
 - **Adzuna** (`ADZUNA_APP_ID`, `ADZUNA_APP_KEY`) : devenu payant (25 appels d'essai gratuits), le code reste disponible.
 - **France Travail** (`FT_CLIENT_ID`, `FT_CLIENT_SECRET`) : l'API « Offres d'emploi v2 » n'est plus en accès libre sur francetravail.io. Le code reste prêt si ton application y a accès.
@@ -217,7 +217,7 @@ Toutes les routes, sauf `/api/auth/**`, demandent l'en-tête `Authorization: Bea
 | POST | `/api/candidatures/{id}/ia/relance` | Brouillon d'email de relance |
 | POST | `/api/candidatures/{id}/ia/lettre` | Lettre de motivation (`{ cvId, consignes }`) |
 | POST | `/api/candidatures/{id}/lettre` | Enregistre la lettre en PDF et la rattache (`{ texte }`) |
-| POST | `/api/ia/aide` | TAGIA, aide sur l'application (`{ messages }`) |
+| POST | `/api/ia/aide` | ORVYNA, aide sur l'application (`{ messages }`) |
 | GET / POST | `/api/documents` | Liste et import (multipart : `fichier`, `type`) |
 | GET | `/api/documents/{id}/fichier` | Téléchargement |
 | DELETE | `/api/documents/{id}` | Suppression |

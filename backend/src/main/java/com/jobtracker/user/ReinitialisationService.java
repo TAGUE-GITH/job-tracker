@@ -65,7 +65,7 @@ public class ReinitialisationService {
         String texte = """
                 Bonjour %s,
 
-                Tu as demande a reinitialiser ton mot de passe Taguora. Clique sur ce lien (valable %d minutes, \
+                Tu as demande a reinitialiser ton mot de passe Postilyn. Clique sur ce lien (valable %d minutes, \
                 utilisable une seule fois) :
                 %s
 
@@ -73,7 +73,7 @@ public class ReinitialisationService {
                 """.formatted(user.getNom(), VALIDITE_MINUTES, lien);
         String html = """
                 <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#1e293b">
-                  <h2 style="color:#6366f1">Taguora</h2>
+                  <h2 style="color:#6366f1">Postilyn</h2>
                   <p>Bonjour %s,</p>
                   <p>Tu as demandé à réinitialiser ton mot de passe. Ce lien est valable <b>%d minutes</b> \
                 et ne peut servir qu'une fois.</p>
@@ -85,7 +85,7 @@ public class ReinitialisationService {
                 email : ton mot de passe ne change pas.</p>
                 </div>
                 """.formatted(echapper(user.getNom()), VALIDITE_MINUTES, lien);
-        emailService.envoyer(user.getEmail(), "Réinitialise ton mot de passe Taguora", texte, html);
+        emailService.envoyer(user.getEmail(), "Réinitialise ton mot de passe Postilyn", texte, html);
     }
 
     @Transactional

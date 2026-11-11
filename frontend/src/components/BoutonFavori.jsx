@@ -23,15 +23,15 @@ export default function BoutonFavori() {
         </div>
         <a ref={lien} className="btn primary bouton-favori" onClick={(e) => { e.preventDefault(); setAide(true) }}
           title="Glisse-moi dans ta barre de favoris" draggable>
-          ➕ Ajouter à Taguora
+          Ajouter à Postilyn
         </a>
       </div>
       {aide ? (
         <ol className="favori-etapes">
           <li>Affiche la barre de favoris : <kbd>Ctrl</kbd> + <kbd>Maj</kbd> + <kbd>B</kbd> (<kbd>⌘</kbd> + <kbd>Maj</kbd> + <kbd>B</kbd> sur Mac).</li>
-          <li><strong>Glisse</strong> le bouton « ➕ Ajouter à Taguora » dans cette barre (ne clique pas dessus ici).</li>
+          <li><strong>Glisse</strong> le bouton « Ajouter à Postilyn » dans cette barre (ne clique pas dessus ici).</li>
           <li>Sur la page d'une offre, clique sur le favori. Astuce : sélectionne d'abord le texte de l'annonce si le site est mal lu.</li>
-          <li>Taguora s'ouvre avec l'offre préremplie : vérifie, choisis ton CV, enregistre.</li>
+          <li>Postilyn s'ouvre avec l'offre préremplie : vérifie, choisis ton CV, enregistre.</li>
         </ol>
       ) : (
         <button type="button" className="link small" onClick={() => setAide(true)}>Comment l'installer ?</button>

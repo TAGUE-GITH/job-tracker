@@ -58,7 +58,7 @@ public class EmailService {
                     .uri(URL_BREVO)
                     .header("api-key", cle)
                     .body(Map.of(
-                            "sender", Map.of("name", "Taguora", "email", expediteur),
+                            "sender", Map.of("name", "Postilyn", "email", expediteur),
                             "to", List.of(Map.of("email", destinataire)),
                             "subject", sujet,
                             "textContent", texte,

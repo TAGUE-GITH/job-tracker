@@ -1,6 +1,6 @@
-// Service worker de Taguora : rend l'application installable et ouvre l'interface meme hors connexion.
+// Service worker de Postilyn : rend l'application installable et ouvre l'interface meme hors connexion.
 // Les appels a l'API ne sont jamais mis en cache (donnees toujours a jour).
-const CACHE = 'taguora-v1'
+const CACHE = 'postilyn-v1'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(['/', '/favicon.svg', '/icon-192.png'])))

@@ -5,6 +5,7 @@ import { useAuth } from '../auth.jsx'
 import { aujourdhui } from '../labels'
 import ChampMotDePasse from '../components/ChampMotDePasse.jsx'
 import { regleRespectee } from '../motDePasse.js'
+import { Download, KeyRound, Mail, ShieldCheck, UserRound } from 'lucide-react'
 
 export default function Compte() {
   const { user, logout } = useAuth()
@@ -48,7 +49,7 @@ function Coordonnees() {
     try {
       const p = await api.modifierProfil(form)
       majUtilisateur({ nom: p.nom })
-      setMessage('Coordonnées enregistrées ✓')
+      setMessage('Coordonnées enregistrées.')
     } catch (err) {
       setErreur(err.message)
     }
@@ -56,7 +57,7 @@ function Coordonnees() {
 
   return (
     <form className="card" onSubmit={onSubmit}>
-      <h3>📇 Mes coordonnées</h3>
+      <h3><UserRound size={18} /> Mes coordonnées</h3>
       <p className="muted small">Elles s'affichent en haut à gauche de tes lettres de motivation.</p>
       {!form ? <p className="muted">Chargement…</p> : (
         <>
@@ -112,7 +113,7 @@ function MotDePasse() {
       // Le serveur deconnecte les autres appareils et renvoie un jeton neuf pour celui-ci
       rafraichir(await api.changerMotDePasse({ actuel: form.actuel, nouveau: form.nouveau }))
       setForm({ actuel: '', nouveau: '', confirmation: '' })
-      setMessage('Mot de passe modifié ✓ Tes autres appareils ont été déconnectés.')
+      setMessage('Mot de passe modifié. Tes autres appareils ont été déconnectés.')
     } catch (err) {
       setErreur(err.message)
     }
@@ -120,7 +121,7 @@ function MotDePasse() {
 
   return (
     <form className="card" onSubmit={onSubmit}>
-      <h3>🔑 Changer mon mot de passe</h3>
+      <h3><KeyRound size={18} /> Mot de passe</h3>
       <label>
         Mot de passe actuel
         <ChampMotDePasse name="actuel" value={form.actuel} onChange={onChange} required autoComplete="current-password" />
@@ -150,7 +151,7 @@ function Sessions() {
     setErreur('')
     try {
       rafraichir(await api.deconnexionPartout())
-      setMessage('Toutes tes autres sessions ont été déconnectées ✓')
+      setMessage('Toutes tes autres sessions ont été déconnectées.')
     } catch (err) {
       setErreur(err.message)
     }
@@ -158,7 +159,7 @@ function Sessions() {
 
   return (
     <div className="card">
-      <h3>🛡️ Sécurité des connexions</h3>
+      <h3><ShieldCheck size={18} /> Sécurité des connexions</h3>
       <p className="muted small">
         Tu t'es connecté sur un ordinateur partagé, ou tu as un doute ? Déconnecte toutes tes sessions ouvertes
         sur les autres appareils. Tu restes connecté ici.
@@ -189,14 +190,14 @@ function EmailTest() {
 
   return (
     <div className="card">
-      <h3>📧 Emails de Taguora</h3>
+      <h3><Mail size={18} /> Emails de Postilyn</h3>
       <p className="muted small">
-        Vérifie que Taguora peut t'envoyer des emails (comme celui de « mot de passe oublié ») :
+        Vérifie que Postilyn peut t'envoyer des emails (comme celui de « mot de passe oublié ») :
         un email de test part vers <b>{user.email}</b>.
       </p>
       {resultat && (
         <p className={resultat.envoye ? 'succes' : 'erreur'}>
-          {resultat.envoye ? `✓ ${resultat.message} Regarde ta boîte de réception (et les spams).` : resultat.message}
+          {resultat.envoye ? `${resultat.message} Regarde ta boîte de réception (et les spams).` : resultat.message}
         </p>
       )}
       <button className="btn ghost" onClick={tester} disabled={chargement}>
@@ -218,7 +219,7 @@ function Export() {
       const url = URL.createObjectURL(new Blob([JSON.stringify(donnees, null, 2)], { type: 'application/json' }))
       const lien = document.createElement('a')
       lien.href = url
-      lien.download = `taguora-export-${aujourdhui()}.json`
+      lien.download = `postilyn-export-${aujourdhui()}.json`
       lien.click()
       setTimeout(() => URL.revokeObjectURL(url), 10000)
     } catch (err) {
@@ -230,7 +231,7 @@ function Export() {
 
   return (
     <div className="card">
-      <h3>📦 Exporter mes données</h3>
+      <h3><Download size={18} /> Exporter mes données</h3>
       <p className="muted small">
         Télécharge toutes tes candidatures, leurs étapes et notes, et la liste de tes documents dans un fichier JSON.
         Tes CV et lettres se téléchargent un par un depuis « CV & lettres ».

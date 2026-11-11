@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 import Logo from '../components/Logo.jsx'
+import { ArrowLeft } from 'lucide-react'
 
 export default function MotDePasseOublie() {
   const [email, setEmail] = useState('')
@@ -31,7 +32,7 @@ export default function MotDePasseOublie() {
         {envoye ? (
           <>
             <p className="succes-bloc">
-              📧 Si un compte existe avec <strong>{email}</strong>, un email vient de t'être envoyé avec un lien
+              Si un compte existe avec <strong>{email}</strong>, un email vient de t'être envoyé avec un lien
               pour choisir un nouveau mot de passe. Il est valable <strong>30 minutes</strong>.
             </p>
             <p className="muted small">Pense à regarder dans tes spams.</p>
@@ -49,7 +50,7 @@ export default function MotDePasseOublie() {
             </label>
             {erreur && <p className="erreur">{erreur}</p>}
             <button className="btn primary" disabled={chargement}>{chargement ? 'Envoi…' : 'Recevoir le lien'}</button>
-            <Link to="/login" className="small centre-texte">← Retour à la connexion</Link>
+            <Link to="/login" className="small centre-texte lien-retour"><ArrowLeft size={14} /> Retour à la connexion</Link>
           </>
         )}
       </form>

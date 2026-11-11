@@ -5,6 +5,7 @@ import { ETAPES, STATUTS, formatDate } from '../labels'
 import StatutBadge from '../components/StatutBadge.jsx'
 import BoutonFavori from '../components/BoutonFavori.jsx'
 import Kanban from '../components/Kanban.jsx'
+import { Columns3, List, Plus } from 'lucide-react'
 
 const lireVue = () => {
   // ?vue=kanban dans l'URL l'emporte (lien direct vers la vue Kanban)
@@ -46,10 +47,10 @@ export default function Candidatures() {
         <h1>Mes candidatures</h1>
         <div className="actions">
           <div className="tabs vues" role="tablist">
-            <button type="button" className={vue === 'liste' ? 'active' : ''} onClick={() => changerVue('liste')}>☰ Liste</button>
-            <button type="button" className={vue === 'kanban' ? 'active' : ''} onClick={() => changerVue('kanban')}>▦ Kanban</button>
+            <button type="button" className={vue === 'liste' ? 'active' : ''} onClick={() => changerVue('liste')}><List size={16} /> Liste</button>
+            <button type="button" className={vue === 'kanban' ? 'active' : ''} onClick={() => changerVue('kanban')}><Columns3 size={16} /> Kanban</button>
           </div>
-          <Link to="/candidatures/nouvelle" className="btn primary">+ Nouvelle candidature</Link>
+          <Link to="/candidatures/nouvelle" className="btn primary"><Plus size={16} /> Nouvelle candidature</Link>
         </div>
       </div>
 

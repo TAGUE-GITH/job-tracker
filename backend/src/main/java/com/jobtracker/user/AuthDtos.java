@@ -27,6 +27,6 @@ public final class AuthDtos {
     }
 
     /** demo : compte de demonstration, supprime automatiquement apres quelques heures. */
-    public record AuthResponse(String token, Long id, String nom, String email, boolean demo) {
+    public record AuthResponse(String token, Long id, String nom, String email, boolean demo, boolean admin) {
     }
 }

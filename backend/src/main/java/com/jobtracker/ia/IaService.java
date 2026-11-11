@@ -26,7 +26,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 /**
- * TAGIA, l'assistant IA de Taguora : coach d'entretien et aide sur l'application.
+ * ORVYNA, l'assistant IA de Postilyn : coach d'entretien et aide sur l'application.
  * Utilise n'importe quelle API compatible OpenAI
  * (Groq et OpenRouter ont des offres gratuites, Ollama tourne en local sans cle).
  */
@@ -43,8 +43,8 @@ public class IaService {
             dans une colonne etroite.
             """;
 
-    private static final String GUIDE_TAGUORA = """
-            Fonctionnement de l'application Taguora (a utiliser pour repondre aux questions d'aide) :
+    private static final String GUIDE_POSTILYN = """
+            Fonctionnement de l'application Postilyn (a utiliser pour repondre aux questions d'aide) :
             - Menu du haut : "Tableau de bord", "Offres", "Candidatures", "CV & lettres", et le bouton \
             "Deconnexion" (sur telephone, ils sont dans le menu a trois traits en haut a droite).
             - Offres : recherche d'offres en direct par mots-cles, lieu (ville ou numero de departement) \
@@ -52,10 +52,10 @@ public class IaService {
             par metier, codes ROME) ; Jooble couvre les stages, CDI et CDD si sa cle est configuree. \
             "Postuler" ouvre l'annonce sur le site d'origine pour candidater ; "Ajouter au suivi" cree \
             automatiquement la candidature avec le texte de l'offre. On ne peut pas envoyer sa candidature \
-            directement depuis Taguora : la candidature se fait toujours sur le site du recruteur.
-            - Favori "Ajouter a Taguora" (en bas des pages Offres et Candidatures) : on le glisse dans la barre \
+            directement depuis Postilyn : la candidature se fait toujours sur le site du recruteur.
+            - Favori "Ajouter a Postilyn" (en bas des pages Offres et Candidatures) : on le glisse dans la barre \
             de favoris du navigateur (Ctrl+Maj+B pour l'afficher) ; sur la page d'une offre de n'importe quel site, \
-            un clic ouvre Taguora avec la candidature preremplie (entreprise, poste, lien, texte de l'offre).
+            un clic ouvre Postilyn avec la candidature preremplie (entreprise, poste, lien, texte de l'offre).
             - Ajouter une candidature : menu Candidatures > bouton "Nouvelle candidature". Champs : entreprise \
             et poste (obligatoires), lien de l'offre, texte de l'offre (a coller : il sert a l'IA), date, \
             CV et lettre de motivation (facultative) choisis parmi les documents importes.
@@ -66,7 +66,7 @@ public class IaService {
             automatiquement), Echange RH, Test technique, Entretien technique, Entretien manager, Offre, \
             Refus, Relance envoyee. Chaque etape a une date et des notes (questions posees, ressenti) que l'IA reutilise.
             - Tableau de bord : carte "A relancer" = candidatures en attente ou en cours sans nouvelle etape \
-            depuis 7 jours ; "Rediger la relance" fait ecrire l'email par TAGIA, "J'ai relance" ajoute une etape \
+            depuis 7 jours ; "Rediger la relance" fait ecrire l'email par ORVYNA, "J'ai relance" ajoute une etape \
             Relance (qui ne change pas le statut).
             - Page Candidatures : bascule "Liste" / "Kanban". En Kanban, glisser une carte dans une colonne ajoute \
             l'etape correspondante (En cours : choix de l'etape, Offre, Refus) ou marque la candidature abandonnee ; \
@@ -76,10 +76,10 @@ public class IaService {
             - Tableau de bord : total, candidatures en cours, taux de reponse (part des candidatures ayant \
             eu au moins une reponse), taux d'entretien, taux d'offre, graphique par mois, repartition par \
             statut et entonnoir de recrutement.
-            - Onglet "CV adapte" de la carte "TAGIA - CV & lettre" : TAGIA reecrit le CV pour l'offre (titre, profil, \
+            - Onglet "CV adapte" de la carte "ORVYNA - CV & lettre" : ORVYNA reecrit le CV pour l'offre (titre, profil, \
             competences dans l'ordre de l'offre, y compris celles de l'offre proches du profil, missions avec ses mots-cles, projet le plus pertinent detaille, atouts, centres d'interet) sans inventer d'experience ni de diplome, sur une seule page ; tout est modifiable, puis "Enregistrer le CV en PDF" cree un CV compatible ATS (une colonne, \
             vrai texte), le rattache a la candidature et affiche sa note ATS estimee.
-            - Carte "TAGIA - CV & lettre" (page d'une candidature) : onglet "Compatibilite" = score sur 100 du \
+            - Carte "ORVYNA - CV & lettre" (page d'une candidature) : onglet "Compatibilite" = score sur 100 du \
             CV face a l'offre, points forts, competences manquantes, mots-cles a ajouter ; onglet "Lettre de \
             motivation" = lettre redigee depuis le CV et l'offre, avec un en-tete modifiable (coordonnees du \
             candidat en haut a gauche, prises dans "Mon compte" > "Mes coordonnees", destinataire a droite, \
@@ -90,7 +90,7 @@ public class IaService {
             L'interrupteur "Mode oral" (Chrome et Edge) fait lire les questions a voix haute et permet de repondre \
             au micro (bouton micro) ; apres deux reponses, "Terminer et obtenir mon bilan" donne une note sur 10, \
             les points forts et les axes d'amelioration.
-            - TAGIA (la bulle en bas a droite) repond aux questions sur l'application et sur la recherche d'emploi.
+            - ORVYNA (la bulle en bas a droite) repond aux questions sur l'application et sur la recherche d'emploi.
             - Compte : inscription avec nom, email et mot de passe (6 caracteres minimum). La session dure \
             24 h. Page "Mon compte" (clic sur son nom en haut) : changer de mot de passe, exporter ses donnees \
             (fichier JSON), supprimer son compte, "Deconnecter mes autres appareils".
@@ -162,7 +162,7 @@ public class IaService {
 
     private String promptSysteme(Candidature c, TypeEtape etape) {
         StringBuilder sb = new StringBuilder("""
-                Tu es TAGIA, le coach IA de l'application Taguora, expert en recrutement tech. Tu aides \
+                Tu es ORVYNA, le coach IA de l'application Postilyn, expert en recrutement tech. Tu aides \
                 un candidat a preparer ses entretiens. Pour chaque question, ecris la question en gras \
                 puis la reponse conseillee en liste a puces. \
                 Si le candidat te demande de simuler l'entretien, pose une seule question a la fois \
@@ -188,7 +188,7 @@ public class IaService {
         return sb.toString();
     }
 
-    /** TAGIA repond aux questions sur l'application et sur les candidatures de l'utilisateur. */
+    /** ORVYNA repond aux questions sur l'application et sur les candidatures de l'utilisateur. */
     @Transactional(readOnly = true)
     public IaResponse aide(Long userId, List<Message> conversation) {
         List<Message> messages = new ArrayList<>();
@@ -199,14 +199,14 @@ public class IaService {
 
     private String promptAide(Long userId) {
         StringBuilder sb = new StringBuilder("""
-                Tu es TAGIA, l'assistant IA de Taguora, une application de suivi de candidatures. \
+                Tu es ORVYNA, l'assistant IA de Postilyn, une application de suivi de candidatures. \
                 Tu es chaleureux, encourageant et bref (en general moins de 150 mots). Tu reponds \
                 aux questions sur l'utilisation de l'application, sur les candidatures de l'utilisateur \
                 et, plus largement, sur la recherche d'emploi (CV, lettre, relances, entretiens). \
                 Pour preparer un entretien precis, invite l'utilisateur a ouvrir la candidature et a \
                 utiliser le coach d'entretien.
                 """);
-        sb.append(FORMAT).append('\n').append(GUIDE_TAGUORA);
+        sb.append(FORMAT).append('\n').append(GUIDE_POSTILYN);
 
         List<Candidature> candidatures = candidatureService.toutes(userId);
         sb.append("\nCandidatures de l'utilisateur (").append(candidatures.size())
@@ -421,7 +421,7 @@ public class IaService {
         } catch (RestClientResponseException e) {
             throw new IaIndisponibleException(messageErreur(e.getStatusCode().value()));
         } catch (ResourceAccessException e) {
-            throw new IaIndisponibleException("TAGIA met trop de temps a repondre. Reessaie dans un instant.");
+            throw new IaIndisponibleException("ORVYNA met trop de temps a repondre. Reessaie dans un instant.");
         } catch (RestClientException e) {
             throw new IaIndisponibleException("Le service d'IA ne repond pas : " + e.getMessage());
         }
@@ -430,11 +430,11 @@ public class IaService {
     /** Message comprehensible pour les erreurs les plus courantes de l'API d'IA. */
     static String messageErreur(int statut) {
         return switch (statut) {
-            case 429 -> "TAGIA est tres sollicite en ce moment (limite de l'IA gratuite atteinte). "
+            case 429 -> "ORVYNA est tres sollicite en ce moment (limite de l'IA gratuite atteinte). "
                     + "Reessaie dans une minute.";
             case 401, 403 -> "La cle de l'IA est refusee : verifie la variable AI_API_KEY sur le serveur.";
             case 404 -> "Le modele d'IA configure n'existe plus : verifie la variable AI_MODEL sur le serveur.";
-            case 413 -> "Le texte envoye a TAGIA est trop long : raccourcis le texte de l'offre ou ton CV.";
+            case 413 -> "Le texte envoye a ORVYNA est trop long : raccourcis le texte de l'offre ou ton CV.";
             default -> statut >= 500
                     ? "Le service d'IA rencontre un probleme de son cote. Reessaie dans quelques minutes."
                     : "Le service d'IA a refuse la demande (erreur " + statut + ").";

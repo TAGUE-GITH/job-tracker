@@ -1,100 +1,100 @@
 import { Link } from 'react-router-dom'
+import {
+  ArrowRight, BarChart3, Briefcase, Check, FileText, GitBranch, Search, Sparkles,
+} from 'lucide-react'
 import { useAuth } from '../auth.jsx'
 import Logo from '../components/Logo.jsx'
-import TagiaAvatar from '../components/TagiaAvatar.jsx'
+import OrvynaAvatar from '../components/OrvynaAvatar.jsx'
 import '../landing.css'
 
 const FONCTIONNALITES = [
   {
-    icone: '📌',
-    titre: 'Chaque offre au même endroit',
-    texte: "Lien, texte de l'annonce, entreprise, CV et lettre envoyés : tu retrouves tout en un clic, même si l'annonce disparaît.",
+    icone: Briefcase,
+    titre: 'Toutes vos candidatures centralisées',
+    texte: "Lien et texte de l'annonce, entreprise, CV et lettre envoyés : tout est conservé, même si l'annonce disparaît.",
   },
   {
-    icone: '🧭',
-    titre: 'Une timeline par candidature',
-    texte: 'Échange RH, test technique, entretiens, offre ou refus : chaque étape est notée et le statut se met à jour tout seul.',
+    icone: GitBranch,
+    titre: 'Un historique par candidature',
+    texte: 'Échange RH, test technique, entretiens, offre ou refus : chaque étape est tracée et le statut se met à jour.',
   },
   {
-    icone: '📊',
-    titre: 'Tes statistiques en direct',
-    texte: "Taux de réponse, d'entretien et d'offre, candidatures par mois, entonnoir de recrutement : tu sais ce qui marche.",
+    icone: BarChart3,
+    titre: 'Des indicateurs fiables',
+    texte: "Taux de réponse, d'entretien et d'offre, performance par CV et par source : vous savez ce qui fonctionne.",
   },
   {
-    icone: '🤖',
-    titre: 'TAGIA, ton coach IA',
-    texte: "À partir de l'offre et de tes notes, l'IA prépare les questions probables, des réponses STAR et te fait passer un entretien blanc.",
+    icone: Sparkles,
+    titre: 'ORVYNA, assistante IA',
+    texte: "Analyse de compatibilité, CV adapté à l'offre et compatible ATS, lettre de motivation et simulation d'entretien.",
   },
   {
-    icone: '📎',
-    titre: 'Tes CV et lettres réutilisables',
-    texte: 'Importe tes documents une fois, rattache-les à chaque candidature et sache exactement quelle version tu as envoyée.',
+    icone: FileText,
+    titre: 'Documents maîtrisés',
+    texte: 'Vos CV et lettres sont rattachés à chaque candidature : vous savez toujours quelle version a été envoyée.',
   },
   {
-    icone: '🔎',
-    titre: 'Les offres directement dans l’appli',
-    texte: 'Cherche des offres d’alternance, de stage ou de CDI, postule en un clic et ajoute-les à ton suivi sans copier-coller.',
+    icone: Search,
+    titre: 'Offres intégrées',
+    texte: "Recherchez des offres d'alternance, de stage ou d'emploi et ajoutez-les à votre suivi en un clic.",
   },
+]
+
+const ETAPES = [
+  { num: '01', titre: 'Ajoutez une offre', texte: "Depuis la recherche intégrée, le favori du navigateur ou à la main, en quelques secondes." },
+  { num: '02', titre: 'Suivez chaque étape', texte: 'Consignez les échanges au fil de l’eau : le tableau de bord se met à jour automatiquement.' },
+  { num: '03', titre: 'Préparez-vous avec ORVYNA', texte: "CV adapté, lettre, questions probables et entretien blanc, à partir de l'annonce." },
 ]
 
 const ANNEE = new Date().getFullYear()
 
-const ETAPES = [
-  { num: '1', titre: 'Ajoute une offre', texte: "Colle le lien et le texte de l'annonce, choisis ton CV. 30 secondes." },
-  { num: '2', titre: 'Suis ton avancement', texte: 'Ajoute chaque échange au fil de l’eau : le tableau de bord se met à jour.' },
-  { num: '3', titre: "Prépare l'entretien", texte: "L'IA lit l'offre et tes notes, puis t'entraîne question par question." },
-]
-
 export default function Landing() {
   const { user } = useAuth()
   const cta = user
-    ? { to: '/', label: 'Ouvrir mon espace' }
-    : { to: '/login?mode=inscription', label: 'Commencer gratuitement' }
+    ? { to: '/', label: 'Accéder à mon espace' }
+    : { to: '/login?mode=inscription', label: 'Créer un compte gratuit' }
 
   return (
     <div className="landing">
-      <div className="landing-glow" aria-hidden="true" />
-
       <header className="landing-nav">
-        <Link to="/accueil" className="landing-logo"><Logo size={34} /></Link>
+        <Link to="/accueil" className="landing-logo"><Logo size={30} /></Link>
         <nav>
           <a href="#fonctionnalites">Fonctionnalités</a>
-          <a href="#ia">TAGIA, coach IA</a>
-          <a href="#etapes">Comment ça marche</a>
+          <a href="#ia">Assistante IA</a>
+          <a href="#etapes">Fonctionnement</a>
         </nav>
         <div className="landing-nav-actions">
           {!user && <Link to="/demo" className="btn ghost lien-demo">Démo</Link>}
           {!user && <Link to="/login" className="btn ghost">Connexion</Link>}
-          <Link to={cta.to} className="btn primary">{user ? 'Mon espace' : 'Créer un compte'}</Link>
+          <Link to={cta.to} className="btn primary">{user ? 'Mon espace' : 'Commencer'}</Link>
         </div>
       </header>
 
       <section className="hero">
         <div className="hero-text">
-          <span className="pill">✨ Nouveau · coach d'entretien IA inclus</span>
-          <h1>
-            Tes candidatures,<br />
-            <span className="gradient-text">enfin sous contrôle.</span>
-          </h1>
+          <span className="eyebrow">Plateforme de suivi de candidatures</span>
+          <h1>Pilotez votre recherche d'emploi avec méthode.</h1>
           <p className="hero-sub">
-            Taguora centralise tes offres, suit chaque étape du recrutement, mesure tes progrès
-            et te prépare aux entretiens avec une IA qui connaît l'annonce.
+            Postilyn centralise vos offres, suit chaque étape du recrutement, mesure vos résultats et vous
+            prépare aux entretiens grâce à ORVYNA, une assistante IA qui connaît l'annonce.
           </p>
           <div className="hero-actions">
-            <Link to={cta.to} className="btn primary btn-lg">{cta.label} →</Link>
-            {!user && <Link to="/demo" className="btn ghost btn-lg">👀 Essayer la démo</Link>}
-            {user && <a href="#fonctionnalites" className="btn ghost btn-lg">Découvrir</a>}
+            <Link to={cta.to} className="btn primary btn-lg">{cta.label} <ArrowRight size={18} /></Link>
+            {!user && <Link to="/demo" className="btn ghost btn-lg">Voir la démonstration</Link>}
           </div>
           <ul className="hero-points">
-            <li>✓ Gratuit</li>
-            <li>✓ Sans carte bancaire</li>
-            <li>✓ Prêt en 1 minute</li>
+            <li><Check size={16} /> Gratuit</li>
+            <li><Check size={16} /> Sans carte bancaire</li>
+            <li><Check size={16} /> Données exportables</li>
           </ul>
         </div>
 
         <div className="hero-visual" aria-hidden="true">
           <div className="mock">
-            <div className="mock-bar"><span /><span /><span /></div>
+            <div className="mock-side">
+              <span className="mock-logo" />
+              {[1, 2, 3, 4, 5].map((i) => <span key={i} className={i === 1 ? 'actif' : ''} />)}
+            </div>
             <div className="mock-body">
               <div className="mock-kpis">
                 <div><small>Candidatures</small><strong>24</strong></div>
@@ -102,47 +102,30 @@ export default function Landing() {
                 <div><small>Entretiens</small><strong>7</strong></div>
               </div>
               <div className="mock-chart">
-                {[35, 55, 40, 70, 60, 90].map((h, i) => (
-                  <span key={i} style={{ height: `${h}%`, animationDelay: `${i * 90}ms` }} />
-                ))}
+                {[35, 55, 40, 70, 60, 90, 75].map((h, i) => <span key={i} style={{ height: `${h}%` }} />)}
               </div>
               <div className="mock-rows">
                 <div><b>Atlas Studio</b><em className="tag tag-blue">Entretien technique</em></div>
                 <div><b>Nordlys</b><em className="tag tag-amber">Échange RH</em></div>
-                <div><b>Kaliop Labs</b><em className="tag tag-green">Offre reçue 🎉</em></div>
+                <div><b>Kaliop Labs</b><em className="tag tag-green">Offre reçue</em></div>
               </div>
             </div>
           </div>
-          <div className="float-card float-ia">
-            <span className="float-icon"><TagiaAvatar size={36} /></span>
-            <div><b>Question probable</b><small>« Parle-moi d'un bug difficile que tu as résolu. »</small></div>
-          </div>
-          <div className="float-card float-offre">
-            <span className="float-icon">🎉</span>
-            <div><b>Offre reçue</b><small>Kaliop Labs · Dev fullstack</small></div>
-          </div>
         </div>
-      </section>
-
-      <section className="stats-band">
-        <div><strong>6</strong><span>étapes suivies par candidature</span></div>
-        <div><strong>3</strong><span>taux clés calculés pour toi</span></div>
-        <div><strong>8</strong><span>questions d'entretien préparées par l'IA</span></div>
-        <div><strong>0 €</strong><span>pour toujours</span></div>
       </section>
 
       <section id="fonctionnalites" className="section">
         <div className="section-head">
           <span className="eyebrow">Fonctionnalités</span>
-          <h2>Tout ce qu'il faut pour décrocher le poste</h2>
-          <p>Fini le tableur oublié et les mails perdus : Taguora garde le fil pour toi.</p>
+          <h2>Un outil complet, de l'annonce à l'offre</h2>
+          <p>Remplacez le tableur et les e-mails éparpillés par un suivi structuré.</p>
         </div>
         <div className="features">
-          {FONCTIONNALITES.map((f) => (
-            <article key={f.titre} className="feature">
-              <span className="feature-icon">{f.icone}</span>
-              <h3>{f.titre}</h3>
-              <p>{f.texte}</p>
+          {FONCTIONNALITES.map(({ icone: Icone, titre, texte }) => (
+            <article key={titre} className="feature">
+              <span className="feature-icon"><Icone size={20} strokeWidth={1.8} /></span>
+              <h3>{titre}</h3>
+              <p>{texte}</p>
             </article>
           ))}
         </div>
@@ -150,33 +133,32 @@ export default function Landing() {
 
       <section id="ia" className="section ia-section">
         <div className="ia-text">
-          <span className="eyebrow">TAGIA · ton coach IA</span>
-          <h2>Arrive à l'entretien en ayant déjà répondu aux questions</h2>
+          <span className="eyebrow">ORVYNA · assistante IA</span>
+          <h2>Des candidatures mieux ciblées, des entretiens mieux préparés</h2>
           <p>
-            TAGIA, l'assistant de Taguora, lit le texte de l'offre et les notes de tes échanges. Il te donne ce que
-            l'entreprise recherche, les questions les plus probables avec une trame de réponse,
-            les points techniques à réviser… puis il joue le recruteur pour un entretien blanc.
+            ORVYNA lit le texte de l'offre et votre CV. Elle évalue votre compatibilité, rédige un CV adapté et
+            compatible ATS, propose une lettre de motivation, puis joue le rôle du recruteur pour un entretien blanc,
+            à l'écrit ou à l'oral.
           </p>
           <ul className="checks">
-            <li>Préparation complète en un clic</li>
-            <li>Simulation question par question, avec retour sur tes réponses</li>
-            <li>Adapté à l'étape : RH, technique ou manager</li>
-            <li>Une question sur l'appli ? TAGIA répond aussi, sur chaque page</li>
+            <li><Check size={18} /> Score de compatibilité et compétences manquantes</li>
+            <li><Check size={18} /> CV d'une page optimisé pour les logiciels de tri</li>
+            <li><Check size={18} /> Simulation d'entretien avec bilan détaillé</li>
+            <li><Check size={18} /> Réponses à vos questions sur l'application</li>
           </ul>
         </div>
         <div className="l-chat" aria-hidden="true">
-          <div className="l-chat-head"><TagiaAvatar size={38} /><div><b>TAGIA</b><small>En ligne</small></div></div>
-          <div className="bubble bot">Prêt pour ton entretien technique chez <b>Atlas Studio</b> ? Première question : comment sécurises-tu une API REST ?</div>
-          <div className="bubble me">J'utilise Spring Security avec des jetons JWT signés, et je valide chaque entrée…</div>
-          <div className="bubble bot">Très bien 👍 Pense aussi à parler des rôles et du CORS. On passe à la suite ?</div>
-          <div className="typing"><span /><span /><span /></div>
+          <div className="l-chat-head"><OrvynaAvatar size={34} /><div><b>ORVYNA</b><small>Assistante IA</small></div></div>
+          <div className="bubble bot">Entretien technique chez <b>Atlas Studio</b>. Première question : comment sécurisez-vous une API REST ?</div>
+          <div className="bubble me">Avec Spring Security et des jetons JWT signés, et une validation de chaque entrée.</div>
+          <div className="bubble bot">Bonne base. Mentionnez aussi la gestion des rôles et la configuration CORS. Question suivante ?</div>
         </div>
       </section>
 
       <section id="etapes" className="section">
         <div className="section-head">
-          <span className="eyebrow">Comment ça marche</span>
-          <h2>Trois étapes, zéro prise de tête</h2>
+          <span className="eyebrow">Fonctionnement</span>
+          <h2>Opérationnel en trois étapes</h2>
         </div>
         <div className="steps">
           {ETAPES.map((e) => (
@@ -190,14 +172,16 @@ export default function Landing() {
       </section>
 
       <section className="final-cta">
-        <h2>Ta prochaine offre commence ici.</h2>
-        <p>Crée ton espace en moins d'une minute et ajoute ta première candidature.</p>
-        <Link to={cta.to} className="btn btn-lg btn-white">{cta.label} →</Link>
+        <div>
+          <h2>Prêt à structurer votre recherche ?</h2>
+          <p>Créez votre espace en moins d'une minute.</p>
+        </div>
+        <Link to={cta.to} className="btn btn-lg btn-white">{cta.label} <ArrowRight size={18} /></Link>
       </section>
 
       <footer className="landing-footer">
-        <Logo size={24} />
-        <span>© {ANNEE} Taguora · Fait avec ❤️ pour les chercheurs d'emploi</span>
+        <Logo size={22} />
+        <span>© {ANNEE} Postilyn. Tous droits réservés.</span>
       </footer>
     </div>
   )

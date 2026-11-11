@@ -14,7 +14,7 @@ export default function BandeauDemo() {
 
   return (
     <div className="bandeau-demo">
-      <span>👀 <strong>Mode démo</strong> : données fictives, supprimées automatiquement dans quelques heures.</span>
+      <span><strong>Mode démo</strong> : données fictives, supprimées automatiquement dans quelques heures.</span>
       <button type="button" className="btn small btn-blanc" onClick={creerCompte}>Créer mon vrai compte</button>
     </div>
   )

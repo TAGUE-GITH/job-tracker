@@ -6,6 +6,7 @@ import StatutBadge from '../components/StatutBadge.jsx'
 import IaAssistant from '../components/IaAssistant.jsx'
 import DocumentActions from '../components/DocumentActions.jsx'
 import CvLettre from '../components/CvLettre.jsx'
+import { ArrowLeft, ExternalLink, X } from 'lucide-react'
 
 export default function CandidatureDetail() {
   const { id } = useParams()
@@ -36,7 +37,7 @@ export default function CandidatureDetail() {
     <>
       <div className="page-head">
         <div>
-          <Link to="/candidatures" className="muted">← Candidatures</Link>
+          <Link to="/candidatures" className="muted lien-retour"><ArrowLeft size={15} /> Candidatures</Link>
           <h1>{c.nomEntreprise} <StatutBadge statut={c.statut} /></h1>
           <p className="muted">{c.poste} · candidature du {formatDate(c.dateCandidature)}</p>
         </div>
@@ -52,7 +53,7 @@ export default function CandidatureDetail() {
             <h3>Informations</h3>
             <dl className="infos">
               <dt>Lien</dt>
-              <dd>{c.lienOffre ? <a href={c.lienOffre} target="_blank" rel="noreferrer">Voir l'offre ↗</a> : '—'}</dd>
+              <dd>{c.lienOffre ? <a href={c.lienOffre} target="_blank" rel="noreferrer" className="lien-externe">Voir l'offre <ExternalLink size={14} /></a> : '—'}</dd>
               <dt>CV</dt>
               <dd><DocLien doc={c.cv} /></dd>
               <dt>Lettre</dt>
@@ -77,7 +78,7 @@ export default function CandidatureDetail() {
                   <div className="timeline-head">
                     <strong>{ETAPES[e.type]}</strong>
                     <span className="muted">{formatDate(e.date)}</span>
-                    <button className="icon" title="Supprimer" onClick={() => supprimerEtape(e.id)}>×</button>
+                    <button className="icon" title="Supprimer" aria-label="Supprimer l'étape" onClick={() => supprimerEtape(e.id)}><X size={16} /></button>
                   </div>
                   {e.notes && <p className="notes">{e.notes}</p>}
                 </li>

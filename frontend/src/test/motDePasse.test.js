@@ -12,7 +12,7 @@ describe('mot de passe', () => {
 
   it('estime la force', () => {
     expect(forceMotDePasse('abc').niveau).toBe(0)
-    expect(forceMotDePasse('secret123').niveau).toBeLessThan(forceMotDePasse('Secret-123-Taguora!').niveau)
-    expect(forceMotDePasse('Secret-123-Taguora!').libelle).toBe('Excellent')
+    expect(forceMotDePasse('secret123').niveau).toBeLessThan(forceMotDePasse('Secret-123-Postilyn!').niveau)
+    expect(forceMotDePasse('Secret-123-Postilyn!').libelle).toBe('Excellent')
   })
 })

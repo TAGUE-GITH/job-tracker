@@ -38,6 +38,9 @@ services:
       - key: ADZUNA_APP_KEY
         sync: false
       # Emails "mot de passe oublie" (https://www.brevo.com, gratuit) : cle API et adresse d'expediteur verifiee
+      # Comptes administrateurs (page Administration) : emails separes par des virgules
+      - key: ADMIN_EMAILS
+        sync: false
       - key: BREVO_API_KEY
         sync: false
       - key: MAIL_FROM

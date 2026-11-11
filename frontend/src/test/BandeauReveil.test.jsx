@@ -7,10 +7,10 @@ describe('BandeauReveil', () => {
     render(<BandeauReveil />)
     expect(screen.queryByRole('status')).toBeNull()
 
-    act(() => { window.dispatchEvent(new CustomEvent('taguora:lent', { detail: true })) })
+    act(() => { window.dispatchEvent(new CustomEvent('postilyn:lent', { detail: true })) })
     expect(screen.getByRole('status')).toHaveTextContent('Le serveur se réveille')
 
-    act(() => { window.dispatchEvent(new CustomEvent('taguora:lent', { detail: false })) })
+    act(() => { window.dispatchEvent(new CustomEvent('postilyn:lent', { detail: false })) })
     expect(screen.queryByRole('status')).toBeNull()
   })
 })

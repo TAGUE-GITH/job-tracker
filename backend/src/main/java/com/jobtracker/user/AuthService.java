@@ -27,9 +27,12 @@ public class AuthService {
     private final JwtEncoder jwtEncoder;
     private final long expirationHours;
     private final TentativesConnexion tentatives;
+    private final Administrateurs administrateurs;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtEncoder jwtEncoder,
-            @Value("${app.jwt.expiration-hours}") long expirationHours, TentativesConnexion tentatives) {
+            @Value("${app.jwt.expiration-hours}") long expirationHours, TentativesConnexion tentatives,
+            Administrateurs administrateurs) {
+        this.administrateurs = administrateurs;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtEncoder = jwtEncoder;
@@ -74,6 +77,6 @@ public class AuthService {
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
         String token = jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
         return new AuthResponse(token, user.getId(), user.getNom(), user.getEmail(),
-                user.getEmail().endsWith(DOMAINE_DEMO));
+                user.getEmail().endsWith(DOMAINE_DEMO), administrateurs.estAdmin(user.getEmail()));
     }
 }

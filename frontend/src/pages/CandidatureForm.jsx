@@ -11,7 +11,7 @@ const VIDE = {
 export default function CandidatureForm() {
   const { id } = useParams()
   const navigate = useNavigate()
-  // Offre envoyee par le favori "Ajouter a Taguora" ou par la page Offres
+  // Offre envoyee par le favori "Ajouter a Postilyn" ou par la page Offres
   const offre = useLocation().state?.offre
   const [form, setForm] = useState(() => (offre && !id ? { ...VIDE, ...offre } : VIDE))
   const [documents, setDocuments] = useState([])
@@ -73,7 +73,7 @@ export default function CandidatureForm() {
       <h1>{id ? 'Modifier la candidature' : 'Nouvelle candidature'}</h1>
       {offre && !id && (
         <p className="import-info">
-          ✨ Offre importée{offre.lienOffre && <> depuis <strong>{hote(offre.lienOffre)}</strong></>} : vérifie
+          Offre importée{offre.lienOffre && <> depuis <strong>{hote(offre.lienOffre)}</strong></>} : vérifie
           l'entreprise et le poste, choisis ton CV, puis enregistre.
         </p>
       )}

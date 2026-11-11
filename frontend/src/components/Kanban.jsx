@@ -25,7 +25,7 @@ export default function Kanban({ liste, onMaj }) {
       onMaj(await action())
       setMessage(texte)
     } catch (e) {
-      setMessage(`⚠️ ${e.message}`)
+      setMessage(e.message)
     }
   }
 
@@ -44,7 +44,7 @@ export default function Kanban({ liste, onMaj }) {
         setChoix(c)
         break
       case 'OFFRE_RECUE':
-        executer(() => ajouterEtape(c, 'OFFRE'), `🎉 Offre reçue chez ${nom} : étape ajoutée.`)
+        executer(() => ajouterEtape(c, 'OFFRE'), `Offre reçue chez ${nom} : étape ajoutée.`)
         break
       case 'REFUSEE':
         executer(() => ajouterEtape(c, 'REFUS'), `Refus enregistré pour ${nom}. Courage, la suivante sera la bonne !`)
@@ -74,7 +74,7 @@ export default function Kanban({ liste, onMaj }) {
       {message && <p className="kanban-message">{message}</p>}
       {choix && (
         <div className="card kanban-choix">
-          <strong>{choix.nomEntreprise} avance 🚀 Quelle étape ?</strong>
+          <strong>{choix.nomEntreprise} avance : quelle étape ?</strong>
           <div className="row">
             {ETAPES_EN_COURS.map((t) => (
               <button key={t} className="btn ghost small"
@@ -107,7 +107,7 @@ export default function Kanban({ liste, onMaj }) {
                     <Link to={`/candidatures/${c.id}`} className="kanban-titre">{c.nomEntreprise}</Link>
                     <span className="kanban-poste">{c.poste}</span>
                     {derniere && <span className="muted small">{ETAPES[derniere.type]} · {formatDate(derniere.date)}</span>}
-                    {relancer.has(c.id) && <span className="badge orange">🔔 À relancer</span>}
+                    {relancer.has(c.id) && <span className="badge orange">À relancer</span>}
                     <select className="kanban-deplacer" value="" aria-label={`Déplacer ${c.nomEntreprise}`}
                       onChange={(e) => deplacer(c, e.target.value)}>
                       <option value="" disabled>Déplacer vers…</option>
