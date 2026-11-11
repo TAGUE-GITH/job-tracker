@@ -47,6 +47,13 @@ public class User {
     @Column(nullable = false)
     private boolean administrateur;
 
+    /** Profil extrait du CV par l'IA (JSON), pour recommander des offres ; null tant qu'aucun CV n'est analyse. */
+    @Column(name = "profil_cv", length = 8000)
+    private String profilCv;
+
+    @Column(name = "profil_cv_document_id")
+    private Long profilCvDocumentId;
+
     /** Date d'acceptation des conditions d'utilisation (null : compte cree avant leur mise en place). */
     @Column(name = "conditions_acceptees_le")
     private LocalDateTime conditionsAccepteesLe;
@@ -103,6 +110,19 @@ public class User {
     /** Invalide tous les jetons de connexion deja emis pour ce compte. */
     public void revoquerJetons() {
         this.versionJeton++;
+    }
+
+    public String getProfilCv() {
+        return profilCv;
+    }
+
+    public Long getProfilCvDocumentId() {
+        return profilCvDocumentId;
+    }
+
+    public void definirProfilCv(String profilCv, Long documentId) {
+        this.profilCv = profilCv;
+        this.profilCvDocumentId = documentId;
     }
 
     public LocalDateTime getConditionsAccepteesLe() {

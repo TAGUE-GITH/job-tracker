@@ -6,6 +6,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -13,15 +14,22 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 /**
- * CV au format "ATS" : une seule colonne, vrai texte selectionnable, police standard, titres de rubriques
- * classiques, puces simples, sans tableau ni image. C'est ce que les logiciels de tri lisent le mieux.
- * Le CV tient sur une page : si le contenu deborde, la mise en page est resserree progressivement.
+ * CV au format "ATS" : une seule colonne, vrai texte selectionnable, polices standard, titres de rubriques
+ * classiques, puces simples, sans tableau. Plusieurs modeles changent l'apparence (couleurs, police, alignement)
+ * sans changer l'ordre de lecture. Photo facultative en haut a droite. Le CV tient sur une page : si le contenu
+ * deborde, la mise en page est resserree progressivement.
  */
 public final class CvPdf {
 
-    public record Contact(String nom, String email, String telephone, String adresse) {
+    /** photo : image JPEG ou PNG, ou null. */
+    public record Contact(String nom, String email, String telephone, String adresse, byte[] photo) {
+
+        public Contact(String nom, String email, String telephone, String adresse) {
+            this(nom, email, telephone, adresse, null);
+        }
     }
 
     public record Experience(String poste, String entreprise, String lieu, String periode, List<String> missions) {
@@ -34,6 +42,7 @@ public final class CvPdf {
     public record Formation(String diplome, String etablissement, String periode, String details) {
     }
 
+    /** modele : CLASSIQUE (defaut), MODERNE, ELEGANT ou COMPACT. avecPhoto : ajoute la photo du profil. */
     public record Cv(
             String titre,
             String profil,
@@ -45,14 +54,48 @@ public final class CvPdf {
             List<String> langues,
             List<String> atouts,
             List<String> centresInteret,
-            List<String> liens) {
+            List<String> liens,
+            String modele,
+            Boolean avecPhoto) {
+
+        public Cv(String titre, String profil, List<String> competencesTechniques, List<String> competencesTransverses,
+                List<Experience> experiences, List<Projet> projets, List<Formation> formations, List<String> langues,
+                List<String> atouts, List<String> centresInteret, List<String> liens) {
+            this(titre, profil, competencesTechniques, competencesTransverses, experiences, projets, formations,
+                    langues, atouts, centresInteret, liens, null, false);
+        }
+    }
+
+    /** Apparence d'un modele de CV. Couleurs en RVB de 0 a 1. */
+    record Style(String nom, Standard14Fonts.FontName police, Standard14Fonts.FontName policeGrasse, float[] accent,
+            float tailleNom, float tailleTexte, float margeBase, boolean centre, Rubrique rubrique, boolean nomEnAccent) {
+    }
+
+    enum Rubrique { TRAIT_ACCENT, BARRE_GAUCHE, TRAIT_FIN_CENTRE, BANDEAU_GRIS }
+
+    private static final float[] BLEU = {0.12f, 0.23f, 0.54f};
+    private static final float[] BLEU_VIF = {0.11f, 0.31f, 0.85f};
+    private static final float[] ANTHRACITE = {0.17f, 0.2f, 0.25f};
+    private static final float[] VERT_SAPIN = {0.06f, 0.37f, 0.33f};
+
+    public static final List<String> MODELES = List.of("CLASSIQUE", "MODERNE", "ELEGANT", "COMPACT");
+
+    static Style style(String modele) {
+        String m = modele == null ? "" : modele.toUpperCase(Locale.ROOT);
+        return switch (m) {
+            case "MODERNE" -> new Style(m, Standard14Fonts.FontName.HELVETICA, Standard14Fonts.FontName.HELVETICA_BOLD,
+                    VERT_SAPIN, 21, 10.5f, 50, false, Rubrique.BARRE_GAUCHE, true);
+            case "ELEGANT" -> new Style(m, Standard14Fonts.FontName.TIMES_ROMAN, Standard14Fonts.FontName.TIMES_BOLD,
+                    ANTHRACITE, 21, 11.2f, 52, true, Rubrique.TRAIT_FIN_CENTRE, false);
+            case "COMPACT" -> new Style(m, Standard14Fonts.FontName.HELVETICA, Standard14Fonts.FontName.HELVETICA_BOLD,
+                    BLEU_VIF, 17, 9.8f, 38, false, Rubrique.BANDEAU_GRIS, false);
+            default -> new Style("CLASSIQUE", Standard14Fonts.FontName.HELVETICA,
+                    Standard14Fonts.FontName.HELVETICA_BOLD, BLEU, 18, 10.5f, 50, false, Rubrique.TRAIT_ACCENT, false);
+        };
     }
 
     /** Facteurs de resserrement essayes dans l'ordre jusqu'a tenir sur une page. */
     private static final float[] ECHELLES = {1f, 0.95f, 0.9f, 0.85f, 0.8f, 0.76f, 0.72f, 0.68f};
-    private static final float ACCENT_R = 0.31f;
-    private static final float ACCENT_G = 0.27f;
-    private static final float ACCENT_B = 0.90f;
 
     private CvPdf() {
     }
@@ -82,10 +125,15 @@ public final class CvPdf {
     }
 
     private static Rendu rendre(Contact contact, Cv cv, float echelle) {
+        Style s = style(cv.modele());
         try (PDDocument doc = new PDDocument(); ByteArrayOutputStream sortie = new ByteArrayOutputStream()) {
-            Ecrivain e = new Ecrivain(doc, echelle);
+            Ecrivain e = new Ecrivain(doc, echelle, s);
+            boolean photo = Boolean.TRUE.equals(cv.avecPhoto()) && contact.photo() != null;
+            if (photo) {
+                e.photo(contact.photo());
+            }
 
-            e.ligne(contact.nom(), e.gras, 18);
+            e.titreNom(contact.nom());
             e.espace(3);
             if (!vide(cv.titre())) {
                 e.paragraphe(cv.titre(), e.gras, 12.5f, true);
@@ -99,8 +147,9 @@ public final class CvPdf {
             if (cv.liens() != null) {
                 coordonnees.addAll(cv.liens());
             }
-            e.paragraphe(String.join("  |  ", coordonnees.stream().filter(s -> !vide(s)).toList()),
+            e.paragraphe(String.join("  |  ", coordonnees.stream().filter(x -> !vide(x)).toList()),
                     e.normal, 9.5f, false);
+            e.finEnTete();
 
             if (!vide(cv.profil())) {
                 e.rubrique("PROFIL");
@@ -188,23 +237,30 @@ public final class CvPdf {
     /** Ecrit de haut en bas ; toutes les tailles et marges sont multipliees par l'echelle. */
     private static final class Ecrivain {
 
-        final PDType1Font normal = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
-        final PDType1Font gras = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
+        final PDType1Font normal;
+        final PDType1Font gras;
         final float echelle;
         final float texte;
+        private final Style style;
         private final float interligne;
         private final float marge;
         private final float largeur;
         private final PDDocument doc;
         private PDPageContentStream flux;
         private float y;
+        /** Place reservee a droite pour la photo pendant l'en-tete. */
+        private float retraitDroit;
+        private float basPhoto;
 
-        Ecrivain(PDDocument doc, float echelle) throws IOException {
+        Ecrivain(PDDocument doc, float echelle, Style style) throws IOException {
             this.doc = doc;
             this.echelle = echelle;
-            this.texte = 10.5f * echelle;
-            this.interligne = 14f * echelle;
-            this.marge = 36 + 14 * echelle;
+            this.style = style;
+            this.normal = new PDType1Font(style.police());
+            this.gras = new PDType1Font(style.policeGrasse());
+            this.texte = style.tailleTexte() * echelle;
+            this.interligne = style.tailleTexte() * 1.33f * echelle;
+            this.marge = style.margeBase() * (0.72f + 0.28f * echelle);
             this.largeur = PDRectangle.A4.getWidth() - 2 * marge;
             nouvellePage();
         }
@@ -223,15 +279,65 @@ public final class CvPdf {
             }
         }
 
+        private float largeurUtile() {
+            return largeur - retraitDroit;
+        }
+
         void espace(float points) {
             y -= points * echelle;
         }
 
-        void ligne(String contenu, PDType1Font police, float taille) throws IOException {
-            float t = taille * echelle;
+        /** Photo d'identite en haut a droite (format 3:4), l'en-tete s'ecrit a sa gauche. */
+        void photo(byte[] image) throws IOException {
+            PDImageXObject img = PDImageXObject.createFromByteArray(doc, image, "photo");
+            float h = 92 * echelle;
+            float l = h * 0.78f;
+            // Recadrage au centre pour garder le format 3:4 sans deformer
+            float ratio = (float) img.getWidth() / img.getHeight();
+            float dessinL = ratio > 0.78f ? h * ratio : l;
+            float dessinH = ratio > 0.78f ? h : l / ratio;
+            float x = marge + largeur - l;
+            float haut = y + 4 * echelle;
+            flux.saveGraphicsState();
+            flux.addRect(x, haut - h, l, h);
+            flux.clip();
+            flux.drawImage(img, x - (dessinL - l) / 2, haut - h - (dessinH - h) / 2, dessinL, dessinH);
+            flux.restoreGraphicsState();
+            retraitDroit = l + 14 * echelle;
+            basPhoto = haut - h;
+        }
+
+        /** Fin de l'en-tete : on passe sous la photo eventuelle et on reprend toute la largeur. */
+        void finEnTete() {
+            if (retraitDroit > 0) {
+                y = Math.min(y, basPhoto - 2 * echelle);
+                retraitDroit = 0;
+            }
+        }
+
+        private boolean centrer() {
+            return style.centre() && retraitDroit == 0;
+        }
+
+        void titreNom(String nom) throws IOException {
+            float t = style.tailleNom() * echelle;
             place(t + 3);
-            ecrire(marge, y - t, LettrePdf.nettoyer(contenu == null ? "" : contenu, police), police, t, false);
+            String n = LettrePdf.nettoyer(nom == null ? "" : nom, gras);
+            if (style.centre()) {
+                n = n.toUpperCase(Locale.ROOT);
+            }
+            float x = centrer() ? marge + (largeur - largeurTexte(n, gras, t)) / 2 : marge;
+            ecrire(x, y - t, n, gras, t, style.nomEnAccent());
             y -= t + 3 * echelle;
+        }
+
+        private float largeurTexte(String s, PDType1Font police, float taille) throws IOException {
+            return police.getStringWidth(s) / 1000 * taille;
+        }
+
+        private void couleur(boolean accent) throws IOException {
+            float[] c = accent ? style.accent() : new float[] {0.08f, 0.09f, 0.11f};
+            flux.setNonStrokingColor(c[0], c[1], c[2]);
         }
 
         private void ecrire(float x, float yLigne, String contenu, PDType1Font police, float taille, boolean accent)
@@ -240,48 +346,79 @@ public final class CvPdf {
                 return;
             }
             flux.beginText();
-            if (accent) {
-                flux.setNonStrokingColor(ACCENT_R, ACCENT_G, ACCENT_B);
-            }
+            couleur(accent);
             flux.setFont(police, taille);
             flux.newLineAtOffset(x, yLigne);
             flux.showText(contenu);
             flux.endText();
-            if (accent) {
-                flux.setNonStrokingColor(0f, 0f, 0f);
-            }
         }
 
-        /** taille : deja a l'echelle pour e.texte, sinon taille de reference multipliee ici. */
+        /** taille : deja a l'echelle pour texte, sinon taille de reference multipliee ici. */
         void paragraphe(String contenu, PDType1Font police, float taille, boolean accent) throws IOException {
             float t = taille == texte ? taille : taille * echelle;
             for (String para : LettrePdf.nettoyer(contenu, police).split("\n")) {
-                for (String l : LettrePdf.couper(para, police, largeur, t)) {
+                for (String l : LettrePdf.couper(para, police, largeurUtile(), t)) {
                     place(interligne);
-                    ecrire(marge, y - t, l, police, t, accent);
+                    float x = centrer() && taille != texte ? marge + (largeur - largeurTexte(l, police, t)) / 2 : marge;
+                    ecrire(x, y - t, l, police, t, accent);
                     y -= interligne * t / texte;
                 }
             }
         }
 
-        /** Titre de rubrique en capitales, souligne d'un trait. */
+        /** Titre de rubrique en capitales, dans le style du modele. */
         void rubrique(String titre) throws IOException {
-            float t = 11.5f * echelle;
+            float t = (style.tailleTexte() + 1) * echelle;
             place(t * 3);
             y -= 10 * echelle;
-            ecrire(marge, y - t, titre, gras, t, true);
-            y -= t + 4 * echelle;
-            flux.setStrokingColor(ACCENT_R, ACCENT_G, ACCENT_B);
-            flux.setLineWidth(0.8f);
+            float[] a = style.accent();
+            switch (style.rubrique()) {
+                case BARRE_GAUCHE -> {
+                    flux.setNonStrokingColor(a[0], a[1], a[2]);
+                    flux.addRect(marge, y - t - 1, 3 * echelle, t + 2);
+                    flux.fill();
+                    ecrire(marge + 8 * echelle, y - t, titre, gras, t, false);
+                    y -= t + 4 * echelle;
+                    trait(0.82f, 0.5f);
+                }
+                case TRAIT_FIN_CENTRE -> {
+                    float l = largeurTexte(titre, gras, t);
+                    ecrire(marge + (largeur - l) / 2, y - t, titre, gras, t, true);
+                    y -= t + 4 * echelle;
+                    trait(0.35f, 0.5f);
+                }
+                case BANDEAU_GRIS -> {
+                    flux.setNonStrokingColor(0.93f, 0.94f, 0.96f);
+                    flux.addRect(marge, y - t - 3 * echelle, largeur, t + 6 * echelle);
+                    flux.fill();
+                    ecrire(marge + 5 * echelle, y - t, titre, gras, t, true);
+                    y -= t + 6 * echelle;
+                }
+                default -> {
+                    ecrire(marge, y - t, titre, gras, t, true);
+                    y -= t + 4 * echelle;
+                    flux.setStrokingColor(a[0], a[1], a[2]);
+                    flux.setLineWidth(0.8f);
+                    flux.moveTo(marge, y);
+                    flux.lineTo(marge + largeur, y);
+                    flux.stroke();
+                }
+            }
+            y -= 5 * echelle;
+        }
+
+        private void trait(float gris, float epaisseur) throws IOException {
+            flux.setStrokingColor(gris, gris, gris);
+            flux.setLineWidth(epaisseur);
             flux.moveTo(marge, y);
             flux.lineTo(marge + largeur, y);
             flux.stroke();
-            y -= 5 * echelle;
         }
 
         /** Ecrit sur une meme ligne, dans un seul bloc de texte, des morceaux de polices differentes. */
         private void ecrireMorceaux(float x, String... morceaux) throws IOException {
             flux.beginText();
+            couleur(false);
             flux.newLineAtOffset(x, y - texte);
             for (int i = 0; i + 1 < morceaux.length; i += 2) {
                 if (!morceaux[i + 1].isEmpty()) {
@@ -293,7 +430,7 @@ public final class CvPdf {
         }
 
         private float largeurTexte(String s, PDType1Font police) throws IOException {
-            return police.getStringWidth(s) / 1000 * texte;
+            return largeurTexte(s, police, texte);
         }
 
         /**

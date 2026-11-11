@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 import DocumentActions from './DocumentActions.jsx'
 import { projetEnDoublon } from '../cvDoublons.js'
-import { Plus, X } from 'lucide-react'
+import { Camera, Check, Plus, X } from 'lucide-react'
 
 // Les listes se modifient dans une zone de texte, un element par ligne
 const enLignes = (liste) => (liste ?? []).filter(Boolean).join('\n')
@@ -37,6 +37,14 @@ function versCv(f) {
   return cv
 }
 
+// Modeles de CV : tous sur une colonne, en vrai texte, lisibles par les logiciels de tri (ATS)
+const MODELES = [
+  { code: 'CLASSIQUE', nom: 'Classique', detail: 'Sobre, titres bleu marine soulignés', couleur: '#1e3a8a' },
+  { code: 'MODERNE', nom: 'Moderne', detail: 'Nom en couleur, titres avec barre latérale', couleur: '#0f5e54' },
+  { code: 'ELEGANT', nom: 'Élégant', detail: 'Police à empattements, titres centrés', couleur: '#2b3340', serif: true },
+  { code: 'COMPACT', nom: 'Compact', detail: 'Marges réduites, idéal pour un CV dense', couleur: '#1d4ed8' },
+]
+
 const VIDES = {
   experiences: { poste: '', entreprise: '', lieu: '', periode: '', missions: '' },
   projets: { nom: '', description: '', points: '', technologies: '' },
@@ -45,6 +53,13 @@ const VIDES = {
 
 export default function CvAdapte({ candidature, cvId, onChange, Score }) {
   const [form, setForm] = useState(null)
+  const [modele, setModele] = useState('CLASSIQUE')
+  const [avecPhoto, setAvecPhoto] = useState(false)
+  const [aUnePhoto, setAUnePhoto] = useState(false)
+
+  useEffect(() => {
+    api.profil().then((p) => setAUnePhoto(!!p.photo)).catch(() => {})
+  }, [])
   const [chargement, setChargement] = useState(false)
   const [enregistrement, setEnregistrement] = useState(false)
   const [erreur, setErreur] = useState('')
@@ -85,7 +100,7 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
     setErreur('')
     setEnregistrement(true)
     try {
-      const maj = await api.enregistrerCv(candidature.id, versCv(form))
+      const maj = await api.enregistrerCv(candidature.id, { ...versCv(form), modele, avecPhoto: avecPhoto && aUnePhoto })
       onChange(maj)
       setResultat({ doc: maj.cv, score: null })
       // Note ATS du nouveau CV : on le compare a l'offre
@@ -194,6 +209,35 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
             <Liste titre="Centres d'intérêt" valeur={form.centresInteret} onChange={(v) => changer('centresInteret', v)} />
             <Liste titre="Liens (GitHub, LinkedIn, portfolio)" valeur={form.liens} onChange={(v) => changer('liens', v)} />
           </div>
+
+          <fieldset className="cv-groupe choix-modele">
+            <legend>Mise en forme</legend>
+            <div className="modeles-cv" role="radiogroup" aria-label="Modèle de CV">
+              {MODELES.map((m) => (
+                <button key={m.code} type="button" role="radio" aria-checked={modele === m.code}
+                  className={`modele-cv ${modele === m.code ? 'choisi' : ''}`} onClick={() => setModele(m.code)}>
+                  <span className={`apercu-modele apercu-${m.code.toLowerCase()}`} style={{ '--couleur-modele': m.couleur }} aria-hidden="true">
+                    <i className="a-nom" /><i className="a-titre" /><i className="a-rubrique" /><i /><i /><i className="a-rubrique" /><i /><i />
+                    {avecPhoto && aUnePhoto && <i className="a-photo" />}
+                  </span>
+                  <strong style={m.serif ? { fontFamily: 'Georgia, serif' } : undefined}>
+                    {modele === m.code && <Check size={14} />} {m.nom}
+                  </strong>
+                  <small>{m.detail}</small>
+                </button>
+              ))}
+            </div>
+            <label className="checkbox case-photo">
+              <input type="checkbox" checked={avecPhoto && aUnePhoto} disabled={!aUnePhoto}
+                onChange={(e) => setAvecPhoto(e.target.checked)} />
+              <span><Camera size={15} /> Ajouter ma photo en haut à droite</span>
+            </label>
+            <p className="muted small">
+              {aUnePhoto
+                ? 'La photo est facultative : en France elle est courante, mais de nombreux recruteurs à l’international préfèrent un CV sans photo.'
+                : <>Pour ajouter une photo, enregistre-la d'abord dans <Link to="/compte">Paramètres du compte</Link>.</>}
+            </p>
+          </fieldset>
 
           <button className="btn primary" onClick={enregistrer} disabled={enregistrement}>
             {enregistrement ? 'Création du PDF et calcul de la note ATS…' : 'Enregistrer le CV en PDF (compatible ATS)'}

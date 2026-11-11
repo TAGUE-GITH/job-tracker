@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
-import { aujourdhui, formatDate } from '../labels'
 import BoutonFavori from '../components/BoutonFavori.jsx'
-import { Briefcase, ExternalLink, Globe, Info, Layers, Plus, Search } from 'lucide-react'
+import OffresPourMoi from '../components/OffresPourMoi.jsx'
+import CarteOffre from '../components/CarteOffre.jsx'
+import { creerCandidatureDepuisOffre } from '../offreSuivi.js'
+import { ArrowDownUp, Briefcase, ExternalLink, Globe, Info, Layers, Search, Sparkles } from 'lucide-react'
 
 const CONTRATS = [
   { valeur: '', label: 'Tous les contrats' },
@@ -13,7 +15,7 @@ const CONTRATS = [
   { valeur: 'CDD', label: 'CDD' },
 ]
 
-const RECHERCHE_DEFAUT = { q: '', lieu: '', contrat: '', source: '', pays: 'FR', domaine: '' }
+const RECHERCHE_DEFAUT = { q: '', lieu: '', contrat: '', source: '', pays: 'FR', domaine: '', tri: 'date' }
 const CLE_FILTRES = 'postulyn_filtres_offres'
 
 // Derniers filtres choisis, retrouves a la prochaine visite
@@ -66,6 +68,13 @@ export default function Offres() {
   const [erreur, setErreur] = useState('')
   // lien de l'offre -> id de la candidature deja creee
   const [suivies, setSuivies] = useState({})
+  const [mode, setMode] = useState(() => {
+    try { return localStorage.getItem('postulyn_mode_offres') || 'pour-moi' } catch { return 'pour-moi' }
+  })
+  const changerMode = (m) => {
+    setMode(m)
+    try { localStorage.setItem('postulyn_mode_offres', m) } catch { /* stockage indisponible */ }
+  }
 
   async function chercher(criteres, page) {
     setErreur('')
@@ -106,6 +115,12 @@ export default function Offres() {
     setForm(f)
     chercher(f, 0)
   }
+  // Le tri garde la source choisie
+  const changerTri = (e) => {
+    const f = { ...form, tri: e.target.value }
+    setForm(f)
+    chercher(f, 0)
+  }
   const nomPays = criteres.pays.find((p) => p.code === form.pays)?.nom ?? form.pays
   const domaineChoisi = criteres.domaines.find((d) => d.code === form.domaine)
   const onSubmit = (e) => {
@@ -119,22 +134,11 @@ export default function Offres() {
   }
 
   const ajouterAuSuivi = async (offre) => {
-    const texte = [
-      offre.description,
-      '',
-      `Source : ${offre.source}${offre.lieu ? ` · ${offre.lieu}` : ''}${offre.contrat ? ` · ${offre.contrat}` : ''}`,
-      offre.salaire ? `Salaire : ${offre.salaire}` : null,
-    ].filter((l) => l !== null).join('\n')
-    const c = await api.creerCandidature({
-      nomEntreprise: offre.entreprise || 'Entreprise non communiquée',
-      poste: offre.titre,
-      lienOffre: offre.url?.slice(0, 1000),
-      texteOffre: texte,
-      dateCandidature: aujourdhui(),
-    })
-    setSuivies((s) => ({ ...s, [offre.url]: c.id }))
+    const c = await creerCandidatureDepuisOffre(offre)
+    setSuivies((x) => ({ ...x, [offre.url]: c.id }))
     return c
   }
+  const ouvrirCandidature = (id, outil) => navigate(`/candidatures/${id}${outil ? `?outil=${outil}` : ''}`)
 
   return (
     <>
@@ -145,6 +149,16 @@ export default function Offres() {
         </div>
       </div>
 
+      <div className="tabs modes-offres" role="tablist">
+        <button type="button" role="tab" aria-selected={mode === 'pour-moi'} className={mode === 'pour-moi' ? 'active' : ''}
+          onClick={() => changerMode('pour-moi')}><Sparkles size={16} /> Offres pour moi</button>
+        <button type="button" role="tab" aria-selected={mode === 'libre'} className={mode === 'libre' ? 'active' : ''}
+          onClick={() => changerMode('libre')}><Search size={16} /> Recherche libre</button>
+      </div>
+
+      {mode === 'pour-moi' && <OffresPourMoi pays={criteres.pays} suivies={suivies} setSuivies={setSuivies} />}
+
+      {mode === 'libre' && (<>
       <form className="card recherche-offres" onSubmit={onSubmit}>
         <label className="champ-mots">
           Mots-clés
@@ -171,6 +185,13 @@ export default function Offres() {
             <select name="domaine" value={form.domaine} onChange={changerFiltre}>
               <option value="">Tous les domaines</option>
               {criteres.domaines.map((d) => <option key={d.code} value={d.code}>{d.libelle}</option>)}
+            </select>
+          </label>
+          <label>
+            <span><ArrowDownUp size={14} /> Trier par</span>
+            <select name="tri" value={form.tri} onChange={changerTri}>
+              <option value="date">Les plus récentes</option>
+              <option value="pertinence">Les plus pertinentes</option>
             </select>
           </label>
           <label>
@@ -213,7 +234,7 @@ export default function Offres() {
       <div className="offres">
         {resultat?.offres.map((o) => (
           <CarteOffre key={o.id} offre={o} candidatureId={suivies[o.url]}
-            onAjouter={ajouterAuSuivi} onOuvrir={(id) => navigate(`/candidatures/${id}`)} />
+            onAjouter={ajouterAuSuivi} onOuvrir={ouvrirCandidature} />
         ))}
       </div>
 
@@ -227,80 +248,9 @@ export default function Offres() {
         </div>
       )}
 
+      </>)}
+
       <BoutonFavori />
     </>
-  )
-}
-
-function CarteOffre({ offre, candidatureId, onAjouter, onOuvrir }) {
-  const [ouverte, setOuverte] = useState(false)
-  const [aPostule, setAPostule] = useState(false)
-  const [envoi, setEnvoi] = useState(false)
-  const [erreur, setErreur] = useState('')
-
-  const ajouter = async () => {
-    setEnvoi(true)
-    setErreur('')
-    try {
-      const c = await onAjouter(offre)
-      onOuvrir(c.id)
-    } catch (e) {
-      setErreur(e.message)
-    } finally {
-      setEnvoi(false)
-    }
-  }
-
-  return (
-    <article className="card offre">
-      <div className="offre-head">
-        <div>
-          <h3>{offre.titre}</h3>
-          <p className="muted">
-            {offre.entreprise || 'Entreprise non communiquée'}{offre.lieu && ` · ${offre.lieu}`}
-          </p>
-        </div>
-        {offre.datePublication && <span className="muted small nowrap">{formatDate(offre.datePublication)}</span>}
-      </div>
-
-      <div className="offre-tags">
-        {offre.contrat && <span className="badge bleu">{offre.contrat}</span>}
-        {offre.salaire && <span className="badge vert">{offre.salaire}</span>}
-        {candidatureId && <span className="badge orange">Dans ton suivi</span>}
-      </div>
-
-      {offre.description && (
-        <>
-          <p className={`offre-desc ${ouverte ? 'ouverte' : ''}`}>{offre.description}</p>
-          <button type="button" className="link small" onClick={() => setOuverte(!ouverte)}>
-            {ouverte ? 'Réduire' : 'Lire la suite'}
-          </button>
-        </>
-      )}
-
-      {aPostule && !candidatureId && (
-        <div className="offre-confirm">
-          <span>Tu as postulé ? Ajoute l'offre à ton suivi pour ne pas la perdre.</span>
-          <button className="btn primary small" onClick={ajouter} disabled={envoi}>
-            {envoi ? 'Ajout…' : 'Oui, ajouter au suivi'}
-          </button>
-        </div>
-      )}
-      {erreur && <p className="erreur">{erreur}</p>}
-
-      <div className="offre-actions">
-        {candidatureId ? (
-          <Link to={`/candidatures/${candidatureId}`} className="btn ghost">Voir dans mon suivi</Link>
-        ) : (
-          <button className="btn ghost" onClick={ajouter} disabled={envoi}><Plus size={16} /> Ajouter au suivi</button>
-        )}
-        {offre.url && (
-          <a href={offre.url} target="_blank" rel="noopener noreferrer" className="btn primary"
-            onClick={() => setAPostule(true)}>
-            Postuler <ExternalLink size={15} />
-          </a>
-        )}
-      </div>
-    </article>
   )
 }

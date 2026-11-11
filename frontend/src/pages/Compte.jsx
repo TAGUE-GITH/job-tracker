@@ -5,7 +5,7 @@ import { useAuth } from '../auth.jsx'
 import { aujourdhui } from '../labels'
 import ChampMotDePasse from '../components/ChampMotDePasse.jsx'
 import { regleRespectee } from '../motDePasse.js'
-import { Download, KeyRound, Mail, ShieldCheck, UserRound } from 'lucide-react'
+import { Camera, Download, KeyRound, Mail, ShieldCheck, UserRound } from 'lucide-react'
 
 export default function Compte() {
   const { user, logout } = useAuth()
@@ -22,6 +22,7 @@ export default function Compte() {
       <Coordonnees />
       <MotDePasse />
       <Sessions />
+      <PhotoCv />
       <EmailTest />
       <Export />
       <Suppression onSupprime={() => { logout(); navigate('/accueil') }} />
@@ -203,6 +204,80 @@ function EmailTest() {
       <button className="btn ghost" onClick={tester} disabled={chargement}>
         {chargement ? 'Envoi…' : 'Envoyer un email de test'}
       </button>
+    </div>
+  )
+}
+
+/** Photo facultative ajoutee en haut a droite des CV generes par ORVYNA. */
+function PhotoCv() {
+  const [url, setUrl] = useState(null)
+  const [chargement, setChargement] = useState(true)
+  const [envoi, setEnvoi] = useState(false)
+  const [erreur, setErreur] = useState('')
+
+  const charger = async () => {
+    try {
+      const p = await api.profil()
+      setUrl(p.photo ? await api.photoUrl() : null)
+    } catch {
+      setUrl(null)
+    } finally {
+      setChargement(false)
+    }
+  }
+  useEffect(() => {
+    api.profil().then((p) => (p.photo ? api.photoUrl() : null)).then(setUrl).catch(() => setUrl(null))
+      .finally(() => setChargement(false))
+  }, [])
+
+  const choisir = async (e) => {
+    const fichier = e.target.files?.[0]
+    e.target.value = ''
+    if (!fichier) return
+    setErreur('')
+    setEnvoi(true)
+    try {
+      await api.envoyerPhoto(fichier)
+      await charger()
+    } catch (err) {
+      setErreur(err.message)
+    } finally {
+      setEnvoi(false)
+    }
+  }
+
+  const retirer = async () => {
+    if (!confirm('Retirer ta photo ? Elle ne sera plus ajoutée à tes prochains CV.')) return
+    try {
+      await api.supprimerPhoto()
+      setUrl(null)
+    } catch (err) {
+      setErreur(err.message)
+    }
+  }
+
+  return (
+    <div className="card">
+      <h3><Camera size={18} /> Photo pour mes CV</h3>
+      <div className="photo-cv">
+        <div className="photo-cadre">
+          {url ? <img src={url} alt="Ta photo de CV" /> : <UserRound size={34} aria-hidden="true" />}
+        </div>
+        <div>
+          <p className="muted small">
+            Facultative : tu choisis pour chaque CV de l'ajouter ou non. Photo nette, de face, fond neutre ;
+            JPEG ou PNG, 3 Mo maximum.
+          </p>
+          {erreur && <p className="erreur">{erreur}</p>}
+          <div className="row">
+            <label className="btn ghost upload">
+              {envoi ? 'Envoi…' : url ? 'Changer de photo' : 'Choisir une photo'}
+              <input type="file" accept="image/jpeg,image/png" onChange={choisir} disabled={envoi || chargement} />
+            </label>
+            {url && <button className="btn danger" onClick={retirer}>Retirer</button>}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

@@ -46,6 +46,29 @@ public class CompteController {
             @Size(max = 100) String ville) {
     }
 
+    @org.springframework.web.bind.annotation.PutMapping(value = "/photo",
+            consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void enregistrerPhoto(@org.springframework.web.bind.annotation.RequestParam("fichier")
+            org.springframework.web.multipart.MultipartFile fichier) throws java.io.IOException {
+        compteService.enregistrerPhoto(CurrentUser.id(), fichier.getBytes(), fichier.getContentType());
+    }
+
+    @GetMapping("/photo")
+    public org.springframework.http.ResponseEntity<byte[]> photo() {
+        return compteService.photo(CurrentUser.id())
+                .map(p -> org.springframework.http.ResponseEntity.ok()
+                        .contentType(org.springframework.http.MediaType.parseMediaType(p.getContentType()))
+                        .body(p.getDonnees()))
+                .orElse(org.springframework.http.ResponseEntity.notFound().build());
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/photo")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void supprimerPhoto() {
+        compteService.supprimerPhoto(CurrentUser.id());
+    }
+
     @GetMapping("/profil")
     public Profil profil() {
         return compteService.profil(CurrentUser.id());

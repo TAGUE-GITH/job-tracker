@@ -63,6 +63,29 @@ class RechercheMultiPaysTests {
         };
     }
 
+    private static OffreDtos.OffreExterne offre(String id, String url, java.time.LocalDate date) {
+        return new OffreDtos.OffreExterne(id, "s", id, null, null, null, null, null, url, date);
+    }
+
+    @Test
+    void laFusionTrieParDateEtRetireLesDoublons() {
+        var a = List.of(offre("a1", "u1", java.time.LocalDate.of(2026, 11, 1)), offre("a2", "u2", null));
+        var b = List.of(offre("b1", "u3", java.time.LocalDate.of(2026, 11, 9)), offre("b2", "u1", java.time.LocalDate.of(2026, 11, 1)));
+        assertEquals(List.of("b1", "a1", "a2"), OffreService.fusionnerParDate(List.of(a, b)).stream()
+                .map(OffreDtos.OffreExterne::id).toList());
+        assertEquals(List.of("a1", "b1", "a2"), OffreService.alterner(List.of(a, b)).stream()
+                .map(OffreDtos.OffreExterne::id).toList());
+    }
+
+    @Test
+    void foremTraduitLesCriteresEnFiltre() {
+        String f = ForemSource.filtre(new Recherche("aide comptable", "Liège", "CDI", 0, "BE", null));
+        assertTrue(f.contains("search(titreoffre, \"comptable\")"), f);
+        assertTrue(f.contains("search(lieuxtravaillocalite, \"Liège\")"), f);
+        assertTrue(f.contains("indéterminée"), f);
+        assertEquals("Adecco Personnel Services", ForemSource.capitaliser("ADECCO PERSONNEL SERVICES"));
+    }
+
     @Test
     void lesSourcesProposeesDependentDuPays() {
         OffreService service = new OffreService(List.of(
@@ -71,7 +94,8 @@ class RechercheMultiPaysTests {
                 source("Allemagne", List.of("DE"), true)));
 
         OffresResponse france = service.rechercher("", new Recherche("", "", "", 0, "FR", null));
-        assertEquals(List.of("LBA", "Monde"), france.sources());
+        assertEquals(List.of(OffreService.TOUTES, "LBA", "Monde"), france.sources());
+        assertEquals(OffreService.TOUTES, france.source());
         OffresResponse canada = service.rechercher("", new Recherche("", "", "", 0, "CA", null));
         assertEquals(List.of("Monde"), canada.sources());
         assertNull(canada.remarque());

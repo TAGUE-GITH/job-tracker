@@ -4,11 +4,12 @@ import { api } from '../api'
 import OrvynaAvatar from './OrvynaAvatar.jsx'
 import CvAdapte from './CvAdapte.jsx'
 import DocumentActions from './DocumentActions.jsx'
-import { FileText, Info, Mail, Target } from 'lucide-react'
+import { FileText, Info, Mail, MessageSquare, Target } from 'lucide-react'
+import MessageRecruteur from './MessageRecruteur.jsx'
 
 // ORVYNA compare le CV a l'offre (score, competences manquantes) et redige la lettre de motivation
-export default function CvLettre({ candidature, onChange }) {
-  const [onglet, setOnglet] = useState('analyse')
+export default function CvLettre({ candidature, onChange, ongletInitial = 'analyse' }) {
+  const [onglet, setOnglet] = useState(ongletInitial)
   const [cvs, setCvs] = useState(null)
   const [cvId, setCvId] = useState(candidature.cv?.id ?? '')
 
@@ -33,8 +34,8 @@ export default function CvLettre({ candidature, onChange }) {
       <div className="ia-head">
         <OrvynaAvatar size={44} />
         <div>
-          <h3>ORVYNA · CV & lettre</h3>
-          <p className="muted small">Ton CV face à cette offre, un CV adapté et une lettre de motivation sur mesure.</p>
+          <h3>ORVYNA · CV, lettre et message</h3>
+          <p className="muted small">Ton CV face à cette offre, un CV adapté, une lettre et le message pour le recruteur.</p>
         </div>
       </div>
 
@@ -47,6 +48,9 @@ export default function CvLettre({ candidature, onChange }) {
         </button>
         <button type="button" className={onglet === 'cv' ? 'active' : ''} onClick={() => setOnglet('cv')}>
           <FileText size={16} /> CV adapté
+        </button>
+        <button type="button" className={onglet === 'message' ? 'active' : ''} onClick={() => setOnglet('message')}>
+          <MessageSquare size={16} /> Message
         </button>
       </div>
 
@@ -65,6 +69,7 @@ export default function CvLettre({ candidature, onChange }) {
           {onglet === 'analyse' && <Analyse candidatureId={candidature.id} cvId={cvId} />}
           {onglet === 'lettre' && <Lettre candidature={candidature} cvId={cvId} onChange={onChange} />}
           {onglet === 'cv' && <CvAdapte candidature={candidature} cvId={cvId} onChange={onChange} Score={Score} />}
+          {onglet === 'message' && <MessageRecruteur candidature={candidature} cvId={cvId} />}
         </>
       )}
     </div>

@@ -10,13 +10,18 @@ public final class OffreDtos {
 
     /**
      * Criteres de recherche. contrat : vide, ALTERNANCE, STAGE, CDI ou CDD. page commence a 0.
-     * pays : code ISO (FR par defaut). domaine : null = tous les domaines.
+     * pays : code ISO (FR par defaut). domaine : null = tous les domaines. parDate : plus recentes d'abord.
      */
     public record Recherche(String motsCles, String lieu, String contrat, int page, String pays,
-            Catalogue.Domaine domaine) {
+            Catalogue.Domaine domaine, boolean parDate) {
 
         public Recherche(String motsCles, String lieu, String contrat, int page) {
-            this(motsCles, lieu, contrat, page, "FR", null);
+            this(motsCles, lieu, contrat, page, "FR", null, false);
+        }
+
+        public Recherche(String motsCles, String lieu, String contrat, int page, String pays,
+                Catalogue.Domaine domaine) {
+            this(motsCles, lieu, contrat, page, pays, domaine, false);
         }
 
         /** Mots-cles a envoyer a une API francophone : ceux de l'utilisateur, sinon le mot du domaine. */

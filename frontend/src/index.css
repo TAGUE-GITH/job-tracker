@@ -301,7 +301,7 @@ tbody tr:hover { background: var(--bg); }
 
 /* Offres d'emploi */
 .recherche-offres { display: grid; grid-template-columns: 2fr 1.3fr auto; gap: 0.8rem; align-items: end; }
-.filtres-offres { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; padding-top: 0.9rem; border-top: 1px solid var(--border); }
+.filtres-offres { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem; padding-top: 0.9rem; border-top: 1px solid var(--border); }
 .filtres-offres label > span { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--muted); font-size: 0.82rem; }
 .champ-icone { position: relative; display: block; }
 .champ-icone > svg { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: var(--muted); }
@@ -310,7 +310,7 @@ tbody tr:hover { background: var(--bg); }
 .info-source svg { flex-shrink: 0; margin-top: 0.15rem; color: var(--primary); }
 .recherche-offres label { margin: 0; }
 .recherche-offres .btn { height: 42px; }
-.tabs.sources { max-width: 360px; margin: 0 0 1rem; }
+.tabs.sources { max-width: none; width: fit-content; flex-wrap: wrap; margin: 0 0 1rem; }
 .alerte { border-color: #fbbf24; background: color-mix(in srgb, #fbbf24 10%, var(--surface)); }
 .alerte p { margin: 0.4rem 0 0; color: var(--muted); }
 .offres { display: grid; gap: 1rem; margin-top: 0.6rem; }
@@ -668,3 +668,68 @@ button.icon { display: inline-flex; align-items: center; }
   .message-corps { padding-left: 1.2rem; }
 }
 .page-publique .landing-nav { justify-content: space-between; }
+
+/* Offres pour moi */
+.modes-offres { max-width: 420px; margin: 0 0 1.2rem; }
+.pour-moi-intro { display: flex; gap: 1.2rem; align-items: flex-start; padding: 1.8rem; }
+.pour-moi-intro h2 { margin: 0 0 0.5rem; font-size: 1.25rem; }
+.pour-moi-intro p { line-height: 1.6; max-width: 46rem; }
+.pour-moi-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin-top: 1rem; }
+.pour-moi-actions select { width: auto; max-width: 320px; }
+.profil-cv-tete { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: flex-start; margin-bottom: 0.8rem; }
+.profil-cv-tete h2 { margin: 0.2rem 0 0.4rem; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.profil-cv-tete p { margin: 0; max-width: 48rem; line-height: 1.55; }
+.profil-cv-tete select { width: auto; max-width: 240px; }
+.eyebrow-app { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--primary); }
+.filtres-pour-moi { margin-top: 1rem; }
+.offre-head-droite { display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; }
+.correspondance { font-weight: 700; font-size: 0.85rem; padding: 0.2rem 0.55rem; border-radius: 6px; background: color-mix(in srgb, var(--muted) 14%, transparent); color: var(--muted); white-space: nowrap; }
+.correspondance.moyenne { background: color-mix(in srgb, #d97706 14%, transparent); color: #b45309; }
+.correspondance.forte { background: color-mix(in srgb, #16a34a 14%, transparent); color: var(--success); }
+.mots-trouves { margin: 0; color: var(--muted); }
+.mots-trouves strong { color: var(--text); font-weight: 600; }
+@media (max-width: 640px) {
+  .pour-moi-intro { flex-direction: column; padding: 1.2rem; }
+  .offre-head-droite { flex-direction: row; align-items: center; }
+}
+
+/* Modeles de CV */
+.modeles-cv { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; }
+.modele-cv { display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-start; text-align: left; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; cursor: pointer; }
+.modele-cv:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); }
+.modele-cv.choisi { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 25%, transparent); }
+.modele-cv strong { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.9rem; }
+.modele-cv small { color: var(--muted); font-size: 0.76rem; line-height: 1.35; }
+.apercu-modele { position: relative; width: 100%; aspect-ratio: 0.72; background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 10% 9%; display: flex; flex-direction: column; gap: 5%; overflow: hidden; }
+.apercu-modele i { display: block; height: 3%; background: #d1d5db; border-radius: 1px; width: 92%; }
+.apercu-modele .a-nom { height: 6%; width: 52%; background: #1f2937; }
+.apercu-modele .a-titre { width: 40%; background: var(--couleur-modele); }
+.apercu-modele .a-rubrique { width: 100%; height: 2.5%; background: var(--couleur-modele); opacity: 0.9; margin-top: 4%; }
+.apercu-moderne .a-nom { background: var(--couleur-modele); }
+.apercu-moderne .a-rubrique { width: 36%; border-left: 3px solid var(--couleur-modele); background: #9ca3af; }
+.apercu-elegant { align-items: center; }
+.apercu-elegant .a-nom, .apercu-elegant .a-titre { margin: 0 auto; }
+.apercu-elegant .a-rubrique { height: 1px; background: #374151; }
+.apercu-compact { padding: 6% 6%; gap: 3.5%; }
+.apercu-compact .a-rubrique { height: 5%; background: #eef0f4; border-left: 30px solid transparent; box-shadow: inset 34px 0 0 #eef0f4, inset 0 0 0 99px #eef0f4; }
+.apercu-modele .a-photo { position: absolute; top: 8%; right: 8%; width: 20%; height: 18%; background: #94a3b8; border-radius: 2px; }
+.case-photo { margin: 0.8rem 0 0.2rem; font-weight: 500; }
+.case-photo span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.choix-modele > p { margin: 0; }
+@media (max-width: 760px) { .modeles-cv { grid-template-columns: repeat(2, 1fr); } }
+
+/* Photo du compte */
+.photo-cv { display: flex; gap: 1.2rem; align-items: flex-start; }
+.photo-cadre { width: 90px; height: 116px; flex-shrink: 0; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--muted); }
+.photo-cadre img { width: 100%; height: 100%; object-fit: cover; }
+.photo-cv p { margin: 0 0 0.7rem; }
+
+/* Message recruteur */
+.message-recruteur, .messages-generes { display: flex; flex-direction: column; gap: 0.8rem; }
+.message-recruteur > .btn { align-self: flex-start; }
+.bloc-message { border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; display: flex; flex-direction: column; gap: 0.6rem; }
+.bloc-message header { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; }
+.bloc-message h4 { margin: 0; }
+.bloc-message label { margin: 0; }
+.bloc-message textarea { font-size: 0.9rem; line-height: 1.5; }
+label.btn { flex-direction: row; margin: 0; font-weight: 550; }

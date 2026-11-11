@@ -11,13 +11,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 /**
- * API Adzuna (agregateur de nombreux sites d'emploi, gratuite avec une cle sur https://developer.adzuna.com).
+ * API Adzuna (agregateur de nombreux sites d'emploi, cle sur https://developer.adzuna.com). Une meme cle couvre
+ * tous les pays d'Adzuna : France, Belgique, Suisse, Canada, Allemagne, Royaume-Uni, Espagne, Italie, Pays-Bas,
+ * Etats-Unis... Inactive tant que ADZUNA_APP_ID et ADZUNA_APP_KEY ne sont pas renseignes.
  */
 @Component
 @Order(3)
 public class AdzunaSource implements SourceOffres {
 
-    private static final String URL_API = "https://api.adzuna.com/v1/api/jobs/fr/search/";
+    private static final String URL_API = "https://api.adzuna.com/v1/api/jobs/{pays}/search/{page}";
+    /** Pays couverts par Adzuna parmi ceux de Postulyn. */
+    private static final java.util.Set<String> PAYS = java.util.Set.of("FR", "BE", "CH", "CA", "DE", "GB", "ES",
+            "IT", "NL", "US");
+    private static final java.util.Set<String> FRANCOPHONES = java.util.Set.of("FR", "BE", "CH", "CA");
 
     private final RestClient restClient = RestClient.create();
     private final String appId;
@@ -52,15 +58,23 @@ public class AdzunaSource implements SourceOffres {
     }
 
     @Override
+    public boolean couvre(String pays) {
+        return PAYS.contains(pays.toUpperCase(java.util.Locale.ROOT));
+    }
+
+    @Override
+    public boolean supporte(String contrat) {
+        return !"ALTERNANCE".equals(contrat);
+    }
+
+    @Override
     public ResultatSource rechercher(Recherche r) {
-        String motsCles = switch (r.contrat()) {
-            case "ALTERNANCE" -> (r.motsCles() + " alternance").strip();
-            case "STAGE" -> (r.motsCles() + " stage").strip();
-            default -> r.motsCles();
-        };
+        boolean francophone = FRANCOPHONES.contains(r.pays());
+        String base = francophone ? r.requeteFr() : r.requeteEn();
+        String motsCles = "STAGE".equals(r.contrat()) ? (base + (francophone ? " stage" : " internship")).strip() : base;
         String what = motsCles;
         Reponse res = restClient.get()
-                .uri(URL_API + (r.page() + 1), b -> {
+                .uri(URL_API, b -> {
                     b.queryParam("app_id", appId)
                             .queryParam("app_key", appKey)
                             .queryParam("results_per_page", TAILLE_PAGE)
@@ -76,7 +90,7 @@ public class AdzunaSource implements SourceOffres {
                     } else if ("CDD".equals(r.contrat())) {
                         b.queryParam("contract", 1);
                     }
-                    return b.build();
+                    return b.build(r.pays().toLowerCase(java.util.Locale.ROOT), r.page() + 1);
                 })
                 .retrieve()
                 .body(Reponse.class);
@@ -119,6 +133,6 @@ public class AdzunaSource implements SourceOffres {
         }
         long min = Math.round(o.salary_min());
         long max = o.salary_max() != null ? Math.round(o.salary_max()) : min;
-        return min == max ? min + " € / an" : min + " - " + max + " € / an";
+        return min == max ? min + " / an" : min + " - " + max + " / an";
     }
 }

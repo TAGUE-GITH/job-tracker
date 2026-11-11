@@ -58,6 +58,18 @@ public class IaService {
             HelloWork et Apec. "Postuler" ouvre l'annonce sur le site d'origine ; "Ajouter au suivi" cree \
             automatiquement la candidature avec le texte de l'offre. On ne peut pas envoyer sa candidature \
             directement depuis Postulyn : la candidature se fait toujours sur le site du recruteur.
+            - Page Offres, onglet "Offres pour moi" : on choisit ou importe son CV, "Analyser ce CV" ; ORVYNA en tire \
+            un profil (metiers, competences, niveau) et Postulyn cherche les offres correspondantes, classees avec un \
+            pourcentage de correspondance et les mots en commun avec le CV ; filtres Pays, Contrat, Lieu, tri par \
+            correspondance ou par date ; "Reanalyser" apres avoir change de CV. Onglet "Recherche libre" : recherche \
+            classique avec l'onglet "Toutes les sources" qui reunit toutes les sources du pays, et le tri "Les plus \
+            recentes". En Belgique, les offres viennent surtout du Forem. Sur chaque offre, "Adapter mon CV" ajoute \
+            l'offre au suivi et ouvre directement l'onglet "CV adapte".
+            - CV adapte : 4 modeles compatibles ATS (Classique, Moderne, Elegant, Compact) a choisir avant \
+            "Enregistrer le CV en PDF", et la case "Ajouter ma photo" (photo a enregistrer dans Parametres du compte \
+            > "Photo pour mes CV", JPEG ou PNG, 3 Mo maximum ; facultative, deconseillee pour certains pays).
+            - Onglet "Message" (carte ORVYNA de la candidature) : email de candidature (objet + texte, bouton "Ouvrir \
+            dans ma messagerie"), message LinkedIn et note d'invitation LinkedIn, modifiables et copiables.
             - Favori "Ajouter a Postulyn" (en bas des pages Offres et Candidatures) : on le glisse dans la barre \
             de favoris du navigateur (Ctrl+Maj+B pour l'afficher) ; sur la page d'une offre de n'importe quel site, \
             un clic ouvre Postulyn avec la candidature preremplie (entreprise, poste, lien, texte de l'offre).
@@ -307,8 +319,11 @@ public class IaService {
                         - competences : integre TOUTES les competences demandees par l'offre, sauf celles trop \
                         eloignees du profil ; les plus pertinentes pour l'offre en premier, avec les termes exacts de l'offre ;
                         - experiences : garde EXACTEMENT les 2 experiences professionnelles les PLUS pertinentes pour \
-                        l'offre (toutes s'il y en a moins de 2) et ignore les autres ; pour chacune, 3 missions qui \
-                        reprennent les mots-cles de l'offre ;
+                        l'offre (toutes s'il y en a moins de 2) et ignore les autres ; pour chacune, 4 missions \
+                        DETAILLEES (une ligne et demie maximum chacune) de la forme "verbe d'action + quoi + avec quels \
+                        outils ou methodes + pour quel resultat ou benefice" (ex. "Developpe une API REST securisee \
+                        (JWT) en Java/Spring Boot, utilisee par 3 applications internes"), qui reprennent les \
+                        mots-cles et les missions de l'offre ; la premiere mission est la plus proche du poste vise ;
                         - projets : garde EXACTEMENT les 2 projets personnels (ou academiques, open source) les PLUS \
                         pertinents pour l'offre (tous s'il y en a moins de 2) et ignore les autres ; detaille chacun : \
                         une phrase de contexte (description), puis 3 points concrets (fonctionnalites realisees, \
@@ -323,8 +338,13 @@ public class IaService {
                         des noms propres (villes, entreprises, ecoles) ;
                         - le CV doit tenir sur UNE page : sois concis, phrases courtes, garde les formations les plus \
                         utiles pour l'offre ;
-                        - missions : verbes d'action, resultats chiffres si le CV les donne ;
-                        - atouts : 3 a 5 qualites prouvees par le CV ; centres d'interet : ceux du CV (ou vide) ;
+                        - missions : verbes d'action au passe compose ou a l'infinitif, de facon homogene ; chiffres \
+                        (volumes, delais, nombre d'utilisateurs, gains) uniquement s'ils figurent dans le CV ;
+                        - atouts : 4 ou 5 qualites humaines que l'OFFRE demande explicitement ou implicitement \
+                        (autonomie, rigueur, travail en equipe, sens du client, communication...), formulees avec \
+                        les mots de l'offre, et seulement si le CV les rend credibles (experiences, projets, \
+                        responsabilites) ; classe-les de la plus attendue par l'offre a la moins attendue ;
+                        - centres d'interet : ceux du CV (ou vide) ;
                         - motsClesAjoutes : mots-cles de l'offre que tu as integres ;
                         - competencesAjoutees : uniquement les competences que tu as ajoutees et qui ne figuraient pas \
                         dans le CV d'origine (elles apparaissent aussi dans competencesTechniques ou Transverses).
@@ -371,6 +391,70 @@ public class IaService {
                         + texteOffre(c) + "\n\nCV DU CANDIDAT :\n" + cv
                         + (consignes == null || consignes.isBlank() ? "" : "\n\nCONSIGNES DU CANDIDAT : " + consignes)));
         return new IaResponse(appeler(messages, false).strip());
+    }
+
+    /**
+     * Lit un CV et en extrait le profil du candidat (JSON) : sert a chercher et classer les offres qui lui
+     * correspondent. domaine : un des codes de Catalogue.Domaine.
+     */
+    public IaResponse profilCv(Long userId, Long cvId) {
+        String cv = documentService.texte(userId, cvId);
+        String domaines = java.util.Arrays.stream(com.jobtracker.offre.Catalogue.Domaine.values())
+                .map(d -> d.name() + " (" + d.libelle() + ")").collect(java.util.stream.Collectors.joining(", "));
+        List<Message> messages = List.of(
+                new Message("system", """
+                        Tu es un conseiller en recrutement. Tu lis le CV d'un candidat et tu en extrais son profil \
+                        pour lui trouver des offres d'emploi. Reponds UNIQUEMENT avec un objet JSON valide :
+                        {"titre": "intitule de poste vise, court (ex. Developpeur Java)",
+                         "resume": "2 phrases sur le profil, en tutoyant le candidat",
+                         "metiers": ["2 ou 3 intitules de poste courts a chercher dans les offres, du plus au moins proche"],
+                         "competences": ["8 a 15 competences cles, techniques et metier, telles qu'ecrites dans les offres"],
+                         "motsCles": ["5 a 10 mots-cles supplementaires (outils, secteurs, langues)"],
+                         "domaine": "UN code parmi : %s",
+                         "niveau": "Etudiant, Junior, Confirme ou Senior",
+                         "contrats": ["contrats coherents avec le profil parmi ALTERNANCE, STAGE, CDI, CDD"]}
+                        N'invente rien qui ne soit pas dans le CV.
+                        """.formatted(domaines)),
+                new Message("user", "CV DU CANDIDAT :\n" + (cv.length() > 12000 ? cv.substring(0, 12000) : cv)));
+        return new IaResponse(json(appeler(messages, true), "L'IA n'a pas pu lire ce CV, reessaie"));
+    }
+
+    /** Extrait l'objet JSON d'une reponse de l'IA. */
+    private static String json(String reponse, String erreur) {
+        int debut = reponse.indexOf('{');
+        int fin = reponse.lastIndexOf('}');
+        if (debut < 0 || fin <= debut) {
+            throw new IaIndisponibleException(erreur);
+        }
+        return reponse.substring(debut, fin + 1);
+    }
+
+    /**
+     * Messages prets a envoyer au recruteur (JSON) : un email de candidature (objet + corps), un message LinkedIn
+     * court et une note de connexion LinkedIn de moins de 300 caracteres.
+     */
+    @Transactional(readOnly = true)
+    public IaResponse messageRecruteur(Long userId, Long candidatureId, Long cvId, String consignes) {
+        Candidature c = candidatureService.trouver(userId, candidatureId);
+        String cv = texteCv(userId, c, cvId);
+        List<Message> messages = List.of(
+                new Message("system", """
+                        Tu rediges, en francais, les messages qu'un candidat envoie a un recruteur pour presenter \
+                        sa candidature. Ton professionnel, direct et chaleureux ; aucune formule creuse ; relie 1 ou \
+                        2 experiences REELLES du CV aux besoins de l'offre ; n'invente rien. Texte brut, sans \
+                        Markdown ni crochets a completer. Le candidat s'appelle %s.
+                        Reponds UNIQUEMENT avec un objet JSON valide :
+                        {"objet": "objet de l'email (moins de 80 caracteres, avec l'intitule du poste)",
+                         "email": "email de candidature de 120 a 180 mots : Bonjour, accroche, 2 a 3 phrases de valeur \
+                        ajoutee, mention du CV et de la lettre en piece jointe, proposition d'echange, formule de \
+                        politesse, signature avec le nom",
+                         "linkedin": "message LinkedIn de 60 a 90 mots, plus direct, sans objet",
+                         "noteConnexion": "note d'invitation LinkedIn de moins de 280 caracteres"}
+                        """.formatted(c.getUser().getNom())),
+                new Message("user", "OFFRE (" + c.getPoste() + " chez " + c.getNomEntreprise() + ") :\n"
+                        + texteOffre(c) + "\n\nCV DU CANDIDAT :\n" + cv
+                        + (consignes == null || consignes.isBlank() ? "" : "\n\nCONSIGNES DU CANDIDAT : " + consignes)));
+        return new IaResponse(json(appeler(messages, true), "L'IA n'a pas renvoye de message exploitable, reessaie"));
     }
 
     /** Brouillon d'email de relance pour une candidature restee sans reponse. */

@@ -48,6 +48,13 @@ public class IaController {
     }
 
     /** ORVYNA repond aux questions sur l'application et sur les candidatures de l'utilisateur. */
+    @PostMapping("/api/candidatures/{id}/ia/message")
+    public IaResponse messageRecruteur(@PathVariable Long id,
+            @Valid @RequestBody(required = false) LettreIaRequest req) {
+        return iaService.messageRecruteur(CurrentUser.id(), id, req == null ? null : req.cvId(),
+                req == null ? null : req.consignes());
+    }
+
     @PostMapping("/api/ia/aide")
     public IaResponse aide(@Valid @RequestBody AideRequest req) {
         return iaService.aide(CurrentUser.id(), req.messages());

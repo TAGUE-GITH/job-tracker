@@ -28,7 +28,8 @@ public class OffreController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "") String source,
             @RequestParam(defaultValue = "FR") String pays,
-            @RequestParam(defaultValue = "") String domaine) {
+            @RequestParam(defaultValue = "") String domaine,
+            @RequestParam(defaultValue = "pertinence") String tri) {
         if (!CONTRATS.contains(contrat)) {
             throw new IllegalArgumentException("Type de contrat inconnu : " + contrat);
         }
@@ -39,7 +40,8 @@ public class OffreController {
                 .orElseThrow(() -> new IllegalArgumentException("Pays non pris en charge : " + pays));
         Catalogue.Domaine d = domaine.isBlank() ? null : Catalogue.domaine(domaine)
                 .orElseThrow(() -> new IllegalArgumentException("Domaine inconnu : " + domaine));
-        return offreService.rechercher(source, new Recherche(q.strip(), lieu.strip(), contrat, page, p.code(), d));
+        return offreService.rechercher(source, new Recherche(q.strip(), lieu.strip(), contrat, page, p.code(), d,
+                "date".equalsIgnoreCase(tri)));
     }
 
     /** Listes des pays et domaines pour les filtres de la page Offres. */

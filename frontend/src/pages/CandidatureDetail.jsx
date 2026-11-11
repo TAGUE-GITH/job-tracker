@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import { ETAPES, aujourdhui, formatDate } from '../labels'
 import StatutBadge from '../components/StatutBadge.jsx'
@@ -10,6 +10,9 @@ import { ArrowLeft, ExternalLink, X } from 'lucide-react'
 
 export default function CandidatureDetail() {
   const { id } = useParams()
+  // ?outil=cv : ouvre directement l'onglet "CV adapte" (depuis une offre recommandee)
+  const [params] = useSearchParams()
+  const outil = params.get('outil')
   const navigate = useNavigate()
   const [c, setC] = useState(null)
   const [erreur, setErreur] = useState('')
@@ -69,7 +72,9 @@ export default function CandidatureDetail() {
             )}
           </div>
 
-          <CvLettre candidature={c} onChange={setC} />
+          <div id="orvyna-outils" ref={(el) => { if (el && outil) el.scrollIntoView({ block: 'start' }) }}>
+            <CvLettre candidature={c} onChange={setC} ongletInitial={outil ?? 'analyse'} />
+          </div>
           <div className="card">
             <h3>Évolution</h3>
             <ol className="timeline">

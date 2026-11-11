@@ -25,11 +25,11 @@ public final class LettrePdf {
     }
 
     private static final float MARGE = 64;
-    private static final float TAILLE_POLICE = 11;
-    private static final float INTERLIGNE = 15.5f;
     private static final float LARGEUR = PDRectangle.A4.getWidth() - 2 * MARGE;
     /** Le bloc destinataire et la date commencent a 55 % de la largeur de la page. */
     private static final float X_DROITE = PDRectangle.A4.getWidth() * 0.55f;
+    /** Tailles de police essayees dans l'ordre pour que la lettre tienne sur une page. */
+    private static final float[] TAILLES = {11, 10.5f, 10, 9.6f};
 
     private LettrePdf() {
     }
@@ -39,63 +39,112 @@ public final class LettrePdf {
     }
 
     static byte[] generer(EnTete entete, String texte) {
+        byte[] pdf = null;
+        for (float taille : TAILLES) {
+            Rendu r = rendre(entete, texte, taille);
+            pdf = r.pdf();
+            if (r.pages() == 1) {
+                break;
+            }
+        }
+        return pdf;
+    }
+
+    private record Rendu(byte[] pdf, int pages) {
+    }
+
+    private static Rendu rendre(EnTete entete, String texte, float taille) {
         PDType1Font police = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
         PDType1Font gras = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
+        float interligne = taille * 1.42f;
         try (PDDocument doc = new PDDocument(); ByteArrayOutputStream sortie = new ByteArrayOutputStream()) {
-            Page page = new Page(doc);
+            Page page = new Page(doc, taille, interligne);
             float haut = page.y;
 
             // Expediteur (gauche) : la premiere ligne, le nom, en gras
-            List<String> expediteur = blocs(entete.expediteur(), police, X_DROITE - MARGE - 16);
+            List<String> expediteur = blocs(entete.expediteur(), police, X_DROITE - MARGE - 16, taille);
             float yGauche = haut;
             for (int i = 0; i < expediteur.size(); i++) {
                 page.ecrire(MARGE, yGauche, expediteur.get(i), i == 0 ? gras : police);
-                yGauche -= INTERLIGNE;
+                yGauche -= interligne;
             }
 
-            // Destinataire (droite), legerement plus bas que le haut de l'expediteur
-            List<String> destinataire = blocs(entete.destinataire(), police, PDRectangle.A4.getWidth() - MARGE - X_DROITE);
-            float yDroite = haut - (expediteur.isEmpty() ? 0 : 3 * INTERLIGNE);
+            // Destinataire (droite), aligne sur la meme colonne que la date, sous le haut de l'expediteur
+            List<String> destinataire = blocs(entete.destinataire(), police,
+                    PDRectangle.A4.getWidth() - MARGE - X_DROITE, taille);
+            float yDroite = haut - (expediteur.isEmpty() ? 0 : 3 * interligne);
             for (int i = 0; i < destinataire.size(); i++) {
                 page.ecrire(X_DROITE, yDroite, destinataire.get(i), i == 0 ? gras : police);
-                yDroite -= INTERLIGNE;
+                yDroite -= interligne;
             }
 
             float y = Math.min(yGauche, yDroite);
             String lieuDate = nettoyer(entete.lieuDate() == null ? "" : entete.lieuDate(), police).strip();
             if (!lieuDate.isEmpty()) {
-                y -= INTERLIGNE;
+                y -= interligne;
                 page.ecrire(X_DROITE, y, lieuDate, police);
-                y -= INTERLIGNE;
+                y -= interligne;
             }
             if (y < haut) {
-                y -= 2 * INTERLIGNE;
+                y -= 1.5f * interligne;
             }
 
-            // Corps de la lettre, sur plusieurs pages si besoin
+            // Corps : paragraphes justifies, separes par un espace ; "Objet :" en gras ; signature a droite
             page.y = y;
-            for (String paragraphe : nettoyer(texte, police).split("\n", -1)) {
-                for (String ligne : couper(paragraphe, police, LARGEUR, TAILLE_POLICE)) {
-                    page.ligneSuivante(ligne, police);
+            String nom = expediteur.isEmpty() ? null : expediteur.getFirst().strip();
+            List<String> paragraphes = paragraphes(nettoyer(texte, police));
+            for (int i = 0; i < paragraphes.size(); i++) {
+                String para = paragraphes.get(i);
+                boolean signature = i == paragraphes.size() - 1 && nom != null && para.strip().equalsIgnoreCase(nom);
+                if (signature) {
+                    page.y -= interligne * 0.5f;
+                    page.ligneAlignee(para.strip(), gras, true);
+                } else if (para.regionMatches(true, 0, "Objet", 0, 5)) {
+                    for (String ligne : couper(para, gras, LARGEUR, taille)) {
+                        page.ligne(ligne, gras, false);
+                    }
+                } else {
+                    List<String> lignes = couper(para, police, LARGEUR, taille);
+                    for (int j = 0; j < lignes.size(); j++) {
+                        // Justifie toutes les lignes sauf la derniere de chaque paragraphe
+                        page.ligne(lignes.get(j), police, j < lignes.size() - 1);
+                    }
                 }
+                page.y -= interligne * 0.55f;
             }
             page.fermer();
             doc.save(sortie);
-            return sortie.toByteArray();
+            return new Rendu(sortie.toByteArray(), doc.getNumberOfPages());
         } catch (IOException e) {
             throw new UncheckedIOException("Impossible de generer le PDF", e);
         }
+    }
+
+    /** Decoupe le texte en paragraphes (lignes vides ignorees, espaces superflus retires). */
+    static List<String> paragraphes(String texte) {
+        List<String> resultat = new ArrayList<>();
+        for (String ligne : texte.split("\n")) {
+            String l = ligne.strip().replaceAll("\\s{2,}", " ");
+            if (!l.isEmpty()) {
+                resultat.add(l);
+            }
+        }
+        return resultat;
     }
 
     /** Ecrit le texte et ouvre une nouvelle page quand la precedente est pleine. */
     private static final class Page {
 
         private final PDDocument doc;
+        private final float taille;
+        private final float interligne;
         private PDPageContentStream flux;
         float y;
 
-        Page(PDDocument doc) throws IOException {
+        Page(PDDocument doc, float taille, float interligne) throws IOException {
             this.doc = doc;
+            this.taille = taille;
+            this.interligne = interligne;
             nouvelle();
         }
 
@@ -108,22 +157,47 @@ public final class LettrePdf {
         }
 
         void ecrire(float x, float yLigne, String texte, PDType1Font police) throws IOException {
+            ecrire(x, yLigne, texte, police, 0);
+        }
+
+        /** espaceMots : espace ajoute a chaque espace entre les mots (justification). */
+        private void ecrire(float x, float yLigne, String texte, PDType1Font police, float espaceMots)
+                throws IOException {
             if (texte.isEmpty()) {
                 return;
             }
             flux.beginText();
-            flux.setFont(police, TAILLE_POLICE);
+            flux.setFont(police, taille);
+            flux.setWordSpacing(espaceMots);
             flux.newLineAtOffset(x, yLigne);
             flux.showText(texte);
             flux.endText();
         }
 
-        void ligneSuivante(String texte, PDType1Font police) throws IOException {
+        /** Ligne du corps, justifiee sur toute la largeur si demande. */
+        void ligne(String texte, PDType1Font police, boolean justifier) throws IOException {
             if (y < MARGE) {
                 nouvelle();
             }
-            ecrire(MARGE, y, texte, police);
-            y -= INTERLIGNE;
+            float espace = 0;
+            long espaces = texte.chars().filter(c -> c == ' ').count();
+            if (justifier && espaces > 0) {
+                float reste = LARGEUR - police.getStringWidth(texte) / 1000 * taille;
+                // Pas d'etirement exagere sur une ligne courte
+                espace = reste > 0 && reste / espaces < taille * 0.9f ? reste / espaces : 0;
+            }
+            ecrire(MARGE, y, texte, police, espace);
+            y -= interligne;
+        }
+
+        /** Ligne alignee a droite (signature). */
+        void ligneAlignee(String texte, PDType1Font police, boolean droite) throws IOException {
+            if (y < MARGE) {
+                nouvelle();
+            }
+            float l = police.getStringWidth(texte) / 1000 * taille;
+            ecrire(droite ? MARGE + LARGEUR - l : MARGE, y, texte, police);
+            y -= interligne;
         }
 
         void fermer() throws IOException {
@@ -134,14 +208,14 @@ public final class LettrePdf {
         }
     }
 
-    private static List<String> blocs(String bloc, PDType1Font police, float largeur) throws IOException {
+    private static List<String> blocs(String bloc, PDType1Font police, float largeur, float taille) throws IOException {
         List<String> lignes = new ArrayList<>();
         if (bloc == null || bloc.isBlank()) {
             return lignes;
         }
         for (String ligne : nettoyer(bloc, police).strip().split("\n")) {
             if (!ligne.isBlank()) {
-                lignes.addAll(couper(ligne, police, largeur, TAILLE_POLICE));
+                lignes.addAll(couper(ligne, police, largeur, taille));
             }
         }
         return lignes;

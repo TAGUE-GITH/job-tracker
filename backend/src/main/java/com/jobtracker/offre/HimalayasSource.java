@@ -116,12 +116,25 @@ public class HimalayasSource implements SourceOffres {
                 nom(),
                 SourceOffres.sansHtml(o.title()),
                 o.companyName(),
-                "Télétravail" + Catalogue.pays(pays).map(p -> " · " + p.nom()).orElse(""),
+                lieu(o, pays),
                 o.employmentType(),
                 salaire(o),
                 SourceOffres.sansHtml(o.excerpt()),
                 url,
                 date);
+    }
+
+    /** "Teletravail · Belgique" si l'offre vise ce pays seulement, sinon le nombre de pays acceptes. */
+    static String lieu(Offre o, String pays) {
+        List<String> zones = o.locationRestrictions() == null ? List.of() : o.locationRestrictions();
+        String nomPays = Catalogue.pays(pays).map(Catalogue.Pays::nom).orElse(pays);
+        if (zones.isEmpty()) {
+            return "Télétravail · monde entier";
+        }
+        if (zones.size() == 1) {
+            return "Télétravail · " + nomPays;
+        }
+        return "Télétravail · " + zones.size() + " pays dont " + nomPays;
     }
 
     private static String salaire(Offre o) {

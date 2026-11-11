@@ -26,9 +26,11 @@ public class CandidatureService {
     private final CandidatureRepository candidatureRepository;
     private final UserRepository userRepository;
     private final DocumentService documentService;
+    private final com.jobtracker.user.PhotoProfilRepository photoRepository;
 
     public CandidatureService(CandidatureRepository candidatureRepository, UserRepository userRepository,
-            DocumentService documentService) {
+            DocumentService documentService, com.jobtracker.user.PhotoProfilRepository photoRepository) {
+        this.photoRepository = photoRepository;
         this.candidatureRepository = candidatureRepository;
         this.userRepository = userRepository;
         this.documentService = documentService;
@@ -91,7 +93,15 @@ public class CandidatureService {
         Candidature c = trouver(userId, id);
         User u = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Compte introuvable"));
         String adresse = u.getAdresse() != null ? u.getAdresse() : u.getVille();
-        CvPdf.Contact contact = new CvPdf.Contact(u.getNom(), u.getEmail(), u.getTelephone(), adresse);
+        if (cv.modele() != null && !CvPdf.MODELES.contains(cv.modele().toUpperCase(Locale.ROOT))) {
+            throw new IllegalArgumentException("Modele de CV inconnu : " + cv.modele());
+        }
+        byte[] photo = Boolean.TRUE.equals(cv.avecPhoto())
+                ? photoRepository.findById(userId).map(com.jobtracker.user.PhotoProfil::getDonnees)
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Ajoute d'abord ta photo dans Parametres du compte, ou decoche \"Avec photo\""))
+                : null;
+        CvPdf.Contact contact = new CvPdf.Contact(u.getNom(), u.getEmail(), u.getTelephone(), adresse, photo);
         String nom = ("CV " + u.getNom() + " - " + c.getNomEntreprise()).replaceAll("[\\\\/:*?\"<>|]", " ").strip();
         c.setCv(documentService.creerCvPdf(userId, nom + ".pdf", contact, cv));
         return CandidatureResponse.from(c);

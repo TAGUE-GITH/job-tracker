@@ -26,12 +26,14 @@ public class CompteService {
     private final JetonReinitialisationRepository jetonRepository;
     private final EmailService emailService;
     private final Administrateurs administrateurs;
+    private final PhotoProfilRepository photoRepository;
 
     public CompteService(UserRepository userRepository, PasswordEncoder passwordEncoder,
             CandidatureService candidatureService, DocumentService documentService, AuthService authService,
             JetonReinitialisationRepository jetonRepository, EmailService emailService,
-            Administrateurs administrateurs) {
+            Administrateurs administrateurs, PhotoProfilRepository photoRepository) {
         this.administrateurs = administrateurs;
+        this.photoRepository = photoRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.candidatureService = candidatureService;
@@ -45,13 +47,50 @@ public class CompteService {
             List<DocumentResponse> documents) {
     }
 
-    /** admin : vrai si l'email figure dans ADMIN_EMAILS (affiche le menu Administration). */
-    public record Profil(String nom, String email, String telephone, String adresse, String ville, boolean admin) {
+    /** admin : vrai si l'email figure dans ADMIN_EMAILS (affiche le menu Administration). photo : photo enregistree. */
+    public record Profil(String nom, String email, String telephone, String adresse, String ville, boolean admin,
+            boolean photo) {
     }
 
     private Profil profilDe(User u) {
         return new Profil(u.getNom(), u.getEmail(), u.getTelephone(), u.getAdresse(), u.getVille(),
-                administrateurs.estAdmin(u));
+                administrateurs.estAdmin(u), photoRepository.existsById(u.getId()));
+    }
+
+    static final long TAILLE_MAX_PHOTO = 3 * 1024 * 1024;
+
+    /** Enregistre la photo du CV apres avoir verifie que c'est bien une image JPEG ou PNG. */
+    @Transactional
+    public void enregistrerPhoto(Long userId, byte[] donnees, String contentType) {
+        utilisateur(userId);
+        if (donnees == null || donnees.length == 0) {
+            throw new IllegalArgumentException("Choisis une photo");
+        }
+        if (donnees.length > TAILLE_MAX_PHOTO) {
+            throw new IllegalArgumentException("Photo trop lourde : 3 Mo maximum");
+        }
+        String type = contentType == null ? "" : contentType.toLowerCase(java.util.Locale.ROOT);
+        if (!type.equals("image/jpeg") && !type.equals("image/png")) {
+            throw new IllegalArgumentException("Format accepte : JPEG ou PNG");
+        }
+        try {
+            if (javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(donnees)) == null) {
+                throw new IllegalArgumentException("Ce fichier n'est pas une image lisible");
+            }
+        } catch (java.io.IOException e) {
+            throw new IllegalArgumentException("Ce fichier n'est pas une image lisible");
+        }
+        photoRepository.save(new PhotoProfil(userId, donnees, type));
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.Optional<PhotoProfil> photo(Long userId) {
+        return photoRepository.findById(userId);
+    }
+
+    @Transactional
+    public void supprimerPhoto(Long userId) {
+        photoRepository.deleteById(userId);
     }
 
     @Transactional(readOnly = true)

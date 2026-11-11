@@ -146,10 +146,26 @@ export const api = {
   relance: (id) => request(`/candidatures/${id}/ia/relance`, { method: 'POST' }),
   cvIa: (id, data) => request(`/candidatures/${id}/ia/cv`, { method: 'POST', body: data }),
   enregistrerCv: (id, cv) => request(`/candidatures/${id}/cv`, { method: 'POST', body: cv }),
+  messageRecruteur: (id, data) => request(`/candidatures/${id}/ia/message`, { method: 'POST', body: data }),
+  analyserProfilCv: (cvId) => request('/profil-cv', { method: 'POST', body: { cvId } }),
+  profilCv: () => request('/profil-cv'),
+  oublierProfilCv: () => request('/profil-cv', { method: 'DELETE' }),
+  offresPourMoi: ({ pays = 'FR', contrat = '', lieu = '', tri = 'pertinence' } = {}) =>
+    request(`/offres/pour-moi?${new URLSearchParams({ pays, contrat, lieu, tri })}`),
+  envoyerPhoto: (fichier) => {
+    const fd = new FormData()
+    fd.append('fichier', fichier)
+    return request('/compte/photo', { method: 'PUT', body: fd })
+  },
+  supprimerPhoto: () => request('/compte/photo', { method: 'DELETE' }),
+  photoUrl: async () => {
+    const res = await request('/compte/photo', { raw: true })
+    return URL.createObjectURL(await res.blob())
+  },
   lettreIa: (id, data) => request(`/candidatures/${id}/ia/lettre`, { method: 'POST', body: data }),
   enregistrerLettre: (id, lettre) => request(`/candidatures/${id}/lettre`, { method: 'POST', body: lettre }),
   aide: (data) => request('/ia/aide', { method: 'POST', body: data }),
-  offres: ({ q = '', lieu = '', contrat = '', source = '', page = 0, pays = 'FR', domaine = '' } = {}) =>
-    request(`/offres?${new URLSearchParams({ q, lieu, contrat, source, page, pays, domaine })}`),
+  offres: ({ q = '', lieu = '', contrat = '', source = '', page = 0, pays = 'FR', domaine = '', tri = 'pertinence' } = {}) =>
+    request(`/offres?${new URLSearchParams({ q, lieu, contrat, source, page, pays, domaine, tri })}`),
   criteresOffres: () => request('/offres/criteres'),
 }
