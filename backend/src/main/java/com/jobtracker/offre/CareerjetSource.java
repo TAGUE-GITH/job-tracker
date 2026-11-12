@@ -42,9 +42,18 @@ public class CareerjetSource implements SourceOffres {
 
     private final RestClient restClient = RestClient.create();
     private final String cle;
+    /** Page de Postulyn d'ou partent les recherches, exigee par Careerjet (en-tete Referer). */
+    private final String pageRecherche;
 
-    public CareerjetSource(@Value("${app.offres.careerjet.api-key:}") String cle) {
+    @org.springframework.beans.factory.annotation.Autowired
+    public CareerjetSource(@Value("${app.offres.careerjet.api-key:}") String cle,
+            @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl) {
         this.cle = SourceOffres.nettoyer(cle);
+        this.pageRecherche = frontendUrl.replaceAll("/+$", "") + "/offres";
+    }
+
+    public CareerjetSource(String cle) {
+        this(cle, "http://localhost:5173");
     }
 
     record Reponse(String type, Long hits, String message, List<Offre> jobs) {
@@ -103,6 +112,7 @@ public class CareerjetSource implements SourceOffres {
                         return b.build();
                     })
                     .header(HttpHeaders.AUTHORIZATION, "Basic " + identifiants)
+                    .header(HttpHeaders.REFERER, pageRecherche)
                     .retrieve()
                     .body(Reponse.class);
         } catch (RestClientResponseException e) {
