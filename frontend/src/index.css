@@ -827,3 +827,10 @@ label.btn { flex-direction: row; margin: 0; font-weight: 550; }
   .page-offres .modes-offres { width: 100%; }
 }
 .modes-offres button { white-space: nowrap; }
+
+/* Administration : IP du serveur */
+.ip-serveur { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+.ip-serveur h3 { margin-bottom: 0.4rem; }
+.ip-serveur p { margin: 0; }
+.ips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.7rem !important; }
+.ips code { font-size: 0.92rem; padding: 0.25rem 0.55rem; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); }

@@ -134,6 +134,37 @@ public class AdminService {
                 l -> ((Number) l[1]).longValue()));
     }
 
+    /** Services publics qui renvoient l'adresse IP de l'appelant. */
+    private static final List<String> SERVICES_IP = List.of("https://api.ipify.org", "https://checkip.amazonaws.com");
+
+    /**
+     * Adresses IP par lesquelles le serveur sort sur Internet (a declarer chez les partenaires comme Careerjet).
+     * Plusieurs appels, avec de nouvelles connexions, pour reperer toutes les adresses utilisees.
+     */
+    public List<String> ipsSortantes() {
+        java.util.Set<String> ips = new java.util.TreeSet<>();
+        for (int i = 0; i < 6; i++) {
+            for (String service : SERVICES_IP) {
+                try {
+                    java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
+                            .connectTimeout(java.time.Duration.ofSeconds(5)).build();
+                    String ip = client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(service))
+                                    .timeout(java.time.Duration.ofSeconds(5)).GET().build(),
+                            java.net.http.HttpResponse.BodyHandlers.ofString()).body().strip();
+                    if (ip.matches("[0-9a-fA-F:.]{3,45}")) {
+                        ips.add(ip);
+                    }
+                } catch (java.io.IOException e) {
+                    // service indisponible : on essaie le suivant
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return List.copyOf(ips);
+                }
+            }
+        }
+        return List.copyOf(ips);
+    }
+
     /** Deconnecte toutes les sessions d'un compte (en cas de doute sur sa securite). */
     @Transactional
     public void deconnecter(Long userId) {

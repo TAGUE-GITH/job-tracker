@@ -84,6 +84,7 @@ export const api = {
   adminTraiterMessage: (id, traite) => request(`/admin/messages/${id}`, { method: 'PUT', body: { traite } }),
   adminSupprimerMessage: (id) => request(`/admin/messages/${id}`, { method: 'DELETE' }),
   adminAvis: () => request('/admin/avis'),
+  adminIpSortante: () => request('/admin/ip-sortante'),
   contact: (data) => request('/contact', { method: 'POST', body: data }),
   donnerAvis: (data) => request('/avis', { method: 'POST', body: data }),
   adminSupprimer: (id) => request(`/admin/utilisateurs/${id}`, { method: 'DELETE' }),

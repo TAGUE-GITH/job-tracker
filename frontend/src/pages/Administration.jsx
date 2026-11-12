@@ -4,7 +4,7 @@ import {
   Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import {
-  Briefcase, Check, FileText, Inbox, LayoutDashboard, LogOut, RefreshCw, Reply, RotateCcw, Search, ShieldCheck,
+  Briefcase, Check, FileText, Server, Inbox, LayoutDashboard, LogOut, RefreshCw, Reply, RotateCcw, Search, ShieldCheck,
   ShieldOff, Star, Trash2, UserPlus, Users,
 } from 'lucide-react'
 import { api } from '../api'
@@ -162,6 +162,8 @@ export default function Administration() {
           </div>
         </>
       )}
+
+      {onglet === 'apercu' && <IpServeur />}
 
       {onglet === 'apercu' && (
       <div className="card table-wrap table-cards">
@@ -360,6 +362,62 @@ function AvisAdmin() {
         ))}
       </div>
     </>
+  )
+}
+
+/** Adresses IP de sortie du serveur, a declarer chez les partenaires (ex. API Optioncarriere / Careerjet). */
+function IpServeur() {
+  const [ips, setIps] = useState(null)
+  const [chargement, setChargement] = useState(false)
+  const [erreur, setErreur] = useState('')
+  const [copie, setCopie] = useState(false)
+
+  const detecter = async () => {
+    setErreur('')
+    setChargement(true)
+    try {
+      setIps(await api.adminIpSortante())
+    } catch (e) {
+      setErreur(e.message)
+    } finally {
+      setChargement(false)
+    }
+  }
+
+  const copier = async () => {
+    try {
+      await navigator.clipboard.writeText(ips.join(','))
+      setCopie(true)
+      setTimeout(() => setCopie(false), 2000)
+    } catch {
+      setCopie(false)
+    }
+  }
+
+  return (
+    <div className="card ip-serveur">
+      <div>
+        <h3><Server size={18} /> Adresse IP du serveur</h3>
+        <p className="muted small">
+          Adresses par lesquelles le serveur appelle les services partenaires. À déclarer quand un partenaire
+          le demande (ex. compte éditeur Optioncarriere).
+        </p>
+        {erreur && <p className="erreur">{erreur}</p>}
+        {ips && (ips.length
+          ? <p className="ips">{ips.map((ip) => <code key={ip}>{ip}</code>)}</p>
+          : <p className="muted small">Aucune adresse détectée, réessaie dans un instant.</p>)}
+      </div>
+      <div className="row">
+        <button className="btn ghost" onClick={detecter} disabled={chargement}>
+          <RefreshCw size={15} /> {chargement ? 'Détection…' : ips ? 'Détecter à nouveau' : 'Détecter'}
+        </button>
+        {ips?.length > 0 && (
+          <button className="btn primary" onClick={copier}>
+            {copie ? <><Check size={15} /> Copié</> : 'Copier'}
+          </button>
+        )}
+      </div>
+    </div>
   )
 }
 

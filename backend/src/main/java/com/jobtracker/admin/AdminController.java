@@ -52,6 +52,12 @@ public class AdminController {
         supportService.supprimerMessage(id);
     }
 
+    @GetMapping("/ip-sortante")
+    public List<String> ipsSortantes() {
+        adminService.verifierAdmin(CurrentUser.id());
+        return adminService.ipsSortantes();
+    }
+
     @GetMapping("/avis")
     public SupportService.SyntheseAvis avis() {
         adminService.verifierAdmin(CurrentUser.id());
