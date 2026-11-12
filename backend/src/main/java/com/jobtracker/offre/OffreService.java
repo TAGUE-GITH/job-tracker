@@ -118,7 +118,16 @@ public class OffreService {
     /** Interroge toutes les sources en parallele et fusionne leurs offres (sans doublon de lien). */
     private OffresResponse toutes(List<SourceOffres> compatibles, Recherche recherche, List<String> onglets) {
         Map<SourceOffres, Future<ResultatSource>> appels = new LinkedHashMap<>();
-        compatibles.forEach(s -> appels.put(s, executeur.submit(() -> interroger(s, recherche))));
+        // Le contexte de la requete (IP et navigateur de l'utilisateur) suit les recherches paralleles
+        var contexte = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        compatibles.forEach(s -> appels.put(s, executeur.submit(() -> {
+            org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(contexte);
+            try {
+                return interroger(s, recherche);
+            } finally {
+                org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
+            }
+        })));
         List<List<OffreExterne>> pages = new ArrayList<>();
         List<String> echecs = new ArrayList<>();
         long total = 0;

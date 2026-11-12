@@ -35,6 +35,9 @@ services:
         sync: false
       - key: FT_CLIENT_SECRET
         sync: false
+      # Careerjet / Optioncarriere : cle API d'un compte editeur (gratuit)
+      - key: CAREERJET_API_KEY
+        sync: false
       - key: ADZUNA_APP_ID
         sync: false
       - key: ADZUNA_APP_KEY

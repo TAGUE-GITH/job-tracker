@@ -51,6 +51,19 @@ class RechercheIntelligenteTests {
     }
 
     @Test
+    void careerjetConvertitSesOffres() {
+        OffreExterne o = CareerjetSource.convertir(new CareerjetSource.Offre("<b>Stage</b> Développeur Java", "Danone",
+                "Wed,15 Nov 2025 19:13:43 GMT", "Extrait de l'annonce", "Paris", "1 200 € / mois",
+                "https://jobviewtrack.com/v2/abc"), "FR");
+        assertEquals("Stage Développeur Java", o.titre());
+        assertEquals(LocalDate.of(2025, 11, 15), o.datePublication());
+        assertEquals("Paris", o.lieu());
+        assertEquals("France", CareerjetSource.convertir(new CareerjetSource.Offre("x", null, "date illisible", null,
+                "", null, "u"), "FR").lieu());
+        assertTrue(new CareerjetSource("").couvre("BE") && !new CareerjetSource("").configuree());
+    }
+
+    @Test
     void leFiltreDeDateEtLesDoublonsSontAppliques() {
         Intention i = Dictionnaire.comprendre("comptable");
         List<OffreExterne> offres = List.of(
