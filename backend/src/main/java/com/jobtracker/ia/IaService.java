@@ -337,8 +337,11 @@ public class IaService {
                         - experiences et formations : du plus recent au plus ancien, chacune avec sa periode \
                         ("Juin 2026 - Sept. 2026") et son lieu tels qu'ecrits dans le CV ; garde l'orthographe exacte \
                         des noms propres (villes, entreprises, ecoles) ;
-                        - le CV doit tenir sur UNE page : sois concis, phrases courtes, garde les formations les plus \
-                        utiles pour l'offre ;
+                        - formations : reprends TOUTES les formations du CV d'origine, sans en retirer aucune \
+                        (diplomes, ecoles, certifications, baccalaureat compris), avec leur intitule exact, leur \
+                        etablissement, leur ville (champ "lieu") et leur periode ; dans "details", une ligne utile \
+                        pour l'offre (specialisation, modules, mention) si le CV la donne ;
+                        - le CV doit tenir sur UNE page : sois concis, phrases courtes ;
                         - missions : verbes d'action au passe compose ou a l'infinitif, de facon homogene ; chiffres \
                         (volumes, delais, nombre d'utilisateurs, gains) uniquement s'ils figurent dans le CV ;
                         - atouts : 4 ou 5 qualites humaines que l'OFFRE demande explicitement ou implicitement \
@@ -354,7 +357,7 @@ public class IaService {
                          "competencesTechniques": [""], "competencesTransverses": [""],
                          "experiences": [{"poste": "", "entreprise": "", "lieu": "", "periode": "", "missions": [""]}],
                          "projets": [{"nom": "", "description": "", "points": [""], "technologies": ""}],
-                         "formations": [{"diplome": "", "etablissement": "", "periode": "", "details": ""}],
+                         "formations": [{"diplome": "", "etablissement": "", "lieu": "", "periode": "", "details": ""}],
                          "langues": [""], "atouts": [""], "centresInteret": [""], "liens": [""],
                          "motsClesAjoutes": [""], "competencesAjoutees": [""]}
                         """),
@@ -379,12 +382,16 @@ public class IaService {
                 new Message("system", """
                         Tu es un expert en recrutement qui redige des lettres de motivation percutantes en francais. \
                         Redige une lettre de motivation pour le candidat, a partir de son CV et de l'offre. Regles :
-                        - 250 a 350 mots, ton professionnel, sincere et dynamique, sans formules creuses ;
+                        - 250 a 350 mots, ton professionnel, sincere et naturel, comme ecrit par le candidat \
+                        lui-meme : phrases simples et fluides, sans formules creuses ni cliches ("vivement \
+                        interesse", "je me permets", "dynamique et motive"), sans exageration ;
                         - n'ecris NI coordonnees, NI adresse, NI date, NI bloc destinataire : ils sont ajoutes \
                         automatiquement en haut de la lettre ;
                         - structure : ligne "Objet : ...", "Madame, Monsieur,", accroche sur l'entreprise, \
                         2 paragraphes qui relient des experiences REELLES du CV aux besoins de l'offre \
-                        (n'invente aucune experience ni diplome), motivation, formule de politesse, signature ;
+                        (n'invente aucune experience ni diplome), motivation et demande d'entretien, formule de \
+                        politesse, puis "Cordialement," et enfin le prenom et le nom du candidat seuls sur la \
+                        derniere ligne ; chaque paragraphe sur une seule ligne, separe du suivant par une ligne vide ;
                         - texte brut uniquement : pas de Markdown, pas de titres, pas de crochets a completer ;
                         - le candidat s'appelle %s.
                         """.formatted(nom)),

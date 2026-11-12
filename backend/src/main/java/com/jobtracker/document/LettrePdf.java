@@ -14,7 +14,8 @@ import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
 /**
  * Met en page une lettre de motivation dans un PDF A4, a la francaise : coordonnees de l'expediteur
- * en haut a gauche, destinataire a droite, lieu et date en dessous, puis le corps de la lettre.
+ * en haut a gauche, destinataire en dessous a droite, lieu et date sous le destinataire, puis "Objet :" en gras,
+ * le corps justifie (une ligne vide entre les paragraphes) et le nom du candidat, sans signature manuscrite.
  */
 public final class LettrePdf {
 
@@ -24,12 +25,12 @@ public final class LettrePdf {
         public static final EnTete VIDE = new EnTete(null, null, null);
     }
 
-    private static final float MARGE = 64;
+    private static final float MARGE = 68;
     private static final float LARGEUR = PDRectangle.A4.getWidth() - 2 * MARGE;
     /** Le bloc destinataire et la date commencent a 55 % de la largeur de la page. */
-    private static final float X_DROITE = PDRectangle.A4.getWidth() * 0.55f;
+    private static final float X_DROITE = PDRectangle.A4.getWidth() * 0.56f;
     /** Tailles de police essayees dans l'ordre pour que la lettre tienne sur une page. */
-    private static final float[] TAILLES = {11, 10.5f, 10, 9.6f};
+    private static final float[] TAILLES = {11, 10.5f, 10, 9.6f, 9.2f};
 
     private LettrePdf() {
     }
@@ -56,7 +57,7 @@ public final class LettrePdf {
     private static Rendu rendre(EnTete entete, String texte, float taille) {
         PDType1Font police = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
         PDType1Font gras = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
-        float interligne = taille * 1.42f;
+        float interligne = taille * 1.3f;
         try (PDDocument doc = new PDDocument(); ByteArrayOutputStream sortie = new ByteArrayOutputStream()) {
             Page page = new Page(doc, taille, interligne);
             float haut = page.y;
@@ -69,16 +70,16 @@ public final class LettrePdf {
                 yGauche -= interligne;
             }
 
-            // Destinataire (droite), aligne sur la meme colonne que la date, sous le haut de l'expediteur
+            // Destinataire (droite), sous l'expediteur, aligne sur la meme colonne que la date
             List<String> destinataire = blocs(entete.destinataire(), police,
                     PDRectangle.A4.getWidth() - MARGE - X_DROITE, taille);
-            float yDroite = haut - (expediteur.isEmpty() ? 0 : 3 * interligne);
+            float yDroite = expediteur.isEmpty() ? haut : yGauche - interligne;
             for (int i = 0; i < destinataire.size(); i++) {
                 page.ecrire(X_DROITE, yDroite, destinataire.get(i), i == 0 ? gras : police);
                 yDroite -= interligne;
             }
 
-            float y = Math.min(yGauche, yDroite);
+            float y = destinataire.isEmpty() ? yGauche : yDroite;
             String lieuDate = nettoyer(entete.lieuDate() == null ? "" : entete.lieuDate(), police).strip();
             if (!lieuDate.isEmpty()) {
                 y -= interligne;
@@ -86,10 +87,10 @@ public final class LettrePdf {
                 y -= interligne;
             }
             if (y < haut) {
-                y -= 1.5f * interligne;
+                y -= 2 * interligne;
             }
 
-            // Corps : paragraphes justifies, separes par un espace ; "Objet :" en gras ; signature a droite
+            // Corps : paragraphes justifies separes par une ligne vide ; "Objet :" en gras ; nom a gauche
             page.y = y;
             String nom = expediteur.isEmpty() ? null : expediteur.getFirst().strip();
             List<String> paragraphes = paragraphes(nettoyer(texte, police));
@@ -97,12 +98,9 @@ public final class LettrePdf {
                 String para = paragraphes.get(i);
                 boolean signature = i == paragraphes.size() - 1 && nom != null && para.strip().equalsIgnoreCase(nom);
                 if (signature) {
-                    page.y -= interligne * 0.5f;
-                    page.ligneAlignee(para.strip(), gras, true);
-                } else if (para.regionMatches(true, 0, "Objet", 0, 5)) {
-                    for (String ligne : couper(para, gras, LARGEUR, taille)) {
-                        page.ligne(ligne, gras, false);
-                    }
+                    page.ligneAlignee(para.strip(), police, false);
+                } else if (para.matches("(?i)^objet\\s*:.*")) {
+                    page.objet(para, gras, police);
                 } else {
                     List<String> lignes = couper(para, police, LARGEUR, taille);
                     for (int j = 0; j < lignes.size(); j++) {
@@ -110,7 +108,7 @@ public final class LettrePdf {
                         page.ligne(lignes.get(j), police, j < lignes.size() - 1);
                     }
                 }
-                page.y -= interligne * 0.55f;
+                page.y -= interligne;
             }
             page.fermer();
             doc.save(sortie);
@@ -190,7 +188,26 @@ public final class LettrePdf {
             y -= interligne;
         }
 
-        /** Ligne alignee a droite (signature). */
+        /** "Objet :" en gras, suivi du sujet en police normale (sur plusieurs lignes si besoin). */
+        void objet(String para, PDType1Font gras, PDType1Font police) throws IOException {
+            int deuxPoints = para.indexOf(':');
+            String libelle = para.substring(0, deuxPoints + 1).strip() + " ";
+            String sujet = para.substring(deuxPoints + 1).strip();
+            float decalage = gras.getStringWidth(libelle) / 1000 * taille;
+            List<String> lignes = couper(sujet, police, LARGEUR - decalage, taille);
+            for (int i = 0; i < lignes.size(); i++) {
+                if (y < MARGE) {
+                    nouvelle();
+                }
+                if (i == 0) {
+                    ecrire(MARGE, y, libelle, gras);
+                }
+                ecrire(MARGE + decalage, y, lignes.get(i), police);
+                y -= interligne;
+            }
+        }
+
+        /** Ligne alignee a gauche ou a droite (nom du candidat). */
         void ligneAlignee(String texte, PDType1Font police, boolean droite) throws IOException {
             if (y < MARGE) {
                 nouvelle();

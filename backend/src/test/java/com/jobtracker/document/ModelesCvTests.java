@@ -41,7 +41,13 @@ class ModelesCvTests {
                         new CvPdf.Experience("Développeur (stage)", "Yamo Group Sarl", "Yaoundé", "Févr. 2025 - Juil. 2025",
                                 List.of("Conçu une API Flask de recherche documentaire intégrée au middleware interne",
                                         "Automatisé les tests (pytest) et conteneurisé l'application avec Docker"))),
-                base.projets(), base.formations(), base.langues(), base.atouts(), base.centresInteret(), base.liens(),
+                base.projets(),
+                List.of(new CvPdf.Formation("Cycle Expert en architecture logicielle", "3IL Ingénieurs", "Sept. 2025 - présent",
+                                "Spécialisation architectures SOA et intégration d'APIs", "Limoges"),
+                        new CvPdf.Formation("Diplôme d'ingénieur en génie informatique", "École polytechnique de Douala",
+                                "2020 - 2025", null, "Douala"),
+                        new CvPdf.Formation("Baccalauréat scientifique", "Lycée de Bafang", "2019", "Mention bien", "Bafang")),
+                base.langues(), base.atouts(), base.centresInteret(), base.liens(),
                 modele, avecPhoto);
     }
 
@@ -56,14 +62,19 @@ class ModelesCvTests {
                 String texte = TexteDocument.extraire(pdf, "cv.pdf", "application/pdf").replace("\r", "")
                         .replaceAll(" +", " ");
                 int nom = texte.toUpperCase().indexOf("FRANCK TAGUE");
-                int experience = texte.indexOf("EXPÉRIENCE PROFESSIONNELLE");
-                int formation = texte.indexOf("FORMATION");
-                assertTrue(nom >= 0 && nom < experience && experience < formation, modele + "\n" + texte);
-                assertTrue(texte.contains("DITS Group | Livry-sur-Seine | Juin 2026 - Sept. 2026"), modele + "\n" + texte);
+                int experience = texte.indexOf("EXPÉRIENCES PROFESSIONNELLES");
+                if (experience < 0) {
+                    experience = texte.indexOf("EXPÉRIENCE PROFESSIONNELLE");
+                }
+                assertTrue(nom >= 0 && nom < experience && texte.contains("FORMATION"), modele + "\n" + texte);
+                // Toutes les formations sont gardees
+                assertTrue(texte.contains("Cycle Expert") && texte.contains("génie informatique")
+                        && texte.contains("Baccalauréat scientifique"), modele + "\n" + texte);
+                assertTrue(texte.toUpperCase().contains("DITS GROUP") && texte.contains("Juin 2026 - Sept. 2026"), modele + "\n" + texte);
                 assertTrue(texte.contains("\n• Développé une API REST"), modele + "\n" + texte);
                 if (avecPhoto) {
                     try (var doc = Loader.loadPDF(pdf)) {
-                        ImageIO.write(new PDFRenderer(doc).renderImageWithDPI(0, 60), "png",
+                        ImageIO.write(new PDFRenderer(doc).renderImageWithDPI(0, 80), "png",
                                 new File("target/cv-" + modele.toLowerCase() + ".png"));
                     }
                 }
@@ -72,7 +83,7 @@ class ModelesCvTests {
     }
 
     @Test
-    void lettreJustifieeSurUnePageAvecSignatureADroite() throws Exception {
+    void lettreJustifieeSurUnePageSansSignature() throws Exception {
         String corps = """
                 Objet : Candidature au poste de développeur Java en alternance
 
@@ -82,7 +93,9 @@ class ModelesCvTests {
 
                 %s
 
-                Je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+                Je reste à votre disposition pour un entretien. Je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+
+                Cordialement,
 
                 Franck Tague
                 """.formatted("Votre entreprise conçoit des applications utilisées par des milliers de clients. ".repeat(6),
@@ -92,7 +105,7 @@ class ModelesCvTests {
                 corps);
         try (var doc = Loader.loadPDF(pdf)) {
             assertEquals(1, doc.getNumberOfPages());
-            ImageIO.write(new PDFRenderer(doc).renderImageWithDPI(0, 60), "png", new File("target/lettre.png"));
+            ImageIO.write(new PDFRenderer(doc).renderImageWithDPI(0, 80), "png", new File("target/lettre.png"));
         }
         String texte = TexteDocument.extraire(pdf, "lettre.pdf", "application/pdf");
         assertTrue(texte.contains("Objet : Candidature"), texte);

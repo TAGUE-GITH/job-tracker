@@ -700,19 +700,37 @@ button.icon { display: inline-flex; align-items: center; }
 .modele-cv.choisi { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 25%, transparent); }
 .modele-cv strong { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.9rem; }
 .modele-cv small { color: var(--muted); font-size: 0.76rem; line-height: 1.35; }
-.apercu-modele { position: relative; width: 100%; aspect-ratio: 0.72; background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 10% 9%; display: flex; flex-direction: column; gap: 5%; overflow: hidden; }
-.apercu-modele i { display: block; height: 3%; background: #d1d5db; border-radius: 1px; width: 92%; }
-.apercu-modele .a-nom { height: 6%; width: 52%; background: #1f2937; }
-.apercu-modele .a-titre { width: 40%; background: var(--couleur-modele); }
-.apercu-modele .a-rubrique { width: 100%; height: 2.5%; background: var(--couleur-modele); opacity: 0.9; margin-top: 4%; }
-.apercu-moderne .a-nom { background: var(--couleur-modele); }
-.apercu-moderne .a-rubrique { width: 36%; border-left: 3px solid var(--couleur-modele); background: #9ca3af; }
-.apercu-elegant { align-items: center; }
-.apercu-elegant .a-nom, .apercu-elegant .a-titre { margin: 0 auto; }
-.apercu-elegant .a-rubrique { height: 1px; background: #374151; }
-.apercu-compact { padding: 6% 6%; gap: 3.5%; }
-.apercu-compact .a-rubrique { height: 5%; background: #eef0f4; border-left: 30px solid transparent; box-shadow: inset 34px 0 0 #eef0f4, inset 0 0 0 99px #eef0f4; }
-.apercu-modele .a-photo { position: absolute; top: 8%; right: 8%; width: 20%; height: 18%; background: #94a3b8; border-radius: 2px; }
+.apercu-modele { position: relative; width: 100%; aspect-ratio: 0.72; background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 9% 8%; display: flex; flex-direction: column; gap: 3.2%; overflow: hidden; }
+.apercu-modele i, .apercu-modele b { display: block; height: 2.2%; min-height: 2px; background: #d1d5db; border-radius: 1px; width: 92%; flex-shrink: 0; }
+.apercu-modele .a-nom { height: 5.5%; width: 55%; background: #111827; }
+.apercu-modele .a-titre { width: 42%; background: #6b7280; }
+.apercu-modele .a-rubrique { width: 100%; height: 2.6%; background: #111827; margin-top: 3%; }
+.apercu-modele .a-photo { position: absolute; top: 7%; right: 8%; width: 22%; height: 16%; background: #94a3b8; }
+.apercu-modele .a-photo.rond { border-radius: 50%; height: auto; aspect-ratio: 1; }
+.apercu-classique { align-items: center; }
+.apercu-classique .a-rubrique { height: 1.6%; border-bottom: 1px solid #111827; }
+.apercu-classique .a-ligne { display: flex; justify-content: space-between; width: 100%; }
+.apercu-classique .a-ligne i { width: 42%; height: 4px; }
+.apercu-classique .a-ligne i + i { width: 22%; }
+.apercu-moderne .a-rubrique { height: 1.4%; }
+.apercu-moderne .a-deux { display: flex; gap: 6%; width: 100%; }
+.apercu-moderne .a-deux > i { width: 24%; height: 4px; }
+.apercu-moderne .a-deux > span { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.apercu-moderne .a-deux > span i { width: 100%; height: 4px; }
+.apercu-moderne .a-grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px 8%; width: 100%; }
+.apercu-moderne .a-grille i { width: 100%; height: 4px; }
+.apercu-elegant { flex-direction: row; padding: 0; gap: 0; }
+.apercu-elegant .a-cote { width: 34%; background: #f3e9dc; padding: 9% 5%; display: flex; flex-direction: column; gap: 3.2%; }
+.apercu-elegant .a-cote .a-photo { position: static; width: 60%; margin: 0 auto 6%; }
+.apercu-elegant .a-corps { flex: 1; padding: 9% 7%; display: flex; flex-direction: column; gap: 3.2%; }
+.apercu-elegant .a-nom { height: 7%; width: 85%; }
+.apercu-elegant .a-rubrique { width: 70%; height: 3%; }
+.apercu-elegant .a-cote .a-rubrique { width: 60%; }
+.apercu-elegant .a-ocre { width: 55%; background: #d4995c; }
+.apercu-compact { border-left: 7px solid #e5e5e8; }
+.apercu-compact .a-nom { height: 6.5%; }
+.apercu-compact .a-titre { height: 3.5%; width: 55%; }
+.apercu-compact .a-rubrique { width: 62%; height: 3.6%; margin-top: 5%; }
 .case-photo { margin: 0.8rem 0 0.2rem; font-weight: 500; }
 .case-photo span { display: inline-flex; align-items: center; gap: 0.35rem; }
 .choix-modele > p { margin: 0; }

@@ -37,18 +37,66 @@ function versCv(f) {
   return cv
 }
 
-// Modeles de CV : tous sur une colonne, en vrai texte, lisibles par les logiciels de tri (ATS)
+// Modeles de CV, en vrai texte lisible par les logiciels de tri (ATS)
 const MODELES = [
-  { code: 'CLASSIQUE', nom: 'Classique', detail: 'Sobre, titres bleu marine soulignés', couleur: '#1e3a8a' },
-  { code: 'MODERNE', nom: 'Moderne', detail: 'Nom en couleur, titres avec barre latérale', couleur: '#0f5e54' },
-  { code: 'ELEGANT', nom: 'Élégant', detail: 'Police à empattements, titres centrés', couleur: '#2b3340', serif: true },
-  { code: 'COMPACT', nom: 'Compact', detail: 'Marges réduites, idéal pour un CV dense', couleur: '#1d4ed8' },
+  { code: 'CLASSIQUE', nom: 'Classique', detail: 'Nom centré, formation en tête, dates à droite. Sans photo.', photo: false },
+  { code: 'MODERNE', nom: 'Chronologique', detail: 'Dates dans une colonne à gauche, photo carrée à droite.', photo: true },
+  { code: 'ELEGANT', nom: 'Colonne beige', detail: 'Contact, profil et compétences dans une colonne beige.', photo: true },
+  { code: 'COMPACT', nom: 'Épuré', detail: 'Bande grise, photo ronde, grands titres en gras.', photo: true },
 ]
+
+/** Miniature du modele de CV (forme generale de la page). */
+function ApercuModele({ code, photo }) {
+  const lignes = (n, cle) => Array.from({ length: n }, (_, i) => <i key={`${cle}${i}`} />)
+  if (code === 'ELEGANT') {
+    return (
+      <span className="apercu-modele apercu-elegant" aria-hidden="true">
+        <span className="a-cote">
+          {photo && <b className="a-photo rond" />}
+          <b className="a-rubrique" />{lignes(3, 'c')}<b className="a-rubrique" />{lignes(4, 'p')}<b className="a-rubrique" />{lignes(3, 's')}
+        </span>
+        <span className="a-corps">
+          <b className="a-nom" /><i className="a-titre" />
+          <b className="a-rubrique" /><i className="a-ocre" />{lignes(4, 'e')}<b className="a-rubrique" /><i className="a-ocre" />{lignes(3, 'f')}
+        </span>
+      </span>
+    )
+  }
+  if (code === 'MODERNE') {
+    return (
+      <span className="apercu-modele apercu-moderne" aria-hidden="true">
+        {photo && <b className="a-photo" />}
+        <b className="a-nom" /><i className="a-titre" />{lignes(2, 'c')}
+        <b className="a-rubrique" />
+        {[0, 1, 2].map((k) => <span key={k} className="a-deux"><i /><span>{lignes(2, `d${k}`)}</span></span>)}
+        <b className="a-rubrique" />
+        <span className="a-grille">{lignes(6, 'g')}</span>
+      </span>
+    )
+  }
+  if (code === 'COMPACT') {
+    return (
+      <span className="apercu-modele apercu-compact" aria-hidden="true">
+        {photo && <b className="a-photo rond" />}
+        <b className="a-nom" /><i className="a-titre" />{lignes(3, 'c')}
+        <b className="a-rubrique" />{lignes(4, 'e')}<b className="a-rubrique" />{lignes(3, 'f')}
+      </span>
+    )
+  }
+  return (
+    <span className="apercu-modele apercu-classique" aria-hidden="true">
+      <b className="a-nom" /><i className="a-titre" />
+      <b className="a-rubrique" />{[0, 1].map((k) => <span key={k} className="a-ligne"><i /><i /></span>)}
+      <b className="a-rubrique" />{[0, 1, 2].map((k) => <span key={k} className="a-ligne"><i /><i /></span>)}{lignes(2, 'p')}
+      <b className="a-rubrique" />{lignes(2, 'x')}
+    </span>
+  )
+}
 
 const VIDES = {
   experiences: { poste: '', entreprise: '', lieu: '', periode: '', missions: '' },
   projets: { nom: '', description: '', points: '', technologies: '' },
-  formations: { diplome: '', etablissement: '', periode: '', details: '' },
+  formations: { diplome: '', etablissement: '', lieu: '', periode: '', details: '' },
 }
 
 export default function CvAdapte({ candidature, cvId, onChange, Score }) {
@@ -120,7 +168,8 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
           ORVYNA réécrit ton CV pour cette offre : titre, profil, compétences dans l'ordre de l'offre (avec celles de
           l'offre proches des tiennes), tes 2 expériences pro et tes 2 projets perso les plus proches du poste,
           détaillés avec ses mots-clés, atouts et centres d'intérêt, le tout sur une page. Il n'invente ni expérience ni diplôme.
-          Le PDF est pensé pour les logiciels de tri (ATS) : une colonne, du vrai texte, des rubriques classiques.
+          Toutes tes formations sont gardées. Tu choisis ensuite parmi 4 mises en forme, toutes en vrai texte lisible par
+          les logiciels de tri (ATS).
         </p>
       )}
       <button className="btn primary" onClick={adapter} disabled={chargement}>
@@ -196,6 +245,7 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
                 <div className="grid-2">
                   <Champ libelle="Diplôme" valeur={f.diplome} onChange={(v) => changerElement('formations', i, 'diplome', v)} />
                   <Champ libelle="Établissement" valeur={f.etablissement} onChange={(v) => changerElement('formations', i, 'etablissement', v)} />
+                  <Champ libelle="Ville" valeur={f.lieu} onChange={(v) => changerElement('formations', i, 'lieu', v)} />
                   <Champ libelle="Période" valeur={f.periode} onChange={(v) => changerElement('formations', i, 'periode', v)} />
                   <Champ libelle="Détails" valeur={f.details} onChange={(v) => changerElement('formations', i, 'details', v)} />
                 </div>
@@ -216,11 +266,8 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
               {MODELES.map((m) => (
                 <button key={m.code} type="button" role="radio" aria-checked={modele === m.code}
                   className={`modele-cv ${modele === m.code ? 'choisi' : ''}`} onClick={() => setModele(m.code)}>
-                  <span className={`apercu-modele apercu-${m.code.toLowerCase()}`} style={{ '--couleur-modele': m.couleur }} aria-hidden="true">
-                    <i className="a-nom" /><i className="a-titre" /><i className="a-rubrique" /><i /><i /><i className="a-rubrique" /><i /><i />
-                    {avecPhoto && aUnePhoto && <i className="a-photo" />}
-                  </span>
-                  <strong style={m.serif ? { fontFamily: 'Georgia, serif' } : undefined}>
+                  <ApercuModele code={m.code} photo={m.photo && avecPhoto && aUnePhoto} />
+                  <strong>
                     {modele === m.code && <Check size={14} />} {m.nom}
                   </strong>
                   <small>{m.detail}</small>
@@ -230,11 +277,13 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
             <label className="checkbox case-photo">
               <input type="checkbox" checked={avecPhoto && aUnePhoto} disabled={!aUnePhoto}
                 onChange={(e) => setAvecPhoto(e.target.checked)} />
-              <span><Camera size={15} /> Ajouter ma photo en haut à droite</span>
+              <span><Camera size={15} /> Ajouter ma photo</span>
             </label>
             <p className="muted small">
               {aUnePhoto
-                ? 'La photo est facultative : en France elle est courante, mais de nombreux recruteurs à l’international préfèrent un CV sans photo.'
+                ? (modele === 'CLASSIQUE'
+                  ? 'Le modèle Classique se présente sans photo, comme les CV internationaux : choisis un autre modèle pour l’afficher.'
+                  : 'La photo est facultative : en France elle est courante, mais de nombreux recruteurs à l’international préfèrent un CV sans photo.')
                 : <>Pour ajouter une photo, enregistre-la d'abord dans <Link to="/compte">Paramètres du compte</Link>.</>}
             </p>
           </fieldset>

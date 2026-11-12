@@ -1,5 +1,6 @@
 package com.jobtracker.document;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -37,22 +38,22 @@ class CvPdfTests {
         byte[] pdf = CvPdf.generer(new CvPdf.Contact("Franck Tague", "franck@exemple.fr", "06 12 34 56 78",
                 "12 rue des Lilas\n75011 Paris"), CV);
         String texte = TexteDocument.extraire(pdf, "cv.pdf", "application/pdf").replace("\r", "").replaceAll(" +", " ");
-        // Texte reel, dans l'ordre de lecture attendu par les logiciels de tri
-        int nom = texte.indexOf("Franck Tague");
-        int competences = texte.indexOf("COMPÉTENCES");
-        int experience = texte.indexOf("EXPÉRIENCE PROFESSIONNELLE");
+        // Texte reel, dans l'ordre de lecture attendu : formation en tete (modele classique), puis experiences
+        int nom = texte.indexOf("FRANCK TAGUE");
         int formation = texte.indexOf("FORMATION");
-        assertTrue(nom >= 0 && nom < competences && competences < experience && experience < formation, texte);
+        int experience = texte.indexOf("EXPÉRIENCE PROFESSIONNELLE");
+        int infos = texte.indexOf("COMPÉTENCES ET INFORMATIONS");
+        assertTrue(nom >= 0 && nom < formation && formation < experience && experience < infos, texte);
         assertTrue(texte.contains("Spring Boot"), texte);
         assertTrue(texte.contains("06 12 34 56 78"), texte);
-        assertTrue(texte.contains("CENTRES D'INTÉRÊT"), texte);
-        // Dates dans la meme ligne que le poste ou le diplome (pas rejetees en fin de document)
-        assertTrue(texte.contains("Développeur web (stage) - Atlas Studio | Paris | 2025"), texte);
-        assertTrue(texte.contains("Bachelor Développeur d'applications - École du Numérique | 2024 - 2027"), texte);
+        assertTrue(texte.contains("Centres d'intérêt : Football"), texte);
+        // Entreprise et lieu, puis poste et dates, sur la meme ligne (lieu et dates calés à droite)
+        assertTrue(texte.contains("ATLAS STUDIO Paris"), texte);
+        assertTrue(texte.contains("Développeur web (stage) 2025"), texte);
+        assertTrue(texte.contains("Bachelor Développeur d'applications 2024 - 2027"), texte);
         // Chaque mission sur sa propre ligne, precedee de sa puce
         assertTrue(texte.contains("\n• Développement d'API REST en Java avec Spring Boot"), texte);
         assertTrue(texte.contains("\n• Mise en place de tests automatisés"), texte);
-        assertTrue(texte.indexOf("2024 - 2027") < texte.indexOf("LANGUES"), texte);
 
         // Apercu visuel pour verification manuelle (target/cv-apercu.png)
         try (var doc = Loader.loadPDF(pdf)) {
@@ -120,6 +121,10 @@ class CvPdfTests {
                 new CvPdf.Cv(null, "Profil court mais suffisant pour etre lu par un logiciel.", null, null, null,
                         null, null, null, null, null, null));
         assertTrue(TexteDocument.extraire(pdf, "cv.pdf", "application/pdf").contains("PROFIL"));
+        for (String modele : CvPdf.MODELES) {
+            assertEquals(1, CvPdf.pages(CvPdf.generer(new CvPdf.Contact("Franck", null, null, null),
+                    new CvPdf.Cv(null, null, null, null, null, null, null, null, null, null, null, modele, false))));
+        }
     }
 
     @Test
