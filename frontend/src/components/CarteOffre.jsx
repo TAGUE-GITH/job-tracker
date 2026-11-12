@@ -3,6 +3,16 @@ import { Link } from 'react-router-dom'
 import { ExternalLink, Plus, Sparkles } from 'lucide-react'
 import { formatDate } from '../labels'
 
+/** Site Adzuna du pays de l'offre (www.adzuna.fr, www.adzuna.be...), sinon le site principal. */
+function siteAdzuna(url) {
+  try {
+    const hote = new URL(url).hostname
+    return hote.includes('adzuna.') ? `https://${hote}` : 'https://www.adzuna.co.uk'
+  } catch {
+    return 'https://www.adzuna.co.uk'
+  }
+}
+
 /**
  * Carte d'une offre : ajout au suivi, CV adapte par ORVYNA, lien pour postuler.
  * score / motsTrouves : correspondance avec le CV (offres recommandees).
@@ -50,7 +60,12 @@ export default function CarteOffre({ offre, candidatureId, onAjouter, onOuvrir, 
       <div className="offre-tags">
         {offre.contrat && <span className="badge bleu">{offre.contrat}</span>}
         {offre.salaire && <span className="badge vert">{offre.salaire}</span>}
-        <span className="badge gris">{offre.source}</span>
+        {offre.source === 'Adzuna' ? (
+          // Exigence des conditions d'Adzuna : mention "Adzuna" d'au moins 116 x 23 px, liee a leur site
+          <a className="mention-adzuna" href={siteAdzuna(offre.url)} target="_blank" rel="noopener noreferrer">
+            Offre via Adzuna
+          </a>
+        ) : <span className="badge gris">{offre.source}</span>}
         {candidatureId && <span className="badge orange">Dans ton suivi</span>}
       </div>
 

@@ -733,3 +733,5 @@ button.icon { display: inline-flex; align-items: center; }
 .bloc-message label { margin: 0; }
 .bloc-message textarea { font-size: 0.9rem; line-height: 1.5; }
 label.btn { flex-direction: row; margin: 0; font-weight: 550; }
+.mention-adzuna { display: inline-flex; align-items: center; justify-content: center; min-width: 116px; min-height: 23px; padding: 0.15rem 0.6rem; border-radius: 5px; font-size: 0.78rem; font-weight: 700; color: #fff; background: #2b7a3d; }
+.mention-adzuna:hover { text-decoration: none; filter: brightness(1.1); }
