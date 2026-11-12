@@ -168,4 +168,6 @@ export const api = {
   offres: ({ q = '', lieu = '', contrat = '', source = '', page = 0, pays = 'FR', domaine = '', tri = 'pertinence' } = {}) =>
     request(`/offres?${new URLSearchParams({ q, lieu, contrat, source, page, pays, domaine, tri })}`),
   criteresOffres: () => request('/offres/criteres'),
+  rechercheOffres: ({ q = '', lieu = '', pays = 'FR', contrat = '', domaine = '', tri = 'pertinence', periode = 0, page = 0 } = {}) =>
+    request(`/offres/recherche?${new URLSearchParams({ q, lieu, pays, contrat, domaine, tri, periode, page })}`),
 }

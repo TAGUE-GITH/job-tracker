@@ -13,15 +13,20 @@ public final class OffreDtos {
      * pays : code ISO (FR par defaut). domaine : null = tous les domaines. parDate : plus recentes d'abord.
      */
     public record Recherche(String motsCles, String lieu, String contrat, int page, String pays,
-            Catalogue.Domaine domaine, boolean parDate) {
+            Catalogue.Domaine domaine, boolean parDate, String motsClesEn) {
 
         public Recherche(String motsCles, String lieu, String contrat, int page) {
-            this(motsCles, lieu, contrat, page, "FR", null, false);
+            this(motsCles, lieu, contrat, page, "FR", null, false, null);
         }
 
         public Recherche(String motsCles, String lieu, String contrat, int page, String pays,
                 Catalogue.Domaine domaine) {
-            this(motsCles, lieu, contrat, page, pays, domaine, false);
+            this(motsCles, lieu, contrat, page, pays, domaine, false, null);
+        }
+
+        public Recherche(String motsCles, String lieu, String contrat, int page, String pays,
+                Catalogue.Domaine domaine, boolean parDate) {
+            this(motsCles, lieu, contrat, page, pays, domaine, parDate, null);
         }
 
         /** Mots-cles a envoyer a une API francophone : ceux de l'utilisateur, sinon le mot du domaine. */
@@ -29,8 +34,11 @@ public final class OffreDtos {
             return !motsCles.isBlank() || domaine == null ? motsCles : domaine.motFr();
         }
 
-        /** Idem pour une API anglophone. */
+        /** Idem pour une API anglophone (traduction fournie par la comprehension de la recherche). */
         public String requeteEn() {
+            if (motsClesEn != null && !motsClesEn.isBlank()) {
+                return motsClesEn;
+            }
             return !motsCles.isBlank() || domaine == null ? motsCles : domaine.motEn();
         }
     }

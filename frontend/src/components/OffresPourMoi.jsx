@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowDownUp, Briefcase, FileUp, Globe, MapPin, RefreshCw, Sparkles } from 'lucide-react'
 import { api } from '../api'
 import OrvynaAvatar from './OrvynaAvatar.jsx'
-import CarteOffre from './CarteOffre.jsx'
+import ListeDetailOffres from './ListeDetailOffres.jsx'
 import { creerCandidatureDepuisOffre } from '../offreSuivi.js'
 
 const CONTRATS = [
@@ -190,15 +190,14 @@ export default function OffresPourMoi({ pays, suivies, setSuivies }) {
       {erreur && <div className="card alerte"><strong>Recherche impossible</strong><p>{erreur}</p></div>}
       {chargement && <p className="muted">ORVYNA cherche les offres qui te correspondent…</p>}
       {resultat && !chargement && (
-        <p className="muted small">{resultat.offres.length} offre{resultat.offres.length > 1 ? 's' : ''} pour toi · {resultat.remarque}</p>
+        <div className="interpretation">
+          <span><strong>{resultat.offres.length} offre{resultat.offres.length > 1 ? 's' : ''}</strong> correspondant à ton profil, de la plus proche à la plus éloignée</span>
+        </div>
       )}
-      <div className="offres">
-        {!chargement && resultat?.offres.map((r) => (
-          <CarteOffre key={r.offre.id} offre={r.offre} score={r.score} motsTrouves={r.motsTrouves}
-            candidatureId={suivies[r.offre.url]} onAjouter={ajouter}
-            onOuvrir={(id, outil) => navigate(`/candidatures/${id}${outil ? `?outil=${outil}` : ''}`)} />
-        ))}
-      </div>
+      {!chargement && resultat && (
+        <ListeDetailOffres items={resultat.offres} suivies={suivies} onAjouter={ajouter}
+          onOuvrir={(id, outil) => navigate(`/candidatures/${id}${outil ? `?outil=${outil}` : ''}`)} />
+      )}
       {resultat && resultat.offres.length === 0 && !chargement && (
         <div className="card vide">
           <p className="muted">Aucune offre assez proche de ton CV pour ces critères. Essaie un autre pays, « Tous les contrats » ou la recherche libre.</p>

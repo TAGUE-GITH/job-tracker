@@ -15,9 +15,41 @@ public class OffreController {
     private static final Set<String> CONTRATS = Set.of("", "ALTERNANCE", "STAGE", "CDI", "CDD");
 
     private final OffreService offreService;
+    private final RechercheService rechercheService;
 
-    public OffreController(OffreService offreService) {
+    public OffreController(OffreService offreService, RechercheService rechercheService) {
         this.offreService = offreService;
+        this.rechercheService = rechercheService;
+    }
+
+    private static final Set<Integer> PERIODES = Set.of(0, 1, 3, 7, 30);
+
+    /**
+     * Recherche unifiee : la requete est comprise (sens, synonymes, traduction), toutes les sources du pays sont
+     * interrogees et seules les offres pertinentes sont renvoyees. periode : offres publiees depuis N jours (0 = toutes).
+     */
+    @GetMapping("/api/offres/recherche")
+    public RechercheService.Resultats recherche(
+            @RequestParam(defaultValue = "") String q,
+            @RequestParam(defaultValue = "") String lieu,
+            @RequestParam(defaultValue = "FR") String pays,
+            @RequestParam(defaultValue = "") String contrat,
+            @RequestParam(defaultValue = "") String domaine,
+            @RequestParam(defaultValue = "pertinence") String tri,
+            @RequestParam(defaultValue = "0") int periode,
+            @RequestParam(defaultValue = "0") int page) {
+        if (!CONTRATS.contains(contrat)) {
+            throw new IllegalArgumentException("Type de contrat inconnu : " + contrat);
+        }
+        if (!PERIODES.contains(periode) || page < 0 || page > 50 || q.length() > 200) {
+            throw new IllegalArgumentException("Recherche invalide");
+        }
+        Catalogue.Pays p = Catalogue.pays(pays)
+                .orElseThrow(() -> new IllegalArgumentException("Pays non pris en charge : " + pays));
+        Catalogue.Domaine d = domaine.isBlank() ? null : Catalogue.domaine(domaine)
+                .orElseThrow(() -> new IllegalArgumentException("Domaine inconnu : " + domaine));
+        return rechercheService.rechercher(q, lieu.strip(), p.code(), contrat, d, "date".equalsIgnoreCase(tri),
+                periode, page);
     }
 
     @GetMapping("/api/offres")

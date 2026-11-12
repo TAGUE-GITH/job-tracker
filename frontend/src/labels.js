@@ -25,3 +25,14 @@ export const aujourdhui = () => new Date().toISOString().slice(0, 10)
 /** "Franck Tague" -> "FT" (pastille de profil) */
 export const initiales = (nom) => (nom ?? '?').split(/\s+/).filter(Boolean).slice(0, 2)
   .map((m) => m[0].toUpperCase()).join('') || '?'
+
+/** "Aujourd'hui", "Hier", "Il y a 3 jours", "Il y a 2 semaines"... */
+export function depuis(iso) {
+  if (!iso) return null
+  const jours = Math.round((Date.now() - new Date(`${iso}T12:00:00`).getTime()) / 86400000)
+  if (jours <= 0) return "Aujourd'hui"
+  if (jours === 1) return 'Hier'
+  if (jours < 7) return `Il y a ${jours} jours`
+  if (jours < 30) return `Il y a ${Math.round(jours / 7)} semaine${jours >= 11 ? 's' : ''}`
+  return `Il y a ${Math.round(jours / 30)} mois`
+}

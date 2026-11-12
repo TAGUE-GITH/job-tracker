@@ -117,7 +117,7 @@ public class HimalayasSource implements SourceOffres {
                 SourceOffres.sansHtml(o.title()),
                 o.companyName(),
                 lieu(o, pays),
-                o.employmentType(),
+                contratFr(o.employmentType()),
                 salaire(o),
                 SourceOffres.sansHtml(o.excerpt()),
                 url,
@@ -135,6 +135,21 @@ public class HimalayasSource implements SourceOffres {
             return "Télétravail · " + nomPays;
         }
         return "Télétravail · " + zones.size() + " pays dont " + nomPays;
+    }
+
+    /** Types de contrat de Himalayas en francais. */
+    static String contratFr(String type) {
+        if (type == null) {
+            return null;
+        }
+        return switch (type.toLowerCase(Locale.ROOT)) {
+            case "full time" -> "Temps plein";
+            case "part time" -> "Temps partiel";
+            case "contractor" -> "Freelance";
+            case "intern" -> "Stage";
+            case "temporary" -> "Temporaire";
+            default -> type;
+        };
     }
 
     private static String salaire(Offre o) {

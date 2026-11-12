@@ -49,21 +49,21 @@ public class IaService {
             "Parametres du compte", "Donner mon avis", "Aide et contact", "Page d'accueil" (et "Administration" pour \
             les administrateurs) ; en bas, le nom de l'utilisateur et le bouton de deconnexion. Sur telephone, la barre \
             s'ouvre avec le bouton a trois traits en haut a droite.
-            - Offres d'emploi : recherche par mots-cles et lieu, avec les filtres Pays (France, Belgique, Suisse, \
-            Canada, Allemagne, Royaume-Uni, Espagne, Etats-Unis, Maroc, Senegal, Cameroun...), Domaine (informatique, \
-            marketing, finance, sante, logistique, BTP...) et Contrat. Selon le pays, plusieurs sources (onglets) : \
-            La bonne alternance (alternance en France), Jooble (tous contrats en France), Himalayas (teletravail \
-            ouvert aux candidats du pays choisi, souvent en anglais) et Arbeitnow (Allemagne). Les filtres choisis \
-            sont retenus pour la visite suivante. Liens "Voir aussi" vers LinkedIn, Indeed, Welcome to the Jungle, \
-            HelloWork et Apec. "Postuler" ouvre l'annonce sur le site d'origine ; "Ajouter au suivi" cree \
-            automatiquement la candidature avec le texte de l'offre. On ne peut pas envoyer sa candidature \
-            directement depuis Postulyn : la candidature se fait toujours sur le site du recruteur.
-            - Page Offres, onglet "Offres pour moi" : on choisit ou importe son CV, "Analyser ce CV" ; ORVYNA en tire \
+            - Offres d'emploi, onglet "Rechercher" : une grande barre (metier ou mot-cle, lieu, pays), puis des \
+            pastilles de contrat (Tous, CDI, CDD, Alternance, Stage), la date de publication (24 h, 3, 7 ou 30 jours), \
+            le domaine et le tri (plus pertinentes ou plus recentes). La recherche comprend le sens : abreviations \
+            (dev, compta, RH), fautes, synonymes et traductions ("dev full stack" trouve aussi "Fullstack developer" \
+            et "Developpeur web") ; elle indique ce qu'elle a compris et les intitules equivalents inclus (cliquables \
+            pour affiner) ; seules les offres pertinentes sont gardees. Les resultats s'affichent en liste a gauche et \
+            l'offre choisie en detail a droite (en plein ecran sur telephone) avec "Postuler" (site du recruteur), \
+            "Adapter mon CV" et "Suivre" (ajoute la candidature avec le texte de l'offre). Les filtres sont retenus \
+            pour la visite suivante. Si rien ne correspond, des intitules proches et "Retirer tous les filtres" sont \
+            proposes. On ne peut pas envoyer sa candidature directement depuis Postulyn : elle se fait toujours sur \
+            le site du recruteur. Postulyn ne mentionne pas d'ou viennent les offres.
+            - Offres d'emploi, onglet "Selon mon CV" : on choisit ou importe son CV, "Analyser ce CV" ; ORVYNA en tire \
             un profil (metiers, competences, niveau) et Postulyn cherche les offres correspondantes, classees avec un \
             pourcentage de correspondance et les mots en commun avec le CV ; filtres Pays, Contrat, Lieu, tri par \
-            correspondance ou par date ; "Reanalyser" apres avoir change de CV. Onglet "Recherche libre" : recherche \
-            classique avec l'onglet "Toutes les sources" qui reunit toutes les sources du pays, et le tri "Les plus \
-            recentes". En Belgique, les offres viennent surtout du Forem. Sur chaque offre, "Adapter mon CV" ajoute \
+            correspondance ou par date ; "Reanalyser" apres avoir change de CV. Sur chaque offre, "Adapter mon CV" ajoute \
             l'offre au suivi et ouvre directement l'onglet "CV adapte".
             - CV adapte : 4 modeles compatibles ATS (Classique, Moderne, Elegant, Compact) a choisir avant \
             "Enregistrer le CV en PDF", et la case "Ajouter ma photo" (photo a enregistrer dans Parametres du compte \
@@ -134,7 +134,8 @@ public class IaService {
             - Email de reinitialisation non recu : regarder les spams, attendre quelques minutes, verifier l'adresse ; \
             au plus 3 demandes par heure.
             - Aucune offre : elargir les mots-cles, choisir "Tous les contrats" ou "Tous les domaines", essayer un \
-            autre onglet de source ou un autre pays ; l'alternance n'existe qu'en France.
+            intitule proche (ceux proposes sous la recherche), retirer les filtres ou changer de pays ; l'alternance \
+            n'existe qu'en France.
             - Import de document refuse : 10 Mo maximum ; pour l'IA, preferer un PDF avec du vrai texte (pas un scan) \
             ou un Word .docx.
             - Les fonctions IA repondent "service indisponible" : reessayer dans une minute (limite du fournisseur d'IA).
@@ -417,6 +418,38 @@ public class IaService {
                         """.formatted(domaines)),
                 new Message("user", "CV DU CANDIDAT :\n" + (cv.length() > 12000 ? cv.substring(0, 12000) : cv)));
         return new IaResponse(json(appeler(messages, true), "L'IA n'a pas pu lire ce CV, reessaie"));
+    }
+
+    /** Vrai si une cle d'IA est configuree. */
+    public boolean disponible() {
+        return apiKey != null && !apiKey.isBlank();
+    }
+
+    /**
+     * Comprend une recherche d'offres (JSON) : intitule corrige, sa traduction anglaise, les intitules
+     * equivalents, les competences typiques du poste, et le contrat ou le lieu s'ils sont dans la phrase.
+     */
+    public IaResponse comprendreRecherche(String requete, String nomPays) {
+        String domaines = java.util.Arrays.stream(com.jobtracker.offre.Catalogue.Domaine.values())
+                .map(Enum::name).collect(java.util.stream.Collectors.joining(", "));
+        List<Message> messages = List.of(
+                new Message("system", """
+                        Tu es le moteur de recherche d'un site d'emploi. Tu analyses ce que le candidat tape pour \
+                        retrouver les offres qui correspondent vraiment a son intention, meme si les recruteurs \
+                        emploient d'autres mots. Corrige les fautes et les abreviations (dev -> developpeur, \
+                        compta -> comptabilite, RH -> ressources humaines). Pays de la recherche : %s.
+                        Reponds UNIQUEMENT avec un objet JSON valide :
+                        {"intitule": "intitule de poste clair en francais, sans contrat ni lieu (ex. Developpeur full stack)",
+                         "intituleEn": "le meme intitule en anglais (ex. Full stack developer)",
+                         "synonymes": ["4 a 6 intitules equivalents utilises dans les offres, francais et anglais, \
+                        du plus proche au moins proche"],
+                         "competences": ["3 a 6 competences ou outils typiques de ce poste, pour reconnaitre les offres pertinentes"],
+                         "domaine": "un code parmi %s, ou vide",
+                         "contrat": "ALTERNANCE, STAGE, CDI ou CDD si la phrase le precise, sinon vide",
+                         "lieu": "ville ou region si la phrase en cite une, sinon vide"}
+                        """.formatted(nomPays, domaines)),
+                new Message("user", requete));
+        return new IaResponse(json(appeler(messages, true), "Recherche non comprise"));
     }
 
     /** Extrait l'objet JSON d'une reponse de l'IA. */

@@ -1,89 +1,69 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Globe, MapPin, Search, SearchX, Sparkles } from 'lucide-react'
 import { api } from '../api'
 import BoutonFavori from '../components/BoutonFavori.jsx'
 import OffresPourMoi from '../components/OffresPourMoi.jsx'
-import CarteOffre from '../components/CarteOffre.jsx'
+import ListeDetailOffres from '../components/ListeDetailOffres.jsx'
 import { creerCandidatureDepuisOffre } from '../offreSuivi.js'
-import { ArrowDownUp, Briefcase, ExternalLink, Globe, Info, Layers, Search, Sparkles } from 'lucide-react'
 
 const CONTRATS = [
-  { valeur: '', label: 'Tous les contrats' },
-  { valeur: 'ALTERNANCE', label: 'Alternance' },
-  { valeur: 'STAGE', label: 'Stage' },
+  { valeur: '', label: 'Tous' },
   { valeur: 'CDI', label: 'CDI' },
   { valeur: 'CDD', label: 'CDD' },
+  { valeur: 'ALTERNANCE', label: 'Alternance' },
+  { valeur: 'STAGE', label: 'Stage' },
 ]
+const PERIODES = [
+  { valeur: 0, label: 'Toutes les dates' },
+  { valeur: 1, label: 'Dernières 24 h' },
+  { valeur: 3, label: '3 derniers jours' },
+  { valeur: 7, label: '7 derniers jours' },
+  { valeur: 30, label: '30 derniers jours' },
+]
+const RECHERCHE_DEFAUT = { q: '', lieu: '', pays: 'FR', contrat: '', domaine: '', tri: 'pertinence', periode: 0 }
+const CLE_FILTRES = 'postulyn_recherche_offres'
+const CLE_MODE = 'postulyn_mode_offres'
 
-const RECHERCHE_DEFAUT = { q: '', lieu: '', contrat: '', source: '', pays: 'FR', domaine: '', tri: 'date' }
-const CLE_FILTRES = 'postulyn_filtres_offres'
-
-// Derniers filtres choisis, retrouves a la prochaine visite
-function filtresMemorises() {
+function lire(cle, defaut) {
   try {
-    const f = JSON.parse(localStorage.getItem(CLE_FILTRES) || 'null')
-    return f ? { ...RECHERCHE_DEFAUT, ...f, source: '' } : RECHERCHE_DEFAUT
+    const v = localStorage.getItem(cle)
+    return v ? JSON.parse(v) : defaut
   } catch {
-    return RECHERCHE_DEFAUT
+    return defaut
   }
 }
-
-// Sites Indeed par pays (www.indeed.com pour les Etats-Unis, uk pour le Royaume-Uni)
-const INDEED = { FR: 'fr', BE: 'be', CH: 'ch', LU: 'lu', CA: 'ca', DE: 'de', GB: 'uk', IE: 'ie', ES: 'es', PT: 'pt', IT: 'it', NL: 'nl', US: 'www', MA: 'ma' }
-
-const DEPARTEMENT = /^(\d{2,3}|2[ab])$/i
-const MOT_CONTRAT = { ALTERNANCE: 'alternance', STAGE: 'stage', CDI: 'CDI', CDD: 'CDD' }
-
-// Welcome to the Jungle, Apec et HelloWork n'ont pas d'API publique : on ouvre leur site avec la meme recherche
-function liensExternes({ q, lieu, contrat, pays }, nomPays, motDomaine) {
-  const mot = MOT_CONTRAT[contrat]
-  const base = q.trim() || motDomaine || ''
-  const motsCles = mot && !base.toLowerCase().includes(mot.toLowerCase()) ? `${base} ${mot}`.trim() : base
-  const linkedin = { nom: 'LinkedIn', url: `https://www.linkedin.com/jobs/search/?${new URLSearchParams({ keywords: motsCles, location: lieu.trim() || nomPays })}` }
-  const indeed = INDEED[pays]
-    ? [{ nom: 'Indeed', url: `https://${INDEED[pays]}.indeed.com/jobs?${new URLSearchParams({ q: motsCles, l: lieu.trim() })}` }]
-    : []
-  if (pays !== 'FR') return [linkedin, ...indeed]
-  const hellowork = new URLSearchParams({ k: motsCles })
-  if (lieu.trim()) hellowork.set('l', lieu.trim())
-  const apec = new URLSearchParams({ motsCles })
-  if (DEPARTEMENT.test(lieu.trim())) apec.set('lieux', lieu.trim().toUpperCase())
-  const wttj = new URLSearchParams({ query: motsCles })
-  if (lieu.trim() && !DEPARTEMENT.test(lieu.trim())) wttj.set('aroundQuery', lieu.trim())
-  return [
-    { nom: 'Welcome to the Jungle', url: `https://www.welcometothejungle.com/fr/jobs?${wttj}`, note: 'tech et startups' },
-    { nom: 'HelloWork', url: `https://www.hellowork.com/fr-fr/emploi/recherche.html?${hellowork}` },
-    { nom: 'Apec', url: `https://www.apec.fr/candidat/recherche-emploi.html/emploi?${apec}`, note: 'offres cadres' },
-    linkedin,
-    ...indeed,
-  ]
+function ecrire(cle, valeur) {
+  try { localStorage.setItem(cle, JSON.stringify(valeur)) } catch { /* stockage indisponible */ }
 }
 
 export default function Offres() {
   const navigate = useNavigate()
-  const [form, setForm] = useState(filtresMemorises)
+  const [mode, setMode] = useState(() => lire(CLE_MODE, 'recherche'))
+  const [form, setForm] = useState(() => ({ ...RECHERCHE_DEFAUT, ...lire(CLE_FILTRES, {}) }))
   const [criteres, setCriteres] = useState({ pays: [{ code: 'FR', nom: 'France' }], domaines: [] })
   const [resultat, setResultat] = useState(null)
-  const [chargement, setChargement] = useState(true)
+  const [chargement, setChargement] = useState(false)
   const [erreur, setErreur] = useState('')
   // lien de l'offre -> id de la candidature deja creee
   const [suivies, setSuivies] = useState({})
-  const [mode, setMode] = useState(() => {
-    try { return localStorage.getItem('postulyn_mode_offres') || 'pour-moi' } catch { return 'pour-moi' }
-  })
-  const changerMode = (m) => {
-    setMode(m)
-    try { localStorage.setItem('postulyn_mode_offres', m) } catch { /* stockage indisponible */ }
-  }
 
-  async function chercher(criteres, page) {
+  useEffect(() => {
+    api.criteresOffres().then(setCriteres).catch(() => {})
+    api.candidatures().then((liste) => {
+      const map = {}
+      liste.forEach((c) => { if (c.lienOffre) map[c.lienOffre] = c.id })
+      setSuivies(map)
+    }).catch(() => {})
+  }, [])
+
+  async function chercher(criteresRecherche, page = 0) {
     setErreur('')
     setChargement(true)
+    ecrire(CLE_FILTRES, criteresRecherche)
     try {
-      try { localStorage.setItem(CLE_FILTRES, JSON.stringify({ ...criteres, source: '' })) } catch { /* stockage indisponible */ }
-      const res = await api.offres({ ...criteres, page })
+      const res = await api.rechercheOffres({ ...criteresRecherche, page })
       setResultat((prev) => (page > 0 && prev ? { ...res, offres: [...prev.offres, ...res.offres] } : res))
-      if (!criteres.source) setForm((f) => ({ ...f, source: res.source }))
     } catch (e) {
       setErreur(e.message)
       if (page === 0) setResultat(null)
@@ -92,165 +72,181 @@ export default function Offres() {
     }
   }
 
+  // Premiere visite : on affiche tout de suite les offres les plus recentes
   useEffect(() => {
-    api.candidatures().then((liste) => {
-      const map = {}
-      liste.forEach((c) => { if (c.lienOffre) map[c.lienOffre] = c.id })
-      setSuivies(map)
-    }).catch(() => {})
-    api.criteresOffres().then(setCriteres).catch(() => {})
-    api.offres({ ...filtresMemorises(), page: 0 })
-      .then((res) => {
-        setResultat(res)
-        setForm((f) => ({ ...f, source: res.source }))
-      })
-      .catch((e) => setErreur(e.message))
-      .finally(() => setChargement(false))
-  }, [])
+    if (mode === 'recherche') chercher(form)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode])
 
+  const changerMode = (m) => {
+    setMode(m)
+    ecrire(CLE_MODE, m)
+  }
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
-  // Changer de pays ou de domaine relance la recherche (la source n'est plus forcement disponible)
-  const changerFiltre = (e) => {
-    const f = { ...form, [e.target.name]: e.target.value, source: '' }
+  /** Filtre change : on relance aussitot */
+  const filtrer = (cle, valeur) => {
+    const f = { ...form, [cle]: valeur }
     setForm(f)
-    chercher(f, 0)
+    chercher(f)
   }
-  // Le tri garde la source choisie
-  const changerTri = (e) => {
-    const f = { ...form, tri: e.target.value }
-    setForm(f)
-    chercher(f, 0)
-  }
-  const nomPays = criteres.pays.find((p) => p.code === form.pays)?.nom ?? form.pays
-  const domaineChoisi = criteres.domaines.find((d) => d.code === form.domaine)
   const onSubmit = (e) => {
     e.preventDefault()
-    chercher(form, 0)
+    chercher(form)
   }
-  const changerSource = (source) => {
-    const f = { ...form, source }
+  const essayer = (q) => {
+    const f = { ...form, q }
     setForm(f)
-    chercher(f, 0)
+    chercher(f)
   }
 
-  const ajouterAuSuivi = async (offre) => {
+  const ajouter = async (offre) => {
     const c = await creerCandidatureDepuisOffre(offre)
-    setSuivies((x) => ({ ...x, [offre.url]: c.id }))
+    setSuivies((s) => ({ ...s, [offre.url]: c.id }))
     return c
   }
-  const ouvrirCandidature = (id, outil) => navigate(`/candidatures/${id}${outil ? `?outil=${outil}` : ''}`)
+  const ouvrir = (id, outil) => navigate(`/candidatures/${id}${outil ? `?outil=${outil}` : ''}`)
+
+  const interpretation = resultat?.interpretation
+  const items = (resultat?.offres ?? []).map((o) => ({ offre: o.offre }))
+  const equivalents = (interpretation?.synonymes ?? []).slice(0, 4)
 
   return (
-    <>
+    <div className="page-offres">
       <div className="page-head">
         <div>
           <h1>Offres d'emploi</h1>
-          <p className="muted">Tous les domaines, en France et à l'étranger : postule en un clic et suis l'offre dans Postulyn.</p>
+          <p className="muted">Des milliers d'offres en France et à l'étranger, triées pour ce que tu cherches vraiment.</p>
+        </div>
+        <div className="tabs modes-offres" role="tablist">
+          <button type="button" role="tab" aria-selected={mode === 'recherche'} className={mode === 'recherche' ? 'active' : ''}
+            onClick={() => changerMode('recherche')}><Search size={16} /> Rechercher</button>
+          <button type="button" role="tab" aria-selected={mode === 'pour-moi'} className={mode === 'pour-moi' ? 'active' : ''}
+            onClick={() => changerMode('pour-moi')}><Sparkles size={16} /> Selon mon CV</button>
         </div>
       </div>
 
-      <div className="tabs modes-offres" role="tablist">
-        <button type="button" role="tab" aria-selected={mode === 'pour-moi'} className={mode === 'pour-moi' ? 'active' : ''}
-          onClick={() => changerMode('pour-moi')}><Sparkles size={16} /> Offres pour moi</button>
-        <button type="button" role="tab" aria-selected={mode === 'libre'} className={mode === 'libre' ? 'active' : ''}
-          onClick={() => changerMode('libre')}><Search size={16} /> Recherche libre</button>
-      </div>
+      {mode === 'pour-moi' ? (
+        <OffresPourMoi pays={criteres.pays} suivies={suivies} setSuivies={setSuivies} />
+      ) : (
+        <>
+          <form className="barre-recherche card" onSubmit={onSubmit} role="search">
+            <div className="barre-champs">
+              <label className="champ-recherche">
+                <Search size={19} aria-hidden="true" />
+                <input name="q" value={form.q} onChange={onChange} maxLength={200}
+                  placeholder="Métier, compétence ou mot-clé (ex. dev full stack, comptable, data)" aria-label="Métier ou mot-clé" />
+              </label>
+              <label className="champ-lieu">
+                <MapPin size={18} aria-hidden="true" />
+                <input name="lieu" value={form.lieu} onChange={onChange} maxLength={100}
+                  placeholder="Ville, département ou région" aria-label="Lieu" />
+              </label>
+              <label className="champ-pays">
+                <Globe size={18} aria-hidden="true" />
+                <select name="pays" value={form.pays} onChange={(e) => filtrer('pays', e.target.value)} aria-label="Pays">
+                  {criteres.pays.map((p) => <option key={p.code} value={p.code}>{p.nom}</option>)}
+                </select>
+              </label>
+              <button className="btn primary btn-rechercher" disabled={chargement}>Rechercher</button>
+            </div>
+            <div className="barre-filtres">
+              <div className="pastilles" role="radiogroup" aria-label="Type de contrat">
+                {CONTRATS.map((c) => (
+                  <button key={c.valeur} type="button" role="radio" aria-checked={form.contrat === c.valeur}
+                    className={`pastille ${form.contrat === c.valeur ? 'active' : ''}`} onClick={() => filtrer('contrat', c.valeur)}>
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+              <div className="filtres-selects">
+                <select value={form.periode} onChange={(e) => filtrer('periode', Number(e.target.value))} aria-label="Date de publication">
+                  {PERIODES.map((p) => <option key={p.valeur} value={p.valeur}>{p.label}</option>)}
+                </select>
+                <select value={form.domaine} onChange={(e) => filtrer('domaine', e.target.value)} aria-label="Domaine">
+                  <option value="">Tous les domaines</option>
+                  {criteres.domaines.map((d) => <option key={d.code} value={d.code}>{d.libelle}</option>)}
+                </select>
+                <select value={form.tri} onChange={(e) => filtrer('tri', e.target.value)} aria-label="Trier">
+                  <option value="pertinence">Les plus pertinentes</option>
+                  <option value="date">Les plus récentes</option>
+                </select>
+              </div>
+            </div>
+          </form>
 
-      {mode === 'pour-moi' && <OffresPourMoi pays={criteres.pays} suivies={suivies} setSuivies={setSuivies} />}
+          {interpretation && !chargement && (
+            <div className="interpretation">
+              <span>
+                <strong>{items.length}{resultat.pageSuivante ? '+' : ''} offre{items.length > 1 ? 's' : ''}</strong> pour
+                « {interpretation.intitule} »
+                {interpretation.contrat && !form.contrat && <> en {interpretation.contrat.toLowerCase()}</>}
+                {interpretation.lieu && !form.lieu && <> à {interpretation.lieu}</>}
+              </span>
+              {equivalents.length > 0 && (
+                <span className="interpretation-equivalents">
+                  Inclut aussi :
+                  {equivalents.map((s) => (
+                    <button key={s} type="button" className="lien-equivalent" onClick={() => essayer(s)}
+                      title={`Chercher seulement « ${s} »`}>{s}</button>
+                  ))}
+                </span>
+              )}
+            </div>
+          )}
+          {!interpretation && resultat && !chargement && (
+            <div className="interpretation"><span><strong>{items.length}{resultat.pageSuivante ? '+' : ''} offres récentes</strong></span></div>
+          )}
 
-      {mode === 'libre' && (<>
-      <form className="card recherche-offres" onSubmit={onSubmit}>
-        <label className="champ-mots">
-          Mots-clés
-          <span className="champ-icone">
-            <Search size={16} />
-            <input name="q" value={form.q} onChange={onChange} placeholder="Métier, compétence, entreprise…" />
-          </span>
-        </label>
-        <label>
-          Lieu
-          <input name="lieu" value={form.lieu} onChange={onChange}
-            placeholder={form.pays === 'FR' ? 'Ville ou département, ex. Lyon ou 75' : 'Ville (facultatif)'} />
-        </label>
-        <button className="btn primary" disabled={chargement}>Rechercher</button>
-        <div className="filtres-offres">
-          <label>
-            <span><Globe size={14} /> Pays</span>
-            <select name="pays" value={form.pays} onChange={changerFiltre}>
-              {criteres.pays.map((p) => <option key={p.code} value={p.code}>{p.nom}</option>)}
-            </select>
-          </label>
-          <label>
-            <span><Layers size={14} /> Domaine</span>
-            <select name="domaine" value={form.domaine} onChange={changerFiltre}>
-              <option value="">Tous les domaines</option>
-              {criteres.domaines.map((d) => <option key={d.code} value={d.code}>{d.libelle}</option>)}
-            </select>
-          </label>
-          <label>
-            <span><ArrowDownUp size={14} /> Trier par</span>
-            <select name="tri" value={form.tri} onChange={changerTri}>
-              <option value="date">Les plus récentes</option>
-              <option value="pertinence">Les plus pertinentes</option>
-            </select>
-          </label>
-          <label>
-            <span><Briefcase size={14} /> Contrat</span>
-            <select name="contrat" value={form.contrat} onChange={changerFiltre}>
-              {CONTRATS.map((c) => <option key={c.valeur} value={c.valeur}>{c.label}</option>)}
-            </select>
-          </label>
-        </div>
-      </form>
+          {erreur && <div className="card alerte"><strong>La recherche n'a pas abouti</strong><p>{erreur}</p></div>}
+          {chargement && !resultat?.offres?.length && <Squelette />}
 
-      {resultat?.sources?.length > 1 && (
-        <div className="tabs sources">
-          {resultat.sources.map((s) => (
-            <button key={s} type="button" className={s === resultat.source ? 'active' : ''}
-              onClick={() => changerSource(s)} disabled={chargement}>{s}</button>
-          ))}
-        </div>
+          {resultat && <ListeDetailOffres items={items} suivies={suivies} onAjouter={ajouter} onOuvrir={ouvrir} />}
+
+          {resultat && items.length === 0 && !chargement && (
+            <div className="card aucune-offre">
+              <SearchX size={36} aria-hidden="true" />
+              <h2>Aucune offre ne correspond pour l'instant</h2>
+              <p className="muted">Élargis la zone, retire un filtre ou essaie un intitulé proche.</p>
+              {resultat.suggestions?.length > 0 && (
+                <div className="pastilles centre-pastilles">
+                  {resultat.suggestions.map((s) => (
+                    <button key={s} type="button" className="pastille" onClick={() => essayer(s)}>{s}</button>
+                  ))}
+                </div>
+              )}
+              {(form.contrat || form.periode > 0 || form.domaine || form.lieu) && (
+                <button className="btn ghost" onClick={() => {
+                  const f = { ...form, contrat: '', periode: 0, domaine: '', lieu: '' }
+                  setForm(f)
+                  chercher(f)
+                }}>Retirer tous les filtres</button>
+              )}
+            </div>
+          )}
+
+          {resultat?.pageSuivante && !chargement && items.length > 0 && (
+            <div className="centre">
+              <button className="btn ghost" onClick={() => chercher(form, resultat.page + 1)}>Afficher plus d'offres</button>
+            </div>
+          )}
+          {chargement && resultat?.offres?.length > 0 && <p className="muted centre-texte">Chargement…</p>}
+        </>
       )}
-
-      {erreur && <div className="card alerte"><strong>Recherche impossible</strong><p>{erreur}</p></div>}
-
-      <div className="voir-aussi">
-        <span className="muted small">Voir aussi :</span>
-        {liensExternes(form, nomPays, domaineChoisi?.libelle.split(' ')[0]).map((l) => (
-          <a key={l.nom} href={l.url} target="_blank" rel="noopener noreferrer" className="btn ghost small">
-            {l.nom} <ExternalLink size={13} />{l.note && <span className="muted"> · {l.note}</span>}
-          </a>
-        ))}
-        <span className="muted small">puis ajoute l'offre avec « + Nouvelle candidature ».</span>
-      </div>
-
-      {resultat && (
-        <p className="muted small">
-          {resultat.total.toLocaleString('fr-FR')} offre{resultat.total > 1 ? 's' : ''} · {nomPays} · source {resultat.source}
-        </p>
-      )}
-      {resultat?.remarque && <p className="info-source"><Info size={15} /> {resultat.remarque}</p>}
-
-      <div className="offres">
-        {resultat?.offres.map((o) => (
-          <CarteOffre key={o.id} offre={o} candidatureId={suivies[o.url]}
-            onAjouter={ajouterAuSuivi} onOuvrir={ouvrirCandidature} />
-        ))}
-      </div>
-
-      {resultat && resultat.offres.length === 0 && !chargement && (
-        <div className="card vide"><p className="muted">Aucune offre pour cette recherche. Essaie d'autres mots-clés, un autre domaine ou une autre source.</p></div>
-      )}
-      {chargement && <p className="muted">Recherche en cours…</p>}
-      {resultat?.pageSuivante && !chargement && (
-        <div className="centre">
-          <button className="btn ghost" onClick={() => chercher(form, resultat.page + 1)}>Voir plus d'offres</button>
-        </div>
-      )}
-
-      </>)}
 
       <BoutonFavori />
-    </>
+    </div>
+  )
+}
+
+function Squelette() {
+  return (
+    <div className="resultats-offres squelette" aria-busy="true" aria-label="Recherche en cours">
+      <ul className="liste-offres">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <li key={i}><div className="ligne-offre"><i /><i /><i /></div></li>
+        ))}
+      </ul>
+      <div className="detail-offre card"><i /><i /><i /><i /></div>
+    </div>
   )
 }
