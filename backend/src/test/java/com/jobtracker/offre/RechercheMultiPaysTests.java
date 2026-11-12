@@ -87,6 +87,37 @@ class RechercheMultiPaysTests {
     }
 
     @Test
+    void uneSourceBloqueeEstMiseEnPauseEtExpliquee() {
+        SourceOffres bloquee = new SourceOffres() {
+            int appels;
+
+            public String nom() {
+                return "Bloquee";
+            }
+
+            public boolean configuree() {
+                return true;
+            }
+
+            public ResultatSource rechercher(Recherche r) {
+                appels++;
+                if (appels > 1) {
+                    throw new AssertionError("La source en pause ne doit plus etre interrogee");
+                }
+                throw new SourceBloqueeException("Bloquee refuse l'acces.", java.time.Duration.ofHours(1));
+            }
+        };
+        OffreService service = new OffreService(List.of(source("Ouverte", List.of("FR"), true), bloquee));
+        OffresResponse premiere = service.rechercher("", new Recherche("", "", "", 0, "FR", null));
+        assertTrue(premiere.remarque().contains("Indisponible pour le moment : Bloquee"), premiere.remarque());
+        OffresResponse seconde = service.rechercher("", new Recherche("", "", "", 0, "FR", null));
+        assertEquals(List.of("Ouverte"), seconde.sources());
+        assertTrue(seconde.remarque().contains("Bloquee refuse l'acces."), seconde.remarque());
+        assertTrue(JoobleSource.estProtectionAntiRobots("<title>Just a moment...</title>"));
+        assertFalse(JoobleSource.estProtectionAntiRobots("{\"error\":\"key\"}"));
+    }
+
+    @Test
     void lesSourcesProposeesDependentDuPays() {
         OffreService service = new OffreService(List.of(
                 source("LBA", List.of("FR"), true),

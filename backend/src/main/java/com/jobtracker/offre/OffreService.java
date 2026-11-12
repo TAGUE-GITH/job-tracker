@@ -34,6 +34,27 @@ public class OffreService {
 
     private final List<SourceOffres> sources;
     private final ExecutorService executeur = Executors.newVirtualThreadPerTaskExecutor();
+    /** Sources qui refusent durablement l'acces : nom -> fin de la pause et raison. */
+    private final Map<String, Pause> pauses = new java.util.concurrent.ConcurrentHashMap<>();
+
+    record Pause(java.time.Instant jusqua, String raison) {
+    }
+
+    private boolean enPause(SourceOffres s) {
+        Pause p = pauses.get(s.nom());
+        if (p != null && java.time.Instant.now().isAfter(p.jusqua())) {
+            pauses.remove(s.nom());
+            return false;
+        }
+        return p != null;
+    }
+
+    /** Message expliquant les sources mises de cote (ex. "Jooble : ..."), ou vide. */
+    private String sourcesEnPause(List<SourceOffres> concernees) {
+        List<String> raisons = concernees.stream().filter(this::enPause)
+                .map(s -> pauses.get(s.nom()).raison()).toList();
+        return raisons.isEmpty() ? "" : " " + String.join(" ", raisons);
+    }
 
     public OffreService(List<SourceOffres> sources) {
         this.sources = sources;
@@ -47,15 +68,22 @@ public class OffreService {
                     + "(https://fr.jooble.org/api/about, tous contrats)");
         }
         String nomPays = Catalogue.pays(recherche.pays()).map(Catalogue.Pays::nom).orElse(recherche.pays());
-        List<SourceOffres> duPays = disponibles.stream().filter(s -> s.couvre(recherche.pays())).toList();
+        List<SourceOffres> tousDuPays = disponibles.stream().filter(s -> s.couvre(recherche.pays())).toList();
+        List<SourceOffres> duPays = tousDuPays.stream().filter(s -> !enPause(s)).toList();
+        if (duPays.isEmpty() && !tousDuPays.isEmpty()) {
+            throw new OffresIndisponiblesException("Les sources d'offres de ce pays sont momentanement indisponibles."
+                    + sourcesEnPause(tousDuPays));
+        }
         if (duPays.isEmpty()) {
             throw new OffresIndisponiblesException("Aucune source d'offres pour ce pays (" + nomPays + ") pour l'instant.");
         }
         List<SourceOffres> compatibles = duPays.stream().filter(s -> s.supporte(recherche.contrat())).toList();
         if (compatibles.isEmpty()) {
-            throw new OffresIndisponiblesException("Aucune source ne propose ce type de contrat pour " + nomPays
-                    + " : essaie \"Tous les contrats\".");
+            throw new OffresIndisponiblesException("Aucune source disponible ne propose ce type de contrat pour "
+                    + nomPays + " : essaie \"Tous les contrats\", ou les liens \"Voir aussi\" ci-dessous."
+                    + sourcesEnPause(tousDuPays));
         }
+        String enPause = sourcesEnPause(tousDuPays.stream().filter(s -> s.supporte(recherche.contrat())).toList());
         List<String> onglets = new ArrayList<>();
         if (compatibles.size() > 1) {
             onglets.add(TOUTES);
@@ -65,16 +93,26 @@ public class OffreService {
         SourceOffres choisie = compatibles.stream().filter(s -> s.nom().equalsIgnoreCase(nomSource)).findFirst()
                 .orElse(null);
         if (choisie == null && compatibles.size() > 1) {
-            return toutes(compatibles, recherche, onglets);
+            OffresResponse r = toutes(compatibles, recherche, onglets);
+            return enPause.isEmpty() ? r : avecRemarque(r, r.remarque() + enPause);
         }
         SourceOffres source = choisie != null ? choisie : compatibles.getFirst();
         ResultatSource resultat = interroger(source, recherche);
         List<OffreExterne> offres = recherche.parDate()
                 ? resultat.offres().stream().sorted(PLUS_RECENTES).toList() : resultat.offres();
         long vus = (long) (recherche.page() + 1) * SourceOffres.TAILLE_PAGE;
+        String remarque = source.remarque(recherche);
+        if (!enPause.isEmpty()) {
+            remarque = (remarque == null ? "" : remarque) + enPause;
+        }
         return new OffresResponse(onglets, source.nom(), offres, resultat.total(), recherche.page(),
                 resultat.offres().size() == SourceOffres.TAILLE_PAGE && vus < resultat.total(),
-                source.remarque(recherche));
+                remarque == null || remarque.isBlank() ? null : remarque.strip());
+    }
+
+    private static OffresResponse avecRemarque(OffresResponse r, String remarque) {
+        return new OffresResponse(r.sources(), r.source(), r.offres(), r.total(), r.page(), r.pageSuivante(),
+                remarque.strip());
     }
 
     /** Interroge toutes les sources en parallele et fusionne leurs offres (sans doublon de lien). */
@@ -107,6 +145,9 @@ public class OffreService {
         String remarque = "Offres réunies de " + String.join(", ", compatibles.stream().map(SourceOffres::nom)
                 .filter(n -> !echecs.contains(n)).toList()) + "."
                 + (echecs.isEmpty() ? "" : " Indisponible pour le moment : " + String.join(", ", echecs) + ".");
+        if (pages.stream().allMatch(List::isEmpty) && recherche.page() == 0) {
+            remarque += " Astuce : élargis les mots-clés, choisis « Tous les contrats » ou utilise les liens « Voir aussi ».";
+        }
         return new OffresResponse(onglets, TOUTES, fusion, total, recherche.page(), suite, remarque);
     }
 
@@ -133,9 +174,13 @@ public class OffreService {
                 .toList();
     }
 
-    private static ResultatSource interroger(SourceOffres source, Recherche recherche) {
+    private ResultatSource interroger(SourceOffres source, Recherche recherche) {
         try {
             return source.rechercher(recherche);
+        } catch (SourceBloqueeException e) {
+            pauses.put(source.nom(), new Pause(java.time.Instant.now().plus(e.pause()), e.getMessage()));
+            LOG.warn("Source {} mise en pause : {}", source.nom(), e.getMessage());
+            throw e;
         } catch (RestClientResponseException e) {
             // Certaines API renvoient une page HTML complete en cas d'erreur : on n'affiche que le code
             String corps = e.getResponseBodyAsString();

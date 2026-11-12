@@ -178,9 +178,9 @@ public class FranceTravailSource implements SourceOffres {
             } catch (RestClientResponseException e) {
                 String reponse = e.getResponseBodyAsString();
                 if (reponse.contains("invalid_client")) {
-                    throw new OffresIndisponiblesException("France Travail refuse les identifiants (invalid_client) : "
+                    throw new SourceBloqueeException("France Travail refuse les identifiants (invalid_client) : "
                             + "verifie FT_CLIENT_ID (identifiant client, " + clientId.length() + " caracteres recus) et "
-                            + "FT_CLIENT_SECRET (cle secrete, " + clientSecret.length() + " caracteres recus) sur Render.");
+                            + "FT_CLIENT_SECRET (cle secrete, " + clientSecret.length() + " caracteres recus) sur Render.", java.time.Duration.ofHours(12));
                 }
                 if (!reponse.contains("invalid_scope")) {
                     throw e;
@@ -189,9 +189,9 @@ public class FranceTravailSource implements SourceOffres {
             }
         }
         if (j == null) {
-            throw new OffresIndisponiblesException("France Travail refuse l'acces a l'API \"Offres d'emploi v2\", "
-                    + "qui n'est plus en acces libre sur francetravail.io. Pour les stages, CDI et CDD, ajoute "
-                    + "une cle Jooble (JOOBLE_API_KEY) sur Render, et retire FT_CLIENT_ID et FT_CLIENT_SECRET.");
+            throw new SourceBloqueeException("France Travail a ferme l'acces libre a son API d'offres d'emploi : "
+                    + "l'acces se demande desormais a France Travail (francetravail.io). Les autres sources "
+                    + "restent disponibles.", java.time.Duration.ofHours(12));
         }
         if (j.access_token() == null) {
             throw new OffresIndisponiblesException("France Travail n'a pas renvoye de jeton d'acces");

@@ -113,18 +113,35 @@ public class JoobleSource implements SourceOffres {
         if (motContrat != null && !motsCles.toLowerCase(Locale.ROOT).contains(motContrat.toLowerCase(Locale.ROOT))) {
             motsCles = (motsCles + " " + motContrat).strip();
         }
-        Reponse res = restClient.post()
-                .uri("https://" + a.hote() + "/api/" + a.cle())
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(new Requete(motsCles, lieu(r.lieu(), r.pays(), a.hote()), String.valueOf(r.page() + 1),
-                        String.valueOf(TAILLE_PAGE)))
-                .retrieve()
-                .body(Reponse.class);
+        Reponse res;
+        try {
+            res = restClient.post()
+                    .uri("https://" + a.hote() + "/api/" + a.cle())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new Requete(motsCles, lieu(r.lieu(), r.pays(), a.hote()), String.valueOf(r.page() + 1),
+                            String.valueOf(TAILLE_PAGE)))
+                    .retrieve()
+                    .body(Reponse.class);
+        } catch (org.springframework.web.client.RestClientResponseException e) {
+            if (e.getStatusCode().value() == 403) {
+                throw new SourceBloqueeException(estProtectionAntiRobots(e.getResponseBodyAsString())
+                        ? "Jooble bloque actuellement les recherches automatiques (protection anti-robots Cloudflare) : "
+                                + "ta cle n'est pas en cause. Postulyn reessaiera automatiquement plus tard."
+                        : "Jooble refuse la cle" + aideErreur(403), java.time.Duration.ofHours(1));
+            }
+            throw e;
+        }
         if (res == null || res.jobs() == null) {
             return new ResultatSource(List.of(), 0);
         }
         List<OffreExterne> offres = res.jobs().stream().map(this::convertir).toList();
         return new ResultatSource(offres, res.totalCount() != null ? res.totalCount() : offres.size());
+    }
+
+    /** Page "Just a moment..." de Cloudflare au lieu d'une reponse JSON de l'API. */
+    static boolean estProtectionAntiRobots(String corps) {
+        String c = corps == null ? "" : corps.toLowerCase(Locale.ROOT);
+        return c.contains("just a moment") || c.contains("cloudflare") || c.contains("cf-chl");
     }
 
     /**
