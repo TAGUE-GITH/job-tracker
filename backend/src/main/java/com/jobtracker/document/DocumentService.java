@@ -67,6 +67,23 @@ public class DocumentService {
         return TexteDocument.extraire(donnees, doc.getNomFichier(), doc.getContentType());
     }
 
+    /**
+     * CV importe a utiliser comme source : le document lui-meme, ou, s'il a ete genere par Postulyn (CV deja
+     * adapte), le dernier CV importe par l'utilisateur.
+     */
+    @Transactional(readOnly = true)
+    public Long cvImporte(Long userId, Long documentId) {
+        Document doc = trouver(userId, documentId);
+        if (!doc.isGenere()) {
+            return doc.getId();
+        }
+        return documentRepository.findByUserIdOrderByDateAjoutDesc(userId).stream()
+                .filter(d -> d.getType() == TypeDocument.CV && !d.isGenere())
+                .map(Document::getId)
+                .findFirst()
+                .orElse(doc.getId());
+    }
+
     /** Enregistre une lettre de motivation (texte) sous forme de PDF dans les documents de l'utilisateur. */
     @Transactional
     public Document creerLettrePdf(Long userId, String nomFichier, LettrePdf.EnTete entete, String texte) {
@@ -74,7 +91,7 @@ public class DocumentService {
             throw new IllegalArgumentException("La lettre est vide");
         }
         Document doc = documentRepository.save(new Document(nomFichier, TypeDocument.LETTRE, "application/pdf",
-                userRepository.getReferenceById(userId)));
+                userRepository.getReferenceById(userId)).genere());
         contenuRepository.save(new DocumentContenu(doc, LettrePdf.generer(entete, texte)));
         return doc;
     }
@@ -83,7 +100,7 @@ public class DocumentService {
     @Transactional
     public Document creerCvPdf(Long userId, String nomFichier, CvPdf.Contact contact, CvPdf.Cv cv) {
         Document doc = documentRepository.save(new Document(nomFichier, TypeDocument.CV, "application/pdf",
-                userRepository.getReferenceById(userId)));
+                userRepository.getReferenceById(userId)).genere());
         contenuRepository.save(new DocumentContenu(doc, CvPdf.generer(contact, cv)));
         return doc;
     }

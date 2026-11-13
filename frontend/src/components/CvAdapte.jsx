@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 import DocumentActions from './DocumentActions.jsx'
-import { projetEnDoublon } from '../cvDoublons.js'
 import { Camera, Check, Plus, X } from 'lucide-react'
 
 // Les listes se modifient dans une zone de texte, un element par ligne
@@ -19,11 +18,10 @@ function versFormulaire(cv) {
   }
   LISTES.forEach((cle) => { f[cle] = enLignes(cv[cle]) })
   f.experiences = (cv.experiences ?? []).map((x) => ({ ...x, missions: enLignes(x.missions) }))
-  // Un meme travail ne doit pas apparaitre a la fois en experience et en projet
-  f.projets = (cv.projets ?? [])
-    .filter((p) => !projetEnDoublon(p, cv.experiences))
-    .map((p) => ({ ...p, points: enLignes(p.points) }))
+  // Tous les blocs du CV importe sont gardes : rien n'est retire
+  f.projets = (cv.projets ?? []).map((p) => ({ ...p, points: enLignes(p.points) }))
   f.formations = cv.formations ?? []
+  f.autresRubriques = (cv.autresRubriques ?? []).map((r) => ({ titre: r.titre ?? '', elements: enLignes(r.elements) }))
   return f
 }
 
@@ -34,6 +32,9 @@ function versCv(f) {
   cv.experiences = f.experiences.map((x) => ({ ...x, missions: enListe(x.missions) }))
   cv.projets = f.projets.map((p) => ({ ...p, points: enListe(p.points) }))
   cv.formations = f.formations
+  cv.autresRubriques = f.autresRubriques
+    .map((r) => ({ titre: r.titre.trim(), elements: enListe(r.elements) }))
+    .filter((r) => r.titre && r.elements.length)
   return cv
 }
 
@@ -97,6 +98,7 @@ const VIDES = {
   experiences: { poste: '', entreprise: '', lieu: '', periode: '', missions: '' },
   projets: { nom: '', description: '', points: '', technologies: '' },
   formations: { diplome: '', etablissement: '', lieu: '', periode: '', details: '' },
+  autresRubriques: { titre: '', elements: '' },
 }
 
 export default function CvAdapte({ candidature, cvId, onChange, Score }) {
@@ -165,11 +167,11 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
     <div className="cv-adapte">
       {!form && !chargement && (
         <p className="muted small">
-          ORVYNA réécrit ton CV pour cette offre : titre, profil, compétences dans l'ordre de l'offre (avec celles de
-          l'offre proches des tiennes), tes 2 expériences pro et tes 2 projets perso les plus proches du poste,
-          détaillés avec ses mots-clés, atouts et centres d'intérêt, le tout sur une page. Il n'invente ni expérience ni diplôme.
-          Toutes tes formations sont gardées. Tu choisis ensuite parmi 4 mises en forme, toutes en vrai texte lisible par
-          les logiciels de tri (ATS).
+          ORVYNA part de ton CV importé et l'améliore pour cette offre, sans rien supprimer : tes expériences
+          (postes, entreprises, dates) restent les mêmes, leurs missions sont reformulées et détaillées avec les mots
+          de l'offre. Toutes tes formations, tes projets et tes autres rubriques sont gardés. Tes compétences et tes
+          atouts restent, ORVYNA ajoute seulement ceux que l'offre demande et qui te correspondent. Tu peux tout
+          modifier et ajouter des rubriques, puis choisir parmi 4 mises en forme lisibles par les logiciels de tri (ATS).
         </p>
       )}
       <button className="btn primary" onClick={adapter} disabled={chargement}>
@@ -212,7 +214,7 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
             <Liste titre="Compétences transverses" valeur={form.competencesTransverses} onChange={(v) => changer('competencesTransverses', v)} />
           </div>
 
-          <Groupe titre="Expériences pro les plus pertinentes pour le poste (2 conseillées)"onAjouter={() => ajouter('experiences')}>
+          <Groupe titre="Expériences professionnelles" onAjouter={() => ajouter('experiences')}>
             {form.experiences.map((x, i) => (
               <Bloc key={i} onRetirer={() => retirer('experiences', i)}>
                 <div className="grid-2">
@@ -226,7 +228,7 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
             ))}
           </Groupe>
 
-          <Groupe titre="Projets perso les plus pertinents pour le poste (2 conseillés)" onAjouter={() => ajouter('projets')}>
+          <Groupe titre="Projets" onAjouter={() => ajouter('projets')}>
             {form.projets.map((p, i) => (
               <Bloc key={i} onRetirer={() => retirer('projets', i)}>
                 <div className="grid-2">
@@ -249,6 +251,18 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
                   <Champ libelle="Période" valeur={f.periode} onChange={(v) => changerElement('formations', i, 'periode', v)} />
                   <Champ libelle="Détails" valeur={f.details} onChange={(v) => changerElement('formations', i, 'details', v)} />
                 </div>
+              </Bloc>
+            ))}
+          </Groupe>
+
+          <Groupe titre="Autres rubriques (certifications, bénévolat, activités…)" onAjouter={() => ajouter('autresRubriques')}>
+            {form.autresRubriques.length === 0 && (
+              <p className="muted small">Ajoute une rubrique si tu veux mettre en avant autre chose : certifications, bénévolat, associations, prix…</p>
+            )}
+            {form.autresRubriques.map((r, i) => (
+              <Bloc key={i} onRetirer={() => retirer('autresRubriques', i)}>
+                <Champ libelle="Titre de la rubrique" valeur={r.titre} onChange={(v) => changerElement('autresRubriques', i, 'titre', v)} />
+                <Liste titre="Éléments" valeur={r.elements ?? ''} onChange={(v) => changerElement('autresRubriques', i, 'elements', v)} />
               </Bloc>
             ))}
           </Groupe>

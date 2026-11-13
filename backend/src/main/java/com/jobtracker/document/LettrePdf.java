@@ -90,7 +90,7 @@ public final class LettrePdf {
                 y -= 2 * interligne;
             }
 
-            // Corps : paragraphes justifies separes par une ligne vide ; "Objet :" en gras ; nom a gauche
+            // Corps : paragraphes justifies separes par une ligne vide ; "Objet :" en gras ; nom a droite
             page.y = y;
             String nom = expediteur.isEmpty() ? null : expediteur.getFirst().strip();
             List<String> paragraphes = paragraphes(nettoyer(texte, police));
@@ -98,7 +98,7 @@ public final class LettrePdf {
                 String para = paragraphes.get(i);
                 boolean signature = i == paragraphes.size() - 1 && nom != null && para.strip().equalsIgnoreCase(nom);
                 if (signature) {
-                    page.ligneAlignee(para.strip(), police, false);
+                    page.ligneAlignee(para.strip(), police, true);
                 } else if (para.matches("(?i)^objet\\s*:.*")) {
                     page.objet(para, gras, police);
                 } else {

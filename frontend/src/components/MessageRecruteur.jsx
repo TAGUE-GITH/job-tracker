@@ -51,10 +51,10 @@ export default function MessageRecruteur({ candidature, cvId }) {
             texte={`Objet : ${messages.objet ?? ''}\n\n${messages.email ?? ''}`}
             actions={<a className="btn ghost small" href={mailto}><Mail size={14} /> Ouvrir dans ma messagerie</a>}>
             <label>Objet<input value={messages.objet ?? ''} onChange={(e) => changer('objet', e.target.value)} /></label>
-            <textarea rows={10} value={messages.email ?? ''} onChange={(e) => changer('email', e.target.value)} />
+            <textarea rows={16} value={messages.email ?? ''} onChange={(e) => changer('email', e.target.value)} />
           </Bloc>
           <Bloc titre="Message LinkedIn" texte={messages.linkedin ?? ''}>
-            <textarea rows={5} value={messages.linkedin ?? ''} onChange={(e) => changer('linkedin', e.target.value)} />
+            <textarea rows={9} value={messages.linkedin ?? ''} onChange={(e) => changer('linkedin', e.target.value)} />
           </Bloc>
           <Bloc titre="Note d'invitation LinkedIn" texte={messages.noteConnexion ?? ''}
             info={`${(messages.noteConnexion ?? '').length} / 300 caractères`}>

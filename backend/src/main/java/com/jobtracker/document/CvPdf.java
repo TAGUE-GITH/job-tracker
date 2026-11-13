@@ -51,7 +51,14 @@ public final class CvPdf {
         }
     }
 
-    /** modele : CLASSIQUE (defaut), MODERNE, ELEGANT ou COMPACT. avecPhoto : ajoute la photo du profil. */
+    /** Rubrique libre du CV (certifications, benevolat, activites...) : un titre et ses elements. */
+    public record Rubrique(String titre, List<String> elements) {
+    }
+
+    /**
+     * modele : CLASSIQUE (defaut), MODERNE, ELEGANT ou COMPACT. avecPhoto : ajoute la photo du profil.
+     * autresRubriques : rubriques libres, ajoutees apres les rubriques principales.
+     */
     public record Cv(
             String titre,
             String profil,
@@ -65,13 +72,21 @@ public final class CvPdf {
             List<String> centresInteret,
             List<String> liens,
             String modele,
-            Boolean avecPhoto) {
+            Boolean avecPhoto,
+            List<Rubrique> autresRubriques) {
+
+        public Cv(String titre, String profil, List<String> competencesTechniques, List<String> competencesTransverses,
+                List<Experience> experiences, List<Projet> projets, List<Formation> formations, List<String> langues,
+                List<String> atouts, List<String> centresInteret, List<String> liens, String modele, Boolean avecPhoto) {
+            this(titre, profil, competencesTechniques, competencesTransverses, experiences, projets, formations,
+                    langues, atouts, centresInteret, liens, modele, avecPhoto, null);
+        }
 
         public Cv(String titre, String profil, List<String> competencesTechniques, List<String> competencesTransverses,
                 List<Experience> experiences, List<Projet> projets, List<Formation> formations, List<String> langues,
                 List<String> atouts, List<String> centresInteret, List<String> liens) {
             this(titre, profil, competencesTechniques, competencesTransverses, experiences, projets, formations,
-                    langues, atouts, centresInteret, liens, null, false);
+                    langues, atouts, centresInteret, liens, null, false, null);
         }
     }
 
@@ -221,6 +236,12 @@ public final class CvPdf {
                 col.espace(5);
             }
         }
+        for (Rubrique r : rubriques(cv)) {
+            rubriqueClassique(t, col, majuscules(r.titre()));
+            for (String element : liste(r.elements())) {
+                col.puce(t, element, tx, il, 6 * e);
+            }
+        }
         List<List<Morceau>> infos = new ArrayList<>();
         ajouterLibelle(t, infos, "Compétences techniques : ", cv.competencesTechniques(), ", ");
         ajouterLibelle(t, infos, "Compétences transverses : ", cv.competencesTransverses(), ", ");
@@ -347,6 +368,12 @@ public final class CvPdf {
                 col.espace(8);
             }
         }
+        for (Rubrique r : rubriques(cv)) {
+            rubriqueModerne(t, col, majuscules(r.titre()));
+            for (String element : liste(r.elements())) {
+                col.puce(t, element, tx, il, 0);
+            }
+        }
         List<String> competences = new ArrayList<>(liste(cv.competencesTechniques()));
         competences.addAll(liste(cv.competencesTransverses()));
         grille(t, col, "COMPÉTENCES", competences, tx, il);
@@ -445,6 +472,13 @@ public final class CvPdf {
                     col.riche(List.of(t.n(NOIR, f.details())), tx, il, Aligne.GAUCHE);
                 }
                 col.espace(7);
+            }
+        }
+
+        for (Rubrique r : rubriques(cv)) {
+            rubriqueElegante(t, col, majuscules(r.titre()), 14.5f);
+            for (String element : liste(r.elements())) {
+                col.puce(t, element, tx, il, 0);
             }
         }
 
@@ -587,6 +621,12 @@ public final class CvPdf {
                 col.espace(6);
             }
         }
+        for (Rubrique r : rubriques(cv)) {
+            rubriqueCompacte(t, col, majuscules(r.titre()));
+            for (String element : liste(r.elements())) {
+                col.puce(t, element, tx, il, 2 * e);
+            }
+        }
         List<String> competences = new ArrayList<>(liste(cv.competencesTechniques()));
         competences.addAll(liste(cv.competencesTransverses()));
         paragrapheCompact(t, col, "COMPÉTENCES", competences, tx, il);
@@ -634,6 +674,13 @@ public final class CvPdf {
         return l == null ? List.of() : l.stream()
                 .filter(Objects::nonNull)
                 .filter(x -> !(x instanceof String s) || !s.isBlank())
+                .toList();
+    }
+
+    /** Rubriques libres qui ont un titre et au moins un element. */
+    private static List<Rubrique> rubriques(Cv cv) {
+        return liste(cv.autresRubriques()).stream()
+                .filter(r -> !vide(r.titre()) && !liste(r.elements()).isEmpty())
                 .toList();
     }
 

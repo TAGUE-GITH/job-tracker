@@ -18,7 +18,12 @@ export default function CvLettre({ candidature, onChange, ongletInitial = 'analy
       .then((docs) => {
         const liste = docs.filter((d) => d.type === 'CV')
         setCvs(liste)
-        setCvId((actuel) => actuel || liste[0]?.id || '')
+        // Par defaut, le CV importe par l'utilisateur plutot qu'un CV deja adapte par Postulyn
+        const importe = liste.find((d) => !d.genere)
+        setCvId((actuel) => {
+          const choisi = liste.find((d) => d.id === actuel)
+          return choisi && !choisi.genere ? actuel : importe?.id || actuel || liste[0]?.id || ''
+        })
       })
       .catch(() => setCvs([]))
   }, [])
@@ -62,7 +67,7 @@ export default function CvLettre({ candidature, onChange, ongletInitial = 'analy
             <label>
               CV utilisé
               <select value={cvId} onChange={(e) => setCvId(Number(e.target.value))}>
-                {cvs.map((d) => <option key={d.id} value={d.id}>{d.nomFichier}</option>)}
+                {cvs.map((d) => <option key={d.id} value={d.id}>{d.nomFichier}{d.genere ? ' (adapté par ORVYNA)' : ''}</option>)}
               </select>
             </label>
           )}

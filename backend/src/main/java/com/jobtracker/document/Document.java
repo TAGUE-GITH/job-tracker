@@ -29,6 +29,10 @@ public class Document {
 
     private String contentType;
 
+    /** Vrai pour un document cree par Postulyn (CV adapte, lettre), faux pour un fichier importe. */
+    @Column(nullable = false)
+    private boolean genere;
+
     @Column(nullable = false)
     private LocalDate dateAjout;
 
@@ -45,6 +49,15 @@ public class Document {
         this.contentType = contentType;
         this.user = user;
         this.dateAjout = LocalDate.now();
+    }
+
+    public Document genere() {
+        this.genere = true;
+        return this;
+    }
+
+    public boolean isGenere() {
+        return genere;
     }
 
     public Long getId() {

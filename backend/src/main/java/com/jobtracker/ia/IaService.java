@@ -2,6 +2,7 @@ package com.jobtracker.ia;
 
 import com.jobtracker.candidature.Candidature;
 import com.jobtracker.candidature.CandidatureService;
+import com.jobtracker.document.CvPdf;
 import com.jobtracker.document.DocumentService;
 import com.jobtracker.etape.Etape;
 import com.jobtracker.etape.TypeEtape;
@@ -296,62 +297,38 @@ public class IaService {
     }
 
     /**
-     * Reecrit le CV pour cette offre, au format JSON (voir CvPdf.Cv) : titre, profil, competences, experiences,
-     * formations, projets, langues, atouts, centres d'interet. Le contenu reste fidele au CV d'origine.
+     * Adapte le CV a cette offre, en deux temps : l'IA recopie d'abord fidelement le CV importe (JSON), puis propose
+     * des ameliorations (missions reformulees et detaillees, competences et atouts de l'offre a ajouter). La fusion
+     * est faite par CvAdaptation : rien du CV importe n'est retire ni change (postes, entreprises, dates, formations,
+     * rubriques). Reponse : le CV adapte en JSON, avec les mots-cles et competences ajoutes.
      */
     @Transactional(readOnly = true)
     public IaResponse cvAdapte(Long userId, Long candidatureId, Long cvId) {
         Candidature c = candidatureService.trouver(userId, candidatureId);
-        String cv = texteCv(userId, c, cvId);
-        List<Message> messages = List.of(
+        Long id = cvId != null ? cvId : c.getCv() != null ? c.getCv().getId() : null;
+        if (id == null) {
+            throw new IllegalArgumentException("Choisis un CV (ou importe-le dans CV & lettres)");
+        }
+        // Toujours repartir du CV importe, jamais d'un CV deja adapte (sinon il s'appauvrit a chaque passage)
+        String cv = documentService.texte(userId, documentService.cvImporte(userId, id));
+
+        String extraction = json(appeler(List.of(
                 new Message("system", """
-                        Tu es un expert en recrutement et en logiciels de tri de CV (ATS). Tu reecris le CV du \
-                        candidat pour qu'il corresponde au mieux a l'offre et passe les filtres ATS, en francais.
-                        Regles absolues :
-                        - n'invente JAMAIS d'experience, d'entreprise, de diplome ni de date ; tu peux reformuler, \
-                        reordonner, mettre en avant et reprendre le vocabulaire exact de l'offre ;
-                        - competences : AJOUTE les competences demandees par l'offre qui sont proches de celles du \
-                        candidat (meme famille, outil voisin, prolongement naturel : ex. Spring Boot -> Spring Data JPA, \
-                        JUnit ; React -> TypeScript ; SQL -> PostgreSQL ; Git -> GitHub Actions). N'ajoute PAS celles qui \
-                        sont trop eloignees de son profil (autre langage ou domaine sans lien, ex. Java -> SAP ABAP, \
-                        developpeur -> comptabilite) ;
-                        - titre : intitule proche de celui de l'offre (ex. "Developpeur Java / Spring Boot - Alternance") ;
-                        - profil : 3 a 4 phrases percutantes, orientees vers l'offre, sans "je" repete ;
-                        - competences : integre TOUTES les competences demandees par l'offre, sauf celles trop \
-                        eloignees du profil ; les plus pertinentes pour l'offre en premier, avec les termes exacts de l'offre ;
-                        - experiences : garde EXACTEMENT les 2 experiences professionnelles les PLUS pertinentes pour \
-                        l'offre (toutes s'il y en a moins de 2) et ignore les autres ; pour chacune, 4 missions \
-                        DETAILLEES (une ligne et demie maximum chacune) de la forme "verbe d'action + quoi + avec quels \
-                        outils ou methodes + pour quel resultat ou benefice" (ex. "Developpe une API REST securisee \
-                        (JWT) en Java/Spring Boot, utilisee par 3 applications internes"), qui reprennent les \
-                        mots-cles et les missions de l'offre ; la premiere mission est la plus proche du poste vise ;
-                        - projets : garde EXACTEMENT les 2 projets personnels (ou academiques, open source) les PLUS \
-                        pertinents pour l'offre (tous s'il y en a moins de 2) et ignore les autres ; detaille chacun : \
-                        une phrase de contexte (description), puis 3 points concrets (fonctionnalites realisees, \
-                        architecture, outils, resultats) qui reprennent les mots-cles de l'offre, et la liste des \
-                        technologies ;
-                        - PAS DE DOUBLON : un travail realise pendant une experience professionnelle (meme entreprise, \
-                        meme mission, meme client) se decrit UNIQUEMENT dans cette experience, jamais dans les projets ; \
-                        les 2 projets sont donc des projets distincts des experiences ; s'il n'y en a aucun, renvoie \
-                        "projets": [] ;
-                        - experiences et formations : du plus recent au plus ancien, chacune avec sa periode \
-                        ("Juin 2026 - Sept. 2026") et son lieu tels qu'ecrits dans le CV ; garde l'orthographe exacte \
-                        des noms propres (villes, entreprises, ecoles) ;
-                        - formations : reprends TOUTES les formations du CV d'origine, sans en retirer aucune \
-                        (diplomes, ecoles, certifications, baccalaureat compris), avec leur intitule exact, leur \
-                        etablissement, leur ville (champ "lieu") et leur periode ; dans "details", une ligne utile \
-                        pour l'offre (specialisation, modules, mention) si le CV la donne ;
-                        - le CV doit tenir sur UNE page : sois concis, phrases courtes ;
-                        - missions : verbes d'action au passe compose ou a l'infinitif, de facon homogene ; chiffres \
-                        (volumes, delais, nombre d'utilisateurs, gains) uniquement s'ils figurent dans le CV ;
-                        - atouts : 4 ou 5 qualites humaines que l'OFFRE demande explicitement ou implicitement \
-                        (autonomie, rigueur, travail en equipe, sens du client, communication...), formulees avec \
-                        les mots de l'offre, et seulement si le CV les rend credibles (experiences, projets, \
-                        responsabilites) ; classe-les de la plus attendue par l'offre a la moins attendue ;
-                        - centres d'interet : ceux du CV (ou vide) ;
-                        - motsClesAjoutes : mots-cles de l'offre que tu as integres ;
-                        - competencesAjoutees : uniquement les competences que tu as ajoutees et qui ne figuraient pas \
-                        dans le CV d'origine (elles apparaissent aussi dans competencesTechniques ou Transverses).
+                        Tu recopies un CV en JSON, FIDELEMENT et EN ENTIER, sans rien resumer, reformuler, \
+                        corriger ni retirer. Chaque experience, projet, formation, competence, langue, qualite, \
+                        centre d'interet et lien du CV doit apparaitre, avec son texte d'origine. Regles :
+                        - experiences : TOUTES les experiences professionnelles (stages, emplois, alternances, \
+                        missions, jobs), dans l'ordre du CV, avec poste, entreprise, lieu, periode tels qu'ecrits et \
+                        chaque mission ou tache dans "missions" ;
+                        - projets : TOUS les projets (personnels, academiques, open source) ;
+                        - formations : TOUTES les formations (diplomes, ecoles, baccalaureat, certifications \
+                        presentees comme formations), avec diplome, etablissement, lieu (ville), periode et details ;
+                        - competencesTechniques : outils, langages, logiciels, savoir-faire ; competencesTransverses : \
+                        savoir-etre et competences humaines listees comme competences ; atouts : qualites ou atouts \
+                        listes dans le CV ;
+                        - autresRubriques : toute autre rubrique du CV (certifications, benevolat, associations, \
+                        activites, prix, publications, references...), avec son titre exact et ses elements ;
+                        - champ absent du CV : "" ou [].
                         Reponds UNIQUEMENT avec un objet JSON valide :
                         {"titre": "", "profil": "",
                          "competencesTechniques": [""], "competencesTransverses": [""],
@@ -359,17 +336,61 @@ public class IaService {
                          "projets": [{"nom": "", "description": "", "points": [""], "technologies": ""}],
                          "formations": [{"diplome": "", "etablissement": "", "lieu": "", "periode": "", "details": ""}],
                          "langues": [""], "atouts": [""], "centresInteret": [""], "liens": [""],
-                         "motsClesAjoutes": [""], "competencesAjoutees": [""]}
+                         "autresRubriques": [{"titre": "", "elements": [""]}]}
+                        """),
+                new Message("user", "CV DU CANDIDAT :\n" + cv)), true), "L'IA n'a pas pu lire ce CV, reessaie");
+        CvPdf.Cv origine;
+        try {
+            origine = CvAdaptation.lireExtraction(extraction);
+        } catch (RuntimeException e) {
+            throw new IaIndisponibleException("L'IA n'a pas pu lire ce CV, reessaie");
+        }
+
+        String ameliorations = json(appeler(List.of(
+                new Message("system", """
+                        Tu es un expert en recrutement et en logiciels de tri de CV (ATS). Voici le CV du candidat \
+                        en JSON (recopie fidele de son CV) et une offre. Tu AMELIORES la redaction pour cette offre, \
+                        en francais, SANS RIEN SUPPRIMER NI INVENTER : les postes, entreprises, lieux, dates, \
+                        diplomes et ecoles ne changent pas et ne doivent pas etre renvoyes. "index" = position de \
+                        l'element dans sa liste du CV, a partir de 0. Reponds UNIQUEMENT avec un objet JSON valide :
+                        {"titre": "intitule proche de celui de l'offre et coherent avec le profil",
+                         "profil": "3 a 4 phrases percutantes orientees vers l'offre, fondees sur le CV, sans je repete",
+                         "experiences": [{"index": 0, "missions": [""]}],
+                         "projets": [{"index": 0, "description": "", "points": [""]}],
+                         "formations": [{"index": 0, "details": ""}],
+                         "autresRubriques": [{"index": 0, "elements": [""]}],
+                         "competencesTechniquesAjoutees": [""], "competencesTransversesAjoutees": [""],
+                         "atoutsAjoutes": [""], "motsClesAjoutes": [""]}
+                        Regles :
+                        - experiences : une entree pour CHAQUE experience du CV ; reformule et DETAILLE chacune de \
+                        ses missions, dans le meme ordre et en gardant leur sens (au moins autant de missions que \
+                        dans le CV, 3 a 5) : "verbe d'action + quoi + avec quels outils ou methodes + pour quel \
+                        resultat", une ligne et demie maximum, en reprenant le vocabulaire de l'offre quand il \
+                        decrit ce que le candidat a reellement fait ; aucune mission sans rapport avec l'experience, \
+                        aucun chiffre absent du CV ;
+                        - projets : une entree pour CHAQUE projet : une phrase de contexte et 2 a 4 points concrets \
+                        (fonctionnalites, architecture, outils, resultats) fideles au projet ;
+                        - formations : une entree pour CHAQUE formation ; "details" = la ligne existante amelioree \
+                        ou une specialisation / des modules utiles pour l'offre SEULEMENT si le CV les donne, sinon "" ;
+                        - autresRubriques : une entree pour CHAQUE rubrique, chaque element reformule, sans en retirer ;
+                        - competencesTechniquesAjoutees : competences demandees par l'offre, ABSENTES du CV, mais \
+                        proches de celles du candidat (meme famille, outil voisin : Spring Boot -> Spring Data JPA, \
+                        React -> TypeScript, SQL -> PostgreSQL) ; jamais de competence trop eloignee de son profil ;
+                        - competencesTransversesAjoutees et atoutsAjoutes : savoir-etre et qualites que l'offre \
+                        demande, ABSENTS du CV, et credibles au vu de son parcours ; formules avec les mots de l'offre ;
+                        - motsClesAjoutes : mots-cles de l'offre que tu as integres.
                         """),
                 new Message("user", "OFFRE (" + c.getPoste() + " chez " + c.getNomEntreprise() + ") :\n"
-                        + texteOffre(c) + "\n\nCV ACTUEL DU CANDIDAT :\n" + cv));
-        String reponse = appeler(messages, true);
-        int debut = reponse.indexOf('{');
-        int fin = reponse.lastIndexOf('}');
-        if (debut < 0 || fin <= debut) {
-            throw new IaIndisponibleException("L'IA n'a pas renvoye de CV exploitable, reessaie");
+                        + texteOffre(c) + "\n\nCV DU CANDIDAT (JSON) :\n" + extraction)), true),
+                "L'IA n'a pas renvoye de CV exploitable, reessaie");
+        CvAdaptation.Ameliorations a;
+        try {
+            a = CvAdaptation.lireAmeliorations(ameliorations);
+        } catch (RuntimeException e) {
+            // Ameliorations illisibles : on renvoie le CV importe tel quel plutot que de perdre son contenu
+            a = new CvAdaptation.Ameliorations(null, null, null, null, null, null, null, null, null, null);
         }
-        return new IaResponse(reponse.substring(debut, fin + 1));
+        return new IaResponse(CvAdaptation.versJson(CvAdaptation.fusionner(origine, a)));
     }
 
     /** Redige une lettre de motivation a partir du CV et de l'offre (texte brut, pret a enregistrer). */
@@ -480,21 +501,44 @@ public class IaService {
         List<Message> messages = List.of(
                 new Message("system", """
                         Tu rediges, en francais, les messages qu'un candidat envoie a un recruteur pour presenter \
-                        sa candidature. Ton professionnel, direct et chaleureux ; aucune formule creuse ; relie 1 ou \
-                        2 experiences REELLES du CV aux besoins de l'offre ; n'invente rien. Texte brut, sans \
-                        Markdown ni crochets a completer. Le candidat s'appelle %s.
+                        sa candidature. Ton poli, courtois et naturel, comme ecrit par le candidat lui-meme : \
+                        vouvoiement, phrases simples et fluides, sans formules creuses ni cliches ("vivement \
+                        interesse", "je me permets", "dynamique et motive"), sans exageration. Relie 1 ou 2 \
+                        experiences REELLES du CV aux besoins de l'offre ; n'invente rien. Texte brut, sans Markdown, \
+                        sans emoji ni crochets a completer. Si le nom du recruteur est connu (consignes), utilise \
+                        "Bonjour Madame X," ou "Bonjour Monsieur X," ; sinon "Bonjour Madame, Monsieur,". \
+                        Separe les paragraphes par une ligne vide (\\n\\n dans le JSON).
+                        Le candidat s'appelle %s%s.
                         Reponds UNIQUEMENT avec un objet JSON valide :
-                        {"objet": "objet de l'email (moins de 80 caracteres, avec l'intitule du poste)",
-                         "email": "email de candidature de 120 a 180 mots : Bonjour, accroche, 2 a 3 phrases de valeur \
-                        ajoutee, mention du CV et de la lettre en piece jointe, proposition d'echange, formule de \
-                        politesse, signature avec le nom",
-                         "linkedin": "message LinkedIn de 60 a 90 mots, plus direct, sans objet",
-                         "noteConnexion": "note d'invitation LinkedIn de moins de 280 caracteres"}
-                        """.formatted(c.getUser().getNom())),
+                        {"objet": "objet de l'email : Candidature - intitule exact du poste - prenom et nom (moins de 90 caracteres)",
+                         "email": "email de 130 a 190 mots, structure en paragraphes separes par une ligne vide : \
+                        1) la salutation seule ; 2) le poste vise et comment le candidat a connu l'offre, en une ou \
+                        deux phrases ; 3) ce qu'il apporte : 1 ou 2 experiences reelles liees aux missions de l'offre ; \
+                        4) pourquoi cette entreprise l'interesse, en une phrase sincere ; 5) le CV et la lettre de \
+                        motivation en piece jointe et sa disponibilite pour un entretien ; 6) un remerciement poli ; \
+                        puis 'Cordialement,' et, sur les lignes suivantes, prenom et nom, telephone et email s'ils sont connus",
+                         "linkedin": "message LinkedIn de 70 a 100 mots, en 3 courts paragraphes separes par une \
+                        ligne vide (salutation et poste vise ; ce que le candidat apporte ; proposition d'echange), \
+                        puis 'Bien cordialement,' et le prenom et nom",
+                         "noteConnexion": "note d'invitation LinkedIn polie de moins de 280 caracteres : salutation, \
+                        poste vise, une raison d'echanger, remerciement"}
+                        """.formatted(c.getUser().getNom(), coordonnees(c.getUser()))),
                 new Message("user", "OFFRE (" + c.getPoste() + " chez " + c.getNomEntreprise() + ") :\n"
                         + texteOffre(c) + "\n\nCV DU CANDIDAT :\n" + cv
                         + (consignes == null || consignes.isBlank() ? "" : "\n\nCONSIGNES DU CANDIDAT : " + consignes)));
         return new IaResponse(json(appeler(messages, true), "L'IA n'a pas renvoye de message exploitable, reessaie"));
+    }
+
+    /** ", telephone : ..., email : ..." pour la signature des messages, ou vide. */
+    private static String coordonnees(com.jobtracker.user.User u) {
+        StringBuilder sb = new StringBuilder();
+        if (u.getTelephone() != null && !u.getTelephone().isBlank()) {
+            sb.append(", telephone : ").append(u.getTelephone().strip());
+        }
+        if (u.getEmail() != null && !u.getEmail().isBlank()) {
+            sb.append(", email : ").append(u.getEmail().strip());
+        }
+        return sb.toString();
     }
 
     /** Brouillon d'email de relance pour une candidature restee sans reponse. */
