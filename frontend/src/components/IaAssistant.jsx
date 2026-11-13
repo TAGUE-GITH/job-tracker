@@ -5,15 +5,18 @@ import { api } from '../api'
 import { ETAPES } from '../labels'
 import { arreterVoix, dicteeDisponible, parler, syntheseDisponible, useDictee } from '../voix.js'
 import OrvynaAvatar from './OrvynaAvatar.jsx'
-import { Mic, Square, Volume2 } from 'lucide-react'
+import EspaceCode from './EspaceCode.jsx'
+import { ETAPES_CODE, exercice, pourLaVoix, sansMarqueur } from '../entretien.js'
+import { Code2, Mic, Square, Volume2 } from 'lucide-react'
 
 const ETAPES_ENTRETIEN = ['ECHANGE_RH', 'TEST_TECHNIQUE', 'ENTRETIEN_TECHNIQUE', 'ENTRETIEN_MANAGER']
 
 const DEBUT_ECRIT = "Simule l'entretien : pose-moi la première question."
 const DEBUT_ORAL = "Simule l'entretien à l'oral : je réponds à voix haute et mes réponses sont transcrites " +
-  "automatiquement (ignore les petites fautes de transcription). Pose une seule question à la fois. Après chaque " +
-  'réponse, donne un retour en deux phrases maximum, puis pose la question suivante. Pas de listes ni de titres : ' +
-  'tes messages sont lus à voix haute. Pose la première question.'
+  "automatiquement (ignore les petites fautes de transcription). Suis le même déroulé après chaque réponse (ce qui " +
+  'est bien, à améliorer, réponse conseillée, puis la question suivante), en phrases courtes et naturelles, sans ' +
+  'listes ni titres : tes messages sont lus à voix haute. Les exercices de code restent écrits dans un bloc de code. ' +
+  'Pose la première question.'
 const BILAN = "Fais le bilan de cet entretien : une note sur 10, mes 3 points forts, 3 axes d'amélioration " +
   'concrets, et la réponse que je dois retravailler en priorité avec une meilleure version.'
 // Consignes envoyees a ORVYNA, affichees sous une forme courte dans la conversation
@@ -32,6 +35,8 @@ export default function IaAssistant({ candidature }) {
   const [oral, setOral] = useState(false)
   const [simulation, setSimulation] = useState(false)
   const [parle, setParle] = useState(false)
+  // Espace de code : ouvert automatiquement quand ORVYNA propose un exercice
+  const [espace, setEspace] = useState(null)
   const finRef = useRef(null)
   const dictee = useDictee(setSaisie)
   const oralPossible = dicteeDisponible() && syntheseDisponible()
@@ -45,7 +50,7 @@ export default function IaAssistant({ candidature }) {
 
   const lire = (texte) => {
     setParle(true)
-    parler(texte, { onFin: () => setParle(false) })
+    parler(pourLaVoix(texte), { onFin: () => setParle(false) })
   }
 
   const envoyer = async (historique, lireReponse = oral) => {
@@ -54,6 +59,8 @@ export default function IaAssistant({ candidature }) {
     try {
       const { reponse } = await api.ia(candidature.id, { typeEtape, messages: historique })
       setMessages([...historique, { role: 'assistant', content: reponse }])
+      const ex = exercice(reponse)
+      if (ex) setEspace({ langage: ex.langage, code: ex.code, depart: ex.code })
       if (lireReponse) lire(reponse)
     } catch (e) {
       setErreur(e.message)
@@ -64,6 +71,7 @@ export default function IaAssistant({ candidature }) {
 
   const preparer = () => {
     arreterVoix()
+    setEspace(null)
     setSimulation(false)
     setMessages([])
     envoyer([], false)
@@ -71,6 +79,7 @@ export default function IaAssistant({ candidature }) {
 
   const simuler = () => {
     arreterVoix()
+    setEspace(null)
     setSimulation(true)
     const h = [{ role: 'user', content: oral ? DEBUT_ORAL : DEBUT_ECRIT }]
     setMessages(h)
@@ -100,13 +109,18 @@ export default function IaAssistant({ candidature }) {
     }
   }
 
+  const envoyerCode = () => {
+    const nom = espace.langage === 'texte' ? '' : espace.langage
+    repondre(`Voici ma solution :\n\n\`\`\`${nom}\n${espace.code.replace(/\s+$/, '')}\n\`\`\``)
+  }
+
   const derniere = [...messages].reverse().find((m) => m.role === 'assistant')
   const reponsesDonnees = messages.filter((m) => m.role === 'user').length - 1
 
   return (
     <div className="card ia">
       <div className="ia-head">
-        <OrvynaAvatar size={44} />
+        <OrvynaAvatar size={48} etat={chargement ? 'reflechit' : parle ? 'parle' : 'repos'} />
         <div>
           <h3>ORVYNA · coach d'entretien</h3>
           <p className="muted small">
@@ -123,7 +137,19 @@ export default function IaAssistant({ candidature }) {
         <button className="btn ghost" onClick={simuler} disabled={chargement}>
           {oral ? 'Simuler à l’oral' : 'Simuler'}
         </button>
+        {ETAPES_CODE.includes(typeEtape) && !espace && (
+          <button type="button" className="btn ghost" onClick={() => setEspace({ langage: 'java', code: '', depart: '' })}>
+            <Code2 size={16} /> Espace de code
+          </button>
+        )}
       </div>
+      <p className="muted small">
+        {typeEtape === 'ECHANGE_RH'
+          ? 'Échange RH : ORVYNA joue le recruteur et pose les vraies questions RH. Après chaque réponse, elle te dit ce qui est réussi, ce qu’il faut améliorer et te propose une meilleure version avant de continuer.'
+          : ETAPES_CODE.includes(typeEtape)
+            ? 'ORVYNA joue le chef de projet : questions techniques tirées de l’offre et exercices à coder dans l’espace de code, corrigés un par un.'
+            : 'ORVYNA joue ton futur manager : organisation, travail en équipe, mises en situation tirées de l’offre, avec un retour après chaque réponse.'}
+      </p>
 
       <label className={`interrupteur ${oralPossible ? '' : 'desactive'}`}>
         <input type="checkbox" checked={oral} disabled={!oralPossible}
@@ -138,7 +164,9 @@ export default function IaAssistant({ candidature }) {
       <div className="chat">
         {messages.map((m, i) => (
           <div key={i} className={`bulle ${m.role}`}>
-            {m.role === 'assistant' ? <Markdown remarkPlugins={[remarkGfm]}>{m.content}</Markdown> : (CONSIGNES[m.content] ?? m.content)}
+            {m.role === 'assistant' || m.content.includes('```')
+              ? <Markdown remarkPlugins={[remarkGfm]}>{sansMarqueur(m.content)}</Markdown>
+              : (CONSIGNES[m.content] ?? m.content)}
           </div>
         ))}
         {chargement && <div className="bulle assistant muted">ORVYNA réfléchit…</div>}
@@ -155,6 +183,13 @@ export default function IaAssistant({ candidature }) {
         </div>
       )}
       {dictee.erreur && <p className="erreur">{dictee.erreur}</p>}
+
+      {espace && (
+        <EspaceCode langage={espace.langage} code={espace.code} codeDepart={espace.depart}
+          onLangage={(langage) => setEspace((e) => ({ ...e, langage }))}
+          onCode={(code) => setEspace((e) => ({ ...e, code }))}
+          onEnvoyer={envoyerCode} onFermer={() => setEspace(null)} desactive={chargement || messages.length === 0} />
+      )}
 
       {messages.length > 0 && (
         <form className="row" onSubmit={onSubmit}>
