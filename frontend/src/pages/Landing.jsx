@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom'
 import {
-  ArrowRight, BarChart3, Briefcase, Check, FileText, GitBranch, Minus, Search, Sparkles, X,
+  ArrowRight, BarChart3, Briefcase, Check, FileText, GitBranch, MessageCircle, Search, Sparkles,
 } from 'lucide-react'
 import { useAuth } from '../auth.jsx'
 import Logo from '../components/Logo.jsx'
 import { PiedDePage } from '../components/PagePublique.jsx'
 import OrvynaAvatar from '../components/OrvynaAvatar.jsx'
+import OrvynaWidget from '../components/OrvynaWidget.jsx'
+import { ouvrirOrvyna } from '../orvyna.js'
 import '../landing.css'
 
 const FONCTIONNALITES = [
@@ -65,23 +67,32 @@ const DIFFICULTES = [
   'Des entretiens préparés à la dernière minute',
 ]
 
-// Comparatif : oui, partiel, non
-const COMPARATIF = [
-  ['Toutes les candidatures et leur historique au même endroit', 'partiel', 'oui'],
-  ['Rappel des candidatures à relancer', 'non', 'oui'],
-  ['Offres de plusieurs pays et domaines, ajoutées en un clic', 'non', 'oui'],
-  ['CV adapté à chaque offre et compatible ATS', 'non', 'oui'],
-  ['Lettre de motivation rédigée à partir de l’offre', 'non', 'oui'],
-  ['Simulation d’entretien, à l’écrit ou à l’oral', 'non', 'oui'],
-  ['Statistiques : taux de réponse, CV et sources qui marchent', 'partiel', 'oui'],
-  ['Accessible sur ordinateur et téléphone', 'partiel', 'oui'],
+const PROFILS = [
+  {
+    tag: 'Étudiants et alternants',
+    titre: 'Décrocher un stage ou une alternance',
+    texte: 'Offres de stage et d’alternance, CV adapté à chaque annonce et lettre rédigée en quelques minutes.',
+    photo: PHOTOS.souriante,
+  },
+  {
+    tag: 'Jeunes diplômés',
+    titre: 'Réussir son premier emploi',
+    texte: 'Un suivi clair de chaque candidature, des relances au bon moment et des entretiens préparés avec ORVYNA.',
+    photo: PHOTOS.sereine,
+  },
+  {
+    tag: 'Reconversion',
+    titre: 'Changer de voie avec méthode',
+    texte: 'Valorisez votre parcours pour un nouveau métier et mesurez ce qui fonctionne pour ajuster votre stratégie.',
+    photo: PHOTOS.hero,
+  },
 ]
 
-function Cellule({ valeur }) {
-  if (valeur === 'oui') return <span className="cmp-oui"><Check size={18} /> Oui</span>
-  if (valeur === 'partiel') return <span className="cmp-partiel"><Minus size={18} /> À la main</span>
-  return <span className="cmp-non"><X size={18} /> Non</span>
-}
+const QUESTIONS_ORVYNA = [
+  'Comment rendre mon CV compatible ATS ?',
+  'Que dire en entretien sur mes défauts ?',
+  'Que peut faire Postulyn pour moi ?',
+]
 
 export default function Landing() {
   const { user } = useAuth()
@@ -96,7 +107,7 @@ export default function Landing() {
         <nav>
           <a href="#fonctionnalites">Fonctionnalités</a>
           <a href="#ia">Assistante IA</a>
-          <a href="#comparatif">Pourquoi Postulyn</a>
+          <a href="#pour-qui">Pour qui</a>
           <a href="#etapes">Fonctionnement</a>
         </nav>
         <div className="landing-nav-actions">
@@ -123,6 +134,14 @@ export default function Landing() {
             <li><Check size={16} /> Sans carte bancaire</li>
             <li><Check size={16} /> Données exportables</li>
           </ul>
+          <button type="button" className="hero-orvyna" onClick={() => ouvrirOrvyna()}>
+            <OrvynaAvatar size={44} />
+            <span className="hero-orvyna-texte">
+              <strong>Une question sur votre recherche d’emploi ?</strong>
+              <small>ORVYNA, notre assistante IA, vous répond tout de suite</small>
+            </span>
+            <ArrowRight size={18} />
+          </button>
         </div>
 
         <div className="hero-visual" aria-hidden="true">
@@ -164,7 +183,7 @@ export default function Landing() {
             on s'épuise à tout garder en tête et les opportunités passent.
           </p>
           <ul className="liste-difficultes">
-            {DIFFICULTES.map((d) => <li key={d}><X size={16} /> {d}</li>)}
+            {DIFFICULTES.map((d) => <li key={d}>{d}</li>)}
           </ul>
         </div>
       </section>
@@ -186,35 +205,25 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="comparatif" className="section comparatif">
+      <section id="pour-qui" className="section pour-qui">
         <div className="section-head">
-          <span className="eyebrow">Pourquoi Postulyn</span>
-          <h2>Ce qui change par rapport à un tableur, des post-it et vos e-mails</h2>
+          <span className="eyebrow">Pour qui</span>
+          <h2>Pensé pour chaque étape de votre parcours</h2>
+          <p>Que vous cherchiez votre première expérience ou un nouveau départ, Postulyn s’adapte à votre recherche.</p>
         </div>
-        <div className="comparatif-grille">
-          <div className="comparatif-photo">
-            <img src={photo(PHOTOS.sereine, 800)} alt="Jeune femme souriante à son bureau devant son ordinateur" loading="lazy" />
-            <div className="comparatif-legende">
-              <strong>Une recherche organisée, sereine</strong>
-              <span>Chaque offre, chaque échange et chaque document au même endroit, avec une assistante pour vous préparer.</span>
-            </div>
-          </div>
-          <div className="card table-comparatif">
-            <table>
-              <thead>
-                <tr><th>Fonctionnalité</th><th>Tableur et outils dispersés</th><th className="col-postulyn">Postulyn</th></tr>
-              </thead>
-              <tbody>
-                {COMPARATIF.map(([libelle, autres, nous]) => (
-                  <tr key={libelle}>
-                    <td>{libelle}</td>
-                    <td><Cellule valeur={autres} /></td>
-                    <td className="col-postulyn"><Cellule valeur={nous} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="profils">
+          {PROFILS.map((pr) => (
+            <article key={pr.titre} className="profil-carte">
+              <div className="profil-photo">
+                <img src={photo(pr.photo, 700)} alt="" loading="lazy" />
+              </div>
+              <div className="profil-texte">
+                <span className="profil-tag">{pr.tag}</span>
+                <h3>{pr.titre}</h3>
+                <p>{pr.texte}</p>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -234,11 +243,18 @@ export default function Landing() {
             <li><Check size={18} /> Réponses à vos questions sur l'application</li>
           </ul>
         </div>
-        <div className="l-chat" aria-hidden="true">
-          <div className="l-chat-head"><OrvynaAvatar size={34} /><div><b>ORVYNA</b><small>Assistante IA</small></div></div>
-          <div className="bubble bot">Entretien technique chez <b>Atlas Studio</b>. Première question : comment sécurisez-vous une API REST ?</div>
-          <div className="bubble me">Avec Spring Security et des jetons JWT signés, et une validation de chaque entrée.</div>
-          <div className="bubble bot">Bonne base. Mentionnez aussi la gestion des rôles et la configuration CORS. Question suivante ?</div>
+        <div className="orvyna-vitrine">
+          <OrvynaAvatar size={128} halo />
+          <h3>Bonjour, je suis ORVYNA</h3>
+          <p>Posez-moi une question sur Postulyn ou sur votre recherche d’emploi. Je vous réponds tout de suite, sans inscription.</p>
+          <div className="orvyna-vitrine-questions">
+            {QUESTIONS_ORVYNA.map((q) => (
+              <button key={q} type="button" onClick={() => ouvrirOrvyna(q)}>{q}</button>
+            ))}
+          </div>
+          <button type="button" className="btn primary btn-lg" onClick={() => ouvrirOrvyna()}>
+            <MessageCircle size={18} /> Discuter avec ORVYNA
+          </button>
         </div>
       </section>
 
@@ -268,6 +284,8 @@ export default function Landing() {
       </section>
 
       <PiedDePage />
+      {/* ORVYNA disponible sur toute la page : version visiteur, ou celle du compte si l'utilisateur est connecte */}
+      <OrvynaWidget publique={!user} />
     </div>
   )
 }

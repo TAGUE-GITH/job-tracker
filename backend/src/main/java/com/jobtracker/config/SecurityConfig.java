@@ -78,6 +78,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/actuator/health").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/contact").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/public/orvyna").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()))
                 .build();

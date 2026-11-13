@@ -143,8 +143,8 @@
 .probleme-texte h2 { font-size: clamp(1.6rem, 3vw, 2.15rem); line-height: 1.2; margin: 0 0 0.9rem; }
 .probleme-texte p { color: var(--muted); line-height: 1.7; }
 .liste-difficultes { list-style: none; padding: 0; margin: 1.3rem 0 0; display: flex; flex-direction: column; gap: 0.7rem; }
-.liste-difficultes li { display: flex; gap: 0.6rem; align-items: flex-start; }
-.liste-difficultes svg { flex-shrink: 0; margin-top: 0.15rem; color: #dc2626; }
+.liste-difficultes li { position: relative; padding-left: 1.3rem; }
+.liste-difficultes li::before { content: ''; position: absolute; left: 0; top: 0.62em; width: 0.6rem; height: 2px; border-radius: 2px; background: var(--primary); }
 
 /* Comparatif */
 .comparatif { border-top: 1px solid var(--border); }
@@ -182,4 +182,46 @@
   .hero-visual .mock { position: relative; width: 92%; margin: -2.5rem auto 0; }
   .probleme-photos { min-height: 260px; }
   .final-photo { display: none; }
+}
+
+/* Pour qui */
+.profils { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+.profil-carte { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--surface); display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.profil-carte:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -24px rgba(15, 23, 42, 0.45); }
+.profil-photo { aspect-ratio: 16 / 10; overflow: hidden; }
+.profil-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.profil-texte { padding: 1.2rem 1.3rem 1.4rem; }
+.profil-texte h3 { margin: 0.5rem 0 0.4rem; font-size: 1.08rem; }
+.profil-texte p { margin: 0; color: var(--muted); line-height: 1.55; font-size: 0.93rem; }
+.profil-tag { display: inline-block; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.02em; color: var(--primary); background: color-mix(in srgb, var(--primary) 9%, transparent); padding: 0.2rem 0.55rem; border-radius: 999px; }
+
+/* Acces a ORVYNA dans le haut de page */
+.hero-orvyna {
+  margin-top: 1.6rem; display: flex; align-items: center; gap: 0.85rem; width: 100%; max-width: 470px; text-align: left;
+  padding: 0.75rem 1rem 0.75rem 0.8rem; border-radius: 14px; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); font: inherit; cursor: pointer; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.hero-orvyna:hover { border-color: color-mix(in srgb, var(--primary) 50%, var(--border)); box-shadow: 0 12px 30px -20px rgba(29, 78, 216, 0.6); }
+.hero-orvyna .hero-orvyna-texte { flex: 1; display: flex; flex-direction: column; gap: 0.15rem; }
+.hero-orvyna strong { font-size: 0.95rem; }
+.hero-orvyna small { color: var(--muted); font-size: 0.83rem; }
+.hero-orvyna > svg { color: var(--primary); flex-shrink: 0; }
+
+/* Vitrine de ORVYNA */
+.orvyna-vitrine {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.9rem; padding: 2.4rem 2rem;
+  border-radius: 18px; border: 1px solid var(--border);
+  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 60%), var(--surface);
+}
+.orvyna-vitrine h3 { margin: 0.6rem 0 0; font-size: 1.3rem; }
+.orvyna-vitrine p { margin: 0; color: var(--muted); max-width: 380px; line-height: 1.55; }
+.orvyna-vitrine-questions { display: flex; flex-direction: column; gap: 0.5rem; width: 100%; max-width: 380px; margin: 0.4rem 0 0.6rem; }
+.orvyna-vitrine-questions button {
+  font: inherit; font-size: 0.9rem; text-align: left; padding: 0.65rem 0.9rem; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text); transition: border-color 0.15s ease;
+}
+.orvyna-vitrine-questions button:hover { border-color: var(--primary); color: var(--primary); }
+
+@media (max-width: 900px) {
+  .profils { grid-template-columns: 1fr; }
 }

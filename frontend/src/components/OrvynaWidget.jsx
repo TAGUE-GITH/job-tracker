@@ -14,15 +14,27 @@ const SUGGESTIONS = [
   'J’ai un problème avec l’application',
 ]
 
+// Sur la page d'accueil, pour les visiteurs sans compte
+const SUGGESTIONS_PUBLIQUES = [
+  'Que peut faire Postulyn pour moi ?',
+  'Comment rendre mon CV compatible ATS ?',
+  'Comment préparer un entretien ?',
+  'Quand relancer un recruteur ?',
+  'Postulyn est-il gratuit ?',
+]
+
+
 // Les liens internes proposes par ORVYNA (ex. /contact) restent dans l'application
 function LienMarkdown({ href = '', children }) {
   if (href.startsWith('/')) return <Link to={href}>{children}</Link>
   return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
 }
 
-// Bulle d'aide flottante : ORVYNA repond aux questions sur l'application, sur toutes les pages
-export default function OrvynaWidget() {
+// Bulle d'aide flottante : ORVYNA repond aux questions sur l'application et la recherche d'emploi.
+// publique : version de la page d'accueil, sans compte (vouvoiement, sans acces aux candidatures).
+export default function OrvynaWidget({ publique = false }) {
   const [ouvert, setOuvert] = useState(false)
+  const [parle, setParle] = useState(false)
   const [messages, setMessages] = useState([])
   const [saisie, setSaisie] = useState('')
   const [chargement, setChargement] = useState(false)
@@ -33,6 +45,13 @@ export default function OrvynaWidget() {
     finRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [messages, chargement, ouvert])
 
+  // Pendant quelques secondes apres une reponse, l'avatar "parle"
+  useEffect(() => {
+    if (!parle) return undefined
+    const t = setTimeout(() => setParle(false), 2600)
+    return () => clearTimeout(t)
+  }, [parle])
+
   const demander = async (texte) => {
     if (!texte.trim() || chargement) return
     const historique = [...messages, { role: 'user', content: texte.trim() }]
@@ -41,8 +60,9 @@ export default function OrvynaWidget() {
     setErreur('')
     setChargement(true)
     try {
-      const { reponse } = await api.aide({ messages: historique })
+      const { reponse } = await (publique ? api.orvynaPublique : api.aide)({ messages: historique })
       setMessages([...historique, { role: 'assistant', content: reponse }])
+      setParle(true)
     } catch (e) {
       setErreur(e.message)
     } finally {
@@ -55,27 +75,47 @@ export default function OrvynaWidget() {
     demander(saisie)
   }
 
+  // Ouverture depuis un bouton de la page (ex. page d'accueil)
+  const demanderRef = useRef(demander)
+  useEffect(() => {
+    demanderRef.current = demander
+  })
+  useEffect(() => {
+    const ouvrir = (e) => {
+      setOuvert(true)
+      if (e.detail) demanderRef.current(e.detail)
+    }
+    window.addEventListener('orvyna:ouvrir', ouvrir)
+    return () => window.removeEventListener('orvyna:ouvrir', ouvrir)
+  }, [])
+
+  const etat = chargement ? 'reflechit' : parle ? 'parle' : 'repos'
+  const suggestions = publique ? SUGGESTIONS_PUBLIQUES : SUGGESTIONS
+
   return (
     <div className={`orvyna ${ouvert ? 'orvyna-ouvert' : ''}`}>
       {ouvert && (
         <section className="orvyna-panel" aria-label="Discuter avec ORVYNA">
           <header className="orvyna-head">
-            <OrvynaAvatar size={40} />
+            <OrvynaAvatar size={44} etat={etat} />
             <div>
               <strong>ORVYNA</strong>
-              <small><span className="orvyna-dot" /> Ton assistant Postulyn</small>
+              <small><span className="orvyna-dot" /> {chargement ? 'Réfléchit…' : publique ? 'Assistante IA de Postulyn' : 'Ton assistante Postulyn'}</small>
             </div>
             <button className="orvyna-fermer" onClick={() => setOuvert(false)} aria-label="Fermer"><X size={20} /></button>
           </header>
 
           <div className="orvyna-messages">
             <div className="bulle assistant">
-              Bonjour, je suis <b>ORVYNA</b>. Pose-moi une question sur Postulyn, sur tes candidatures
-              ou sur ta recherche d'emploi.
+              {publique
+                ? <>Bonjour, je suis <b>ORVYNA</b>, l’assistante IA de Postulyn. Posez-moi vos questions sur
+                  l’application ou sur votre recherche d’emploi : CV, lettre, entretiens, relances…</>
+                : <>Bonjour, je suis <b>ORVYNA</b>. Pose-moi une question sur Postulyn, sur tes candidatures
+                  ou sur ta recherche d'emploi.</>}
             </div>
             {messages.length === 0 && (
               <div className="orvyna-suggestions">
-                {SUGGESTIONS.map((s) => (
+                {suggestions.map((s) => (
                   <button key={s} type="button" onClick={() => demander(s)}>{s}</button>
                 ))}
               </div>
@@ -91,20 +131,20 @@ export default function OrvynaWidget() {
           </div>
 
           <Link to="/contact" className="orvyna-support" onClick={() => setOuvert(false)}>
-            <LifeBuoy size={14} /> Un problème non résolu ? Contacter l'équipe
+            <LifeBuoy size={14} /> {publique ? "Une question particulière ? Contacter l'équipe" : "Un problème non résolu ? Contacter l'équipe"}
           </Link>
           <form className="orvyna-saisie" onSubmit={onSubmit}>
             <input value={saisie} onChange={(e) => setSaisie(e.target.value)}
-              placeholder="Écris ta question…" disabled={chargement} autoFocus />
+              placeholder={publique ? 'Écrivez votre question…' : 'Écris ta question…'} disabled={chargement} autoFocus />
             <button className="btn primary" disabled={chargement || !saisie.trim()} aria-label="Envoyer"><Send size={16} /></button>
           </form>
         </section>
       )}
 
       <button className="orvyna-bouton" onClick={() => setOuvert(!ouvert)}
-        aria-label={ouvert ? 'Fermer ORVYNA' : 'Ouvrir ORVYNA, ton assistant'}>
-        <OrvynaAvatar size={46} />
-        {!ouvert && <span className="orvyna-label">Besoin d'aide ?</span>}
+        aria-label={ouvert ? 'Fermer ORVYNA' : 'Ouvrir ORVYNA, l’assistante IA'}>
+        <OrvynaAvatar size={50} etat={etat} />
+        {!ouvert && <span className="orvyna-label">{publique ? 'Une question ? Demandez à ORVYNA' : "Besoin d'aide ?"}</span>}
       </button>
     </div>
   )

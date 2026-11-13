@@ -114,6 +114,8 @@ export const api = {
   },
   supprimerDocument: (id) => request(`/documents/${id}`, { method: 'DELETE' }),
   supprimerTousDocuments: () => request('/documents', { method: 'DELETE' }),
+  orvynaPublique: (body) => request('/public/orvyna', { method: 'POST', body }),
+
   ouvrirDocument: async (id, nomFichier) => {
     // L'onglet est ouvert tout de suite (au clic) : sinon les navigateurs mobiles le bloquent
     const onglet = window.open('', '_blank')

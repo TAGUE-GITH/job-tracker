@@ -21,6 +21,35 @@ public class IaController {
         this.iaService = iaService;
     }
 
+    /** Nombre de questions autorisees par adresse IP et par heure pour ORVYNA sans compte. */
+    private static final int QUESTIONS_PAR_HEURE = 30;
+    private final java.util.Map<String, java.util.Deque<java.time.Instant>> questionsParIp =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** ORVYNA sur la page d'accueil, sans compte : aide sur Postulyn et conseils de recherche d'emploi. */
+    @PostMapping("/api/public/orvyna")
+    public IaResponse aidePublique(@Valid @RequestBody AideRequest req,
+            jakarta.servlet.http.HttpServletRequest requete) {
+        String transmise = requete.getHeader("X-Forwarded-For");
+        String ip = transmise != null && !transmise.isBlank() ? transmise.split(",")[0].strip() : requete.getRemoteAddr();
+        java.time.Instant maintenant = java.time.Instant.now();
+        java.util.Deque<java.time.Instant> recentes = questionsParIp.computeIfAbsent(ip,
+                k -> new java.util.concurrent.ConcurrentLinkedDeque<>());
+        while (!recentes.isEmpty() && recentes.peekFirst().isBefore(maintenant.minus(java.time.Duration.ofHours(1)))) {
+            recentes.pollFirst();
+        }
+        if (recentes.size() >= QUESTIONS_PAR_HEURE) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.TOO_MANY_REQUESTS,
+                    "Vous avez pose beaucoup de questions : reessayez dans un moment, ou creez un compte gratuit.");
+        }
+        recentes.addLast(maintenant);
+        if (questionsParIp.size() > 10_000) {
+            questionsParIp.clear();
+        }
+        return iaService.aidePublique(req.messages());
+    }
+
     @PostMapping("/api/candidatures/{id}/ia")
     public IaResponse assister(@PathVariable Long id, @Valid @RequestBody IaRequest req) {
         return iaService.assister(CurrentUser.id(), id, req);

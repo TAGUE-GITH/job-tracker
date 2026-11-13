@@ -544,10 +544,29 @@ kbd { font: inherit; font-size: 0.8rem; padding: 0.05rem 0.4rem; border: 1px sol
 .doc-actions { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; word-break: break-word; }
 .doc-actions .btn.small { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
 
-/* Pastille de l'assistante IA */
-.orvyna-avatar {
-  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
-  background: var(--brand); color: #bfdbfe;
+/* Avatar anime de l'assistante IA */
+.orvyna-avatar { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.orvyna-avatar svg { display: block; overflow: visible; filter: drop-shadow(0 3px 8px rgba(30, 27, 107, 0.35)); }
+.orvyna-avatar.orvyna-halo::before {
+  content: ''; position: absolute; inset: -14%; border-radius: 50%;
+  background: radial-gradient(circle, rgba(103, 232, 249, 0.35), rgba(59, 91, 219, 0.12) 55%, transparent 72%);
+  animation: o-halo 3.2s ease-in-out infinite;
+}
+.orvyna-avatar .o-corps { transform-origin: 50px 54px; animation: o-respire 4s ease-in-out infinite; }
+.orvyna-avatar .o-oeil { transform-box: fill-box; transform-origin: center; animation: o-cligne 5s infinite; }
+.orvyna-avatar .o-antenne { animation: o-lueur 2.4s ease-in-out infinite; }
+.orvyna-avatar .o-bouche { transform-box: fill-box; transform-origin: center; }
+.orvyna-reflechit .o-yeux { animation: o-regard 1.6s ease-in-out infinite; }
+.orvyna-reflechit .o-antenne { animation-duration: 0.8s; }
+.orvyna-parle .o-bouche { animation: o-parle 0.36s ease-in-out infinite alternate; }
+@keyframes o-respire { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+@keyframes o-cligne { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+@keyframes o-lueur { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@keyframes o-regard { 0%, 100% { transform: translateX(-4px); } 50% { transform: translateX(4px); } }
+@keyframes o-parle { from { transform: scale(0.7, 1); } to { transform: scale(1.15, 2.4); } }
+@keyframes o-halo { 0%, 100% { opacity: 0.7; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.04); } }
+@media (prefers-reduced-motion: reduce) {
+  .orvyna-avatar *, .orvyna-avatar::before { animation: none !important; }
 }
 
 /* Bloc d'information neutre */
