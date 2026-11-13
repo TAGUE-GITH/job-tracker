@@ -146,4 +146,36 @@ class CvPdfTests {
             ImageIO.write(new PDFRenderer(doc).renderImageWithDPI(0, 70), "png", new File("target/cv-charge-apercu.png"));
         }
     }
+
+    @Test
+    void lesLiensSontDesAdressesWebCliquablesMemeAvecUnLibelle() throws Exception {
+        assertEquals("https://linkedin.com/in/tague-franck", CvPdf.lienDansTexte("linkedin.com/in/tague-franck"));
+        assertEquals(null, CvPdf.lienDansTexte("Node.js"));
+        assertEquals(null, CvPdf.lienDansTexte("ASP.NET"));
+        assertEquals(null, CvPdf.lienDansTexte("Render/Vercel"));
+        CvPdf.Cv cv = new CvPdf.Cv(CV.titre(), CV.profil() + " Démo en ligne : postulyn.vercel.app.", CV.competencesTechniques(),
+                CV.competencesTransverses(), CV.experiences(), CV.projets(), CV.formations(), CV.langues(), CV.atouts(),
+                CV.centresInteret(), List.of("LinkedIn : linkedin.com/in/tague-franck", "https://github.com/TAGUE-GITH/"),
+                null, false);
+        for (String modele : CvPdf.MODELES) {
+            CvPdf.Cv m = new CvPdf.Cv(cv.titre(), cv.profil(), cv.competencesTechniques(), cv.competencesTransverses(),
+                    cv.experiences(), cv.projets(), cv.formations(), cv.langues(), cv.atouts(), cv.centresInteret(),
+                    cv.liens(), modele, false);
+            byte[] pdf = CvPdf.generer(new CvPdf.Contact("Franck Tague", "franck@exemple.fr", "06 12 34 56 78", "Paris"), m);
+            try (var doc = Loader.loadPDF(pdf)) {
+                List<String> liens = new java.util.ArrayList<>();
+                for (var a : doc.getPage(0).getAnnotations()) {
+                    if (a instanceof org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink l
+                            && l.getAction() instanceof org.apache.pdfbox.pdmodel.interactive.action.PDActionURI u) {
+                        liens.add(u.getURI());
+                    }
+                }
+                assertTrue(liens.contains("https://linkedin.com/in/tague-franck")
+                        && liens.contains("https://github.com/TAGUE-GITH/")
+                        && liens.contains("https://postulyn.vercel.app"), modele + " " + liens);
+                // Aucun lien relatif (que le lecteur PDF ouvrirait comme un fichier)
+                assertTrue(liens.stream().allMatch(x -> x.matches("^(https?|mailto|tel):.+")), modele + " " + liens);
+            }
+        }
+    }
 }

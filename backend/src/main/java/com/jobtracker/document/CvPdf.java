@@ -768,6 +768,30 @@ public final class CvPdf {
         return null;
     }
 
+    /** Mot eventuellement entoure de ponctuation : (ouvrante)(lien)(fermante). */
+    private static final java.util.regex.Pattern MOT_LIEN =
+            java.util.regex.Pattern.compile("^([(\\[\"']*)(.+?)([)\\]\"'.,;:!?]*)$");
+    private static final java.util.regex.Pattern DOMAINE_CONNU = java.util.regex.Pattern.compile(
+            "^[a-z0-9-]+(\\.[a-z0-9-]+)*\\.(com|fr|io|dev|org|net|app|me|co|ai|cm|be|ch|ca|eu|tech|info|site|page"
+                    + "|xyz|uk|de|ma|sn|ci|tn|lu)(/\\S*)?$");
+
+    /**
+     * Lien reconnu dans un texte courant, de facon plus stricte que pour une coordonnee (pour ne pas prendre
+     * "Node.js" ou "ASP.NET" pour un site) : email, adresse en http(s):// ou www., ou domaine connu en minuscules.
+     */
+    static String lienDansTexte(String mot) {
+        if (EMAIL.matcher(mot).matches()) {
+            return "mailto:" + mot;
+        }
+        if (mot.matches("(?i)^https?://\\S+\\.\\S+$")) {
+            return mot;
+        }
+        if (mot.matches("(?i)^www\\.\\S+\\.\\S+$") || DOMAINE_CONNU.matcher(mot).matches()) {
+            return "https://" + mot;
+        }
+        return null;
+    }
+
     /** "https://www.github.com/moi/" -> "github.com/moi" : plus lisible sur le CV. */
     static String affichageLien(String s) {
         return texte(s).replaceFirst("(?i)^https?://", "").replaceFirst("(?i)^www\\.", "").replaceAll("/+$", "");
@@ -839,14 +863,14 @@ public final class CvPdf {
             return new Morceau(italique, c, s == null ? "" : s);
         }
 
-        /** Element de contact : les emails et les sites sont bleus, soulignes et cliquables ; le telephone est cliquable. */
+        /** Element de contact : email, sites et telephone en bleu, soulignes et cliquables. */
         Morceau contact(String s) {
             String lien = lienDe(s);
             if (lien == null) {
                 return n(NOIR, s);
             }
             if (lien.startsWith("tel:")) {
-                return new Morceau(normal, NOIR, texte(s), lien);
+                return new Morceau(normal, LIEN, texte(s), lien);
             }
             return new Morceau(normal, LIEN, lien.startsWith("mailto:") ? texte(s) : affichageLien(s), lien);
         }
@@ -1005,6 +1029,32 @@ public final class CvPdf {
         }
 
         /**
+         * Ajoute un mot ; s'il s'agit d'un lien (site, email) ecrit dans le texte, il devient bleu, souligne et
+         * cliquable, la ponctuation qui le suit restant en dehors du lien.
+         */
+        private static void ajouterMot(List<Mot> mots, Morceau m, String mot, boolean espace) {
+            if (m.lien() == null) {
+                java.util.regex.Matcher r = MOT_LIEN.matcher(mot);
+                if (r.matches()) {
+                    String lien = lienDansTexte(r.group(2));
+                    if (lien != null) {
+                        if (!r.group(1).isEmpty()) {
+                            mots.add(new Mot(m, r.group(1), espace));
+                            espace = false;
+                        }
+                        String affiche = lien.startsWith("mailto:") ? r.group(2) : affichageLien(r.group(2));
+                        mots.add(new Mot(new Morceau(m.police(), LIEN, affiche, lien), affiche, espace));
+                        if (!r.group(3).isEmpty()) {
+                            mots.add(new Mot(m, r.group(3), false));
+                        }
+                        return;
+                    }
+                }
+            }
+            mots.add(new Mot(m, mot, espace));
+        }
+
+        /**
          * Ecrit des morceaux de polices et couleurs differentes, coupes en lignes a la largeur de la colonne.
          * retraitPremiere / retraitSuite : decalage de la premiere ligne et des suivantes (puces).
          */
@@ -1018,7 +1068,7 @@ public final class CvPdf {
                 for (char ch : s.toCharArray()) {
                     if (ch == ' ') {
                         if (!courant.isEmpty()) {
-                            mots.add(new Mot(m, courant.toString(), espace));
+                            ajouterMot(mots, m, courant.toString(), espace);
                             courant.setLength(0);
                         }
                         espace = true;
@@ -1027,7 +1077,7 @@ public final class CvPdf {
                     }
                 }
                 if (!courant.isEmpty()) {
-                    mots.add(new Mot(m, courant.toString(), espace));
+                    ajouterMot(mots, m, courant.toString(), espace);
                     espace = false;
                 }
             }
@@ -1099,7 +1149,7 @@ public final class CvPdf {
                 montrer(f, seg.style(), seg.texte(), taille);
             }
             f.endText();
-            // Liens : soulignes (sauf le telephone) et cliquables, sans l'espace qui les precede
+            // Liens : soulignes et cliquables, sans l'espace qui les precede
             float xCourant = xLigne;
             for (Segment seg : segments) {
                 float l = largeurDe(seg.texte(), seg.style().police(), taille);
@@ -1108,14 +1158,11 @@ public final class CvPdf {
                     float debut = xCourant + avant;
                     float fin = xCourant + l;
                     float base = y - taille;
-                    if (!seg.style().lien().startsWith("tel:")) {
-                        float[] c = seg.style().couleur();
-                        f.setStrokingColor(c[0], c[1], c[2]);
-                        f.setLineWidth(Math.max(0.4f, taille * 0.05f));
-                        f.moveTo(debut, base - taille * 0.14f);
-                        f.lineTo(fin, base - taille * 0.14f);
-                        f.stroke();
-                    }
+                    f.setStrokingColor(LIEN[0], LIEN[1], LIEN[2]);
+                    f.setLineWidth(Math.max(0.4f, taille * 0.05f));
+                    f.moveTo(debut, base - taille * 0.14f);
+                    f.lineTo(fin, base - taille * 0.14f);
+                    f.stroke();
                     t.lien(page, debut, base - taille * 0.25f, fin - debut, taille * 1.2f, seg.style().lien());
                 }
                 xCourant += l;
