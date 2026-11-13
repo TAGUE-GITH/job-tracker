@@ -9,6 +9,7 @@ import { api } from './api'
 import { initiales } from './labels'
 import Login from './pages/Login.jsx'
 import Landing from './pages/Landing.jsx'
+import APropos from './pages/APropos.jsx'
 import Logo from './components/Logo.jsx'
 import OrvynaWidget from './components/OrvynaWidget.jsx'
 import Dashboard from './pages/Dashboard.jsx'
@@ -121,6 +122,7 @@ export default function App() {
         <Route path="/demo" element={<Demo />} />
         <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
         <Route path="/reinitialiser" element={<Reinitialiser />} />
+        <Route path="/a-propos" element={<APropos />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/conditions" element={<Conditions />} />
         <Route element={<Layout />}>

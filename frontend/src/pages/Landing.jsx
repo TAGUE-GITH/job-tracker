@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import {
-  ArrowRight, BarChart3, Briefcase, Check, FileText, GitBranch, MessageCircle, Search, Sparkles,
+  ArrowRight, BarChart3, Briefcase, FileText, GitBranch, MessageCircle, Search, Sparkles,
 } from 'lucide-react'
 import { useAuth } from '../auth.jsx'
 import Logo from '../components/Logo.jsx'
@@ -8,6 +8,8 @@ import { PiedDePage } from '../components/PagePublique.jsx'
 import OrvynaAvatar from '../components/OrvynaAvatar.jsx'
 import OrvynaWidget from '../components/OrvynaWidget.jsx'
 import { ouvrirOrvyna } from '../orvyna.js'
+import Portrait from '../components/Portrait.jsx'
+import { CITATION, FONDATEUR } from '../fondateur.js'
 import '../landing.css'
 
 const FONCTIONNALITES = [
@@ -107,8 +109,8 @@ export default function Landing() {
         <nav>
           <a href="#fonctionnalites">Fonctionnalités</a>
           <a href="#ia">Assistante IA</a>
-          <a href="#pour-qui">Pour qui</a>
           <a href="#etapes">Fonctionnement</a>
+          <Link to="/a-propos">À propos</Link>
         </nav>
         <div className="landing-nav-actions">
           {!user && <Link to="/demo" className="btn ghost lien-demo">Démo</Link>}
@@ -129,16 +131,12 @@ export default function Landing() {
             <Link to={cta.to} className="btn primary btn-lg">{cta.label} <ArrowRight size={18} /></Link>
             {!user && <Link to="/demo" className="btn ghost btn-lg">Voir la démonstration</Link>}
           </div>
-          <ul className="hero-points">
-            <li><Check size={16} /> Gratuit</li>
-            <li><Check size={16} /> Sans carte bancaire</li>
-            <li><Check size={16} /> Données exportables</li>
-          </ul>
+          <p className="hero-mention">Gratuit, sans carte bancaire. Vos données restent les vôtres.</p>
           <button type="button" className="hero-orvyna" onClick={() => ouvrirOrvyna()}>
             <OrvynaAvatar size={44} />
             <span className="hero-orvyna-texte">
               <strong>Une question sur votre recherche d’emploi ?</strong>
-              <small>ORVYNA, notre assistante IA, vous répond tout de suite</small>
+              <small>{user ? 'ORVYNA, votre assistante IA, vous répond tout de suite' : 'ORVYNA, notre assistante IA, vous accompagne dès votre connexion'}</small>
             </span>
             <ArrowRight size={18} />
           </button>
@@ -182,9 +180,9 @@ export default function Landing() {
             Des dizaines de candidatures, autant d'annonces, de versions de CV et d'échanges : sans outil adapté,
             on s'épuise à tout garder en tête et les opportunités passent.
           </p>
-          <ul className="liste-difficultes">
-            {DIFFICULTES.map((d) => <li key={d}>{d}</li>)}
-          </ul>
+          <div className="constats">
+            {DIFFICULTES.map((d) => <p key={d}>{d}</p>)}
+          </div>
         </div>
       </section>
 
@@ -236,17 +234,19 @@ export default function Landing() {
             compatible ATS, propose une lettre de motivation, puis joue le rôle du recruteur pour un entretien blanc,
             à l'écrit ou à l'oral.
           </p>
-          <ul className="checks">
-            <li><Check size={18} /> Score de compatibilité et compétences manquantes</li>
-            <li><Check size={18} /> CV d'une page optimisé pour les logiciels de tri</li>
-            <li><Check size={18} /> Simulation d'entretien avec bilan détaillé</li>
-            <li><Check size={18} /> Réponses à vos questions sur l'application</li>
-          </ul>
+          <div className="ia-atouts">
+            <div><strong>Compatibilité</strong><span>Score et compétences manquantes face à l’offre</span></div>
+            <div><strong>CV et lettre</strong><span>Adaptés à l’offre et lisibles par les logiciels de tri</span></div>
+            <div><strong>Entretien blanc</strong><span>À l’écrit ou à l’oral, avec un bilan détaillé</span></div>
+            <div><strong>Conseils</strong><span>Sur l’application et toute votre recherche d’emploi</span></div>
+          </div>
         </div>
         <div className="orvyna-vitrine">
           <OrvynaAvatar size={128} halo />
           <h3>Bonjour, je suis ORVYNA</h3>
-          <p>Posez-moi une question sur Postulyn ou sur votre recherche d’emploi. Je vous réponds tout de suite, sans inscription.</p>
+          <p>{user
+            ? 'Posez-moi une question sur Postulyn ou sur votre recherche d’emploi : je vous réponds tout de suite.'
+            : 'Connectez-vous pour me poser vos questions sur Postulyn et sur votre recherche d’emploi.'}</p>
           <div className="orvyna-vitrine-questions">
             {QUESTIONS_ORVYNA.map((q) => (
               <button key={q} type="button" onClick={() => ouvrirOrvyna(q)}>{q}</button>
@@ -274,6 +274,21 @@ export default function Landing() {
         </div>
       </section>
 
+      <section id="fondateur" className="section fondateur-accueil">
+        <div className="fondateur-accueil-carte">
+          <Portrait taille={112} />
+          <div>
+            <span className="eyebrow">L’histoire de Postulyn</span>
+            <blockquote>« {CITATION} »</blockquote>
+            <p className="fondateur-signature">
+              <strong>{FONDATEUR.prenom} {FONDATEUR.nom}</strong>
+              <span>{FONDATEUR.role}</span>
+            </p>
+            <Link to="/a-propos" className="btn ghost">Découvrir mon parcours et l’idée <ArrowRight size={16} /></Link>
+          </div>
+        </div>
+      </section>
+
       <section className="final-cta">
         <img src={photo(PHOTOS.souriante, 300)} alt="" loading="lazy" className="final-photo" aria-hidden="true" />
         <div>
@@ -284,8 +299,8 @@ export default function Landing() {
       </section>
 
       <PiedDePage />
-      {/* ORVYNA disponible sur toute la page : version visiteur, ou celle du compte si l'utilisateur est connecte */}
-      <OrvynaWidget publique={!user} />
+      {/* ORVYNA sur toute la page : il faut etre connecte pour discuter avec elle */}
+      <OrvynaWidget visiteur={!user} />
     </div>
   )
 }

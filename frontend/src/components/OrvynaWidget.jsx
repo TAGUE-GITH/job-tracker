@@ -14,16 +14,6 @@ const SUGGESTIONS = [
   'J’ai un problème avec l’application',
 ]
 
-// Sur la page d'accueil, pour les visiteurs sans compte
-const SUGGESTIONS_PUBLIQUES = [
-  'Que peut faire Postulyn pour moi ?',
-  'Comment rendre mon CV compatible ATS ?',
-  'Comment préparer un entretien ?',
-  'Quand relancer un recruteur ?',
-  'Postulyn est-il gratuit ?',
-]
-
-
 // Les liens internes proposes par ORVYNA (ex. /contact) restent dans l'application
 function LienMarkdown({ href = '', children }) {
   if (href.startsWith('/')) return <Link to={href}>{children}</Link>
@@ -31,8 +21,8 @@ function LienMarkdown({ href = '', children }) {
 }
 
 // Bulle d'aide flottante : ORVYNA repond aux questions sur l'application et la recherche d'emploi.
-// publique : version de la page d'accueil, sans compte (vouvoiement, sans acces aux candidatures).
-export default function OrvynaWidget({ publique = false }) {
+// visiteur : sur la page d'accueil sans etre connecte, ORVYNA invite a se connecter pour discuter.
+export default function OrvynaWidget({ visiteur = false }) {
   const [ouvert, setOuvert] = useState(false)
   const [parle, setParle] = useState(false)
   const [messages, setMessages] = useState([])
@@ -53,14 +43,14 @@ export default function OrvynaWidget({ publique = false }) {
   }, [parle])
 
   const demander = async (texte) => {
-    if (!texte.trim() || chargement) return
+    if (visiteur || !texte.trim() || chargement) return
     const historique = [...messages, { role: 'user', content: texte.trim() }]
     setMessages(historique)
     setSaisie('')
     setErreur('')
     setChargement(true)
     try {
-      const { reponse } = await (publique ? api.orvynaPublique : api.aide)({ messages: historique })
+      const { reponse } = await api.aide({ messages: historique })
       setMessages([...historique, { role: 'assistant', content: reponse }])
       setParle(true)
     } catch (e) {
@@ -90,7 +80,6 @@ export default function OrvynaWidget({ publique = false }) {
   }, [])
 
   const etat = chargement ? 'reflechit' : parle ? 'parle' : 'repos'
-  const suggestions = publique ? SUGGESTIONS_PUBLIQUES : SUGGESTIONS
 
   return (
     <div className={`orvyna ${ouvert ? 'orvyna-ouvert' : ''}`}>
@@ -100,22 +89,33 @@ export default function OrvynaWidget({ publique = false }) {
             <OrvynaAvatar size={44} etat={etat} />
             <div>
               <strong>ORVYNA</strong>
-              <small><span className="orvyna-dot" /> {chargement ? 'Réfléchit…' : publique ? 'Assistante IA de Postulyn' : 'Ton assistante Postulyn'}</small>
+              <small><span className="orvyna-dot" /> {chargement ? 'Réfléchit…' : visiteur ? 'Assistante IA de Postulyn' : 'Ton assistante Postulyn'}</small>
             </div>
             <button className="orvyna-fermer" onClick={() => setOuvert(false)} aria-label="Fermer"><X size={20} /></button>
           </header>
 
+          {visiteur ? (
+            <div className="orvyna-messages orvyna-invitation">
+              <div className="bulle assistant">
+                Bonjour, je suis <b>ORVYNA</b>, l’assistante IA de Postulyn. Connectez-vous pour discuter avec moi :
+                je réponds à vos questions sur l’application et sur votre recherche d’emploi, et je vous aide à
+                préparer chacune de vos candidatures.
+              </div>
+              <div className="orvyna-invitation-actions">
+                <Link to="/login" className="btn primary">Se connecter</Link>
+                <Link to="/login?mode=inscription" className="btn ghost">Créer un compte gratuit</Link>
+              </div>
+            </div>
+          ) : (
+            <>
           <div className="orvyna-messages">
             <div className="bulle assistant">
-              {publique
-                ? <>Bonjour, je suis <b>ORVYNA</b>, l’assistante IA de Postulyn. Posez-moi vos questions sur
-                  l’application ou sur votre recherche d’emploi : CV, lettre, entretiens, relances…</>
-                : <>Bonjour, je suis <b>ORVYNA</b>. Pose-moi une question sur Postulyn, sur tes candidatures
-                  ou sur ta recherche d'emploi.</>}
+              Bonjour, je suis <b>ORVYNA</b>. Pose-moi une question sur Postulyn, sur tes candidatures
+              ou sur ta recherche d'emploi.
             </div>
             {messages.length === 0 && (
               <div className="orvyna-suggestions">
-                {suggestions.map((s) => (
+                {SUGGESTIONS.map((s) => (
                   <button key={s} type="button" onClick={() => demander(s)}>{s}</button>
                 ))}
               </div>
@@ -131,20 +131,22 @@ export default function OrvynaWidget({ publique = false }) {
           </div>
 
           <Link to="/contact" className="orvyna-support" onClick={() => setOuvert(false)}>
-            <LifeBuoy size={14} /> {publique ? "Une question particulière ? Contacter l'équipe" : "Un problème non résolu ? Contacter l'équipe"}
+            <LifeBuoy size={14} /> Un problème non résolu ? Contacter l'équipe
           </Link>
           <form className="orvyna-saisie" onSubmit={onSubmit}>
             <input value={saisie} onChange={(e) => setSaisie(e.target.value)}
-              placeholder={publique ? 'Écrivez votre question…' : 'Écris ta question…'} disabled={chargement} autoFocus />
+              placeholder="Écris ta question…" disabled={chargement} autoFocus />
             <button className="btn primary" disabled={chargement || !saisie.trim()} aria-label="Envoyer"><Send size={16} /></button>
           </form>
+            </>
+          )}
         </section>
       )}
 
       <button className="orvyna-bouton" onClick={() => setOuvert(!ouvert)}
         aria-label={ouvert ? 'Fermer ORVYNA' : 'Ouvrir ORVYNA, l’assistante IA'}>
         <OrvynaAvatar size={50} etat={etat} />
-        {!ouvert && <span className="orvyna-label">{publique ? 'Une question ? Demandez à ORVYNA' : "Besoin d'aide ?"}</span>}
+        {!ouvert && <span className="orvyna-label">{visiteur ? 'Découvrir ORVYNA' : "Besoin d'aide ?"}</span>}
       </button>
     </div>
   )

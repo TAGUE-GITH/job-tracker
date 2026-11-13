@@ -34,6 +34,7 @@ export function PiedDePage() {
     <footer className="landing-footer">
       <Logo size={22} />
       <nav className="liens-pied">
+        <Link to="/a-propos">À propos</Link>
         <Link to="/contact">Aide et contact</Link>
         <Link to="/conditions">Conditions d'utilisation</Link>
         <Link to="/conditions#confidentialite">Confidentialité</Link>

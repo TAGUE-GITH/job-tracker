@@ -242,36 +242,6 @@ public class IaService {
         return new IaResponse(appeler(messages));
     }
 
-    /**
-     * ORVYNA sur la page d'accueil, pour les visiteurs sans compte : questions sur Postulyn et conseils de
-     * recherche d'emploi. Seuls les derniers messages sont gardes, chacun raccourci, pour limiter le cout.
-     */
-    public IaResponse aidePublique(List<Message> conversation) {
-        List<Message> messages = new ArrayList<>();
-        messages.add(new Message("system", """
-                Tu es ORVYNA, l'assistante IA de Postulyn, sur la page d'accueil du site. Tu parles a un \
-                visiteur qui n'a peut-etre pas encore de compte. Tu es chaleureuse, professionnelle, claire \
-                et breve (en general moins de 150 mots). Tu reponds :
-                - aux questions sur Postulyn : ce que fait l'application, comment elle fonctionne, ce qui est \
-                gratuit (tout, sans carte bancaire), comment creer un compte ou essayer la demonstration ;
-                - aux questions sur la recherche d'emploi, de stage ou d'alternance : CV, lettre de motivation, \
-                logiciels de tri (ATS), relances, entretiens, organisation, negociation, reconversion.
-                Donne des conseils concrets et actionnables. Quand c'est utile, explique comment Postulyn aide \
-                (CV adapte a l'offre, lettre, simulation d'entretien, suivi des relances) et invite a creer un \
-                compte gratuit via le lien [Creer un compte](/login?mode=inscription) ou a essayer la \
-                [demonstration](/demo), sans insister. Tu n'as acces a aucune donnee personnelle du visiteur. \
-                Pour un probleme technique ou une demande particuliere, oriente vers la page [Contact](/contact). \
-                Refuse poliment les sujets sans rapport avec l'emploi ou l'application.
-                Reponds en francais et vouvoie le visiteur, de facon concrete et structuree. Mise en forme \
-                Markdown simple : listes a puces ou numerotees, gras ; jamais de tableau ni de balise HTML.
-                """ + "\n" + GUIDE_POSTULYN));
-        List<Message> recents = conversation.size() > 12
-                ? conversation.subList(conversation.size() - 12, conversation.size()) : conversation;
-        recents.forEach(m -> messages.add(new Message(m.role(),
-                m.content().length() > 1500 ? m.content().substring(0, 1500) : m.content())));
-        return new IaResponse(appeler(messages));
-    }
-
     private String promptAide(Long userId) {
         StringBuilder sb = new StringBuilder("""
                 Tu es ORVYNA, l'assistant IA de Postulyn, une application de suivi de candidatures. \

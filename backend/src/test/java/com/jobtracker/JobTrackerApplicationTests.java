@@ -76,17 +76,6 @@ class JobTrackerApplicationTests {
     }
 
     @Test
-    void orvynaRepondSansCompteSurLaPageDAccueil() throws Exception {
-        // Accessible sans token (ici l'IA n'est pas configuree : 503 et non 401)
-        mvc.perform(post("/api/public/orvyna").contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"messages":[{"role":"user","content":"Comment faire un bon CV ?"}]}"""))
-                .andExpect(status().isServiceUnavailable());
-        mvc.perform(post("/api/public/orvyna").contentType(MediaType.APPLICATION_JSON).content("{\"messages\":[]}"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void refuseLesRequetesSansToken() throws Exception {
         mvc.perform(get("/api/candidatures")).andExpect(status().isUnauthorized());
     }

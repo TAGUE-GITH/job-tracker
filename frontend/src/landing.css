@@ -10,7 +10,9 @@
 }
 .landing-logo:hover { text-decoration: none; }
 .landing-nav nav { display: flex; gap: 1.8rem; flex: 1; justify-content: center; }
-.landing-nav nav a { color: var(--muted); font-weight: 500; font-size: 0.93rem; }
+.landing-nav nav a { color: var(--muted); font-weight: 500; font-size: 0.93rem; white-space: nowrap; }
+.landing-nav-actions .btn { white-space: nowrap; }
+@media (max-width: 1180px) { .landing-nav nav { gap: 1.2rem; } }
 .landing-nav nav a:hover { color: var(--text); text-decoration: none; }
 .landing-nav-actions { display: flex; gap: 0.5rem; }
 .btn-lg { padding: 0.75rem 1.3rem; font-size: 0.98rem; }
@@ -224,4 +226,62 @@
 
 @media (max-width: 900px) {
   .profils { grid-template-columns: 1fr; }
+}
+
+/* Accueil : mention sous les boutons, constats, atouts de l'IA */
+.hero-mention { margin: 1.3rem 0 0; color: var(--muted); font-size: 0.92rem; }
+.constats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-top: 1.4rem; }
+.constats p { margin: 0; padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); font-size: 0.92rem; line-height: 1.45; }
+.ia-atouts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 1.5rem; }
+.ia-atouts div { padding: 0.9rem 1rem; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; gap: 0.25rem; }
+.ia-atouts strong { font-size: 0.95rem; color: var(--primary); }
+.ia-atouts span { font-size: 0.88rem; color: var(--muted); line-height: 1.45; }
+
+/* Fondateur */
+.portrait { border-radius: 50%; object-fit: cover; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+.portrait-initiales {
+  font-weight: 700; letter-spacing: 0.02em; color: #fff;
+  background: radial-gradient(circle at 30% 25%, #4f7cff, #1d3fa8 60%, #142a6e);
+  box-shadow: 0 16px 36px -18px rgba(29, 63, 168, 0.8);
+}
+.fondateur-accueil-carte {
+  display: flex; gap: 2.2rem; align-items: center; padding: 2.4rem; border-radius: 18px; border: 1px solid var(--border);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 7%, var(--surface)), var(--surface));
+}
+.fondateur-accueil-carte blockquote { margin: 0.7rem 0 1rem; font-size: 1.3rem; line-height: 1.5; font-weight: 600; color: var(--text); }
+.fondateur-signature { display: flex; flex-direction: column; margin: 0 0 1.2rem; }
+.fondateur-signature span { color: var(--muted); font-size: 0.9rem; }
+
+/* Page A propos */
+.a-propos-hero { text-align: center; max-width: 820px; margin: 0 auto; padding-bottom: 1rem; }
+.a-propos-hero h1 { font-size: clamp(1.9rem, 4vw, 2.8rem); line-height: 1.15; margin: 0.6rem 0 1rem; }
+.a-propos-hero .hero-sub { margin: 0 auto; }
+.fondateur { display: grid; grid-template-columns: 340px 1fr; gap: 3rem; align-items: start; }
+.fondateur-carte {
+  position: sticky; top: 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.4rem;
+  padding: 2rem 1.6rem; border-radius: 18px; border: 1px solid var(--border); background: var(--surface);
+}
+.fondateur-carte h2 { margin: 0.9rem 0 0; font-size: 1.35rem; }
+.fondateur-role { margin: 0; color: var(--primary); font-weight: 600; font-size: 0.92rem; }
+.fondateur-parcours { width: 100%; display: flex; flex-direction: column; gap: 0.9rem; margin: 1.3rem 0 0.5rem; padding-top: 1.2rem; border-top: 1px solid var(--border); text-align: left; }
+.fondateur-parcours div { display: flex; flex-direction: column; gap: 0.1rem; }
+.fondateur-parcours small { color: var(--primary); font-weight: 600; font-size: 0.78rem; letter-spacing: 0.02em; }
+.fondateur-parcours strong { font-size: 0.92rem; line-height: 1.35; }
+.fondateur-parcours span { color: var(--muted); font-size: 0.86rem; }
+.fondateur-liens { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-top: 0.8rem; }
+.fondateur-liens a { padding: 0.4rem 0.85rem; border-radius: 999px; border: 1px solid var(--border); font-size: 0.86rem; font-weight: 600; color: var(--primary); text-decoration: none; }
+.fondateur-liens a:hover { border-color: var(--primary); }
+.fondateur-histoire h2 { margin: 0.5rem 0 1.2rem; }
+.fondateur-histoire p { font-size: 1.04rem; line-height: 1.75; color: var(--text); margin: 0 0 1.1rem; }
+.engagements { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.3rem; }
+.engagement { padding: 1.6rem; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); }
+.engagement-num { font-size: 0.85rem; font-weight: 700; color: var(--primary); letter-spacing: 0.04em; }
+.engagement h3 { margin: 0.6rem 0 0.5rem; }
+.engagement p { margin: 0; color: var(--muted); line-height: 1.6; }
+
+@media (max-width: 900px) {
+  .constats, .ia-atouts, .engagements, .fondateur { grid-template-columns: 1fr; }
+  .fondateur-carte { position: static; }
+  .fondateur-accueil-carte { flex-direction: column; text-align: center; padding: 1.8rem 1.3rem; }
+  .fondateur-signature { align-items: center; }
 }
