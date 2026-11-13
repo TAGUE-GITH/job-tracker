@@ -72,6 +72,19 @@ class ModelesCvTests {
                         && texte.contains("Baccalauréat scientifique"), modele + "\n" + texte);
                 assertTrue(texte.toUpperCase().contains("DITS GROUP") && texte.contains("Juin 2026 - Sept. 2026"), modele + "\n" + texte);
                 assertTrue(texte.contains("\n• Développé une API REST"), modele + "\n" + texte);
+                // Email et liens cliquables
+                try (var doc = Loader.loadPDF(pdf)) {
+                    List<String> liens = new java.util.ArrayList<>();
+                    for (var a : doc.getPage(0).getAnnotations()) {
+                        if (a instanceof org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink l
+                                && l.getAction() instanceof org.apache.pdfbox.pdmodel.interactive.action.PDActionURI u) {
+                            liens.add(u.getURI());
+                        }
+                    }
+                    assertTrue(liens.contains("https://github.com/TAGUE-GITH")
+                            && liens.contains("mailto:franck@exemple.fr")
+                            && liens.contains("tel:0612345678"), modele + " " + liens);
+                }
                 if (avecPhoto) {
                     try (var doc = Loader.loadPDF(pdf)) {
                         ImageIO.write(new PDFRenderer(doc).renderImageWithDPI(0, 80), "png",

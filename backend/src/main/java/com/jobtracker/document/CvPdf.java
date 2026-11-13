@@ -97,6 +97,13 @@ public final class CvPdf {
     static final float[] BEIGE = {0.953f, 0.914f, 0.863f};
     static final float[] OCRE = {0.83f, 0.6f, 0.36f};
     static final float[] GRIS_BANDE = {0.9f, 0.9f, 0.91f};
+    /** Liens cliquables : bleu vif, souligne. */
+    static final float[] LIEN = {0.04f, 0.36f, 0.85f};
+    /** Couleur des titres de rubrique et de l'intitule de poste, par modele (assez foncees pour bien imprimer). */
+    static final float[] BLEU_NUIT = {0.1f, 0.23f, 0.47f};
+    static final float[] PETROLE = {0.03f, 0.38f, 0.45f};
+    static final float[] BRUN = {0.5f, 0.31f, 0.13f};
+    static final float[] BLEU_ROI = {0.12f, 0.31f, 0.66f};
 
     private static final float LARGEUR_PAGE = PDRectangle.A4.getWidth();
     private static final float HAUTEUR_PAGE = PDRectangle.A4.getHeight();
@@ -173,15 +180,23 @@ public final class CvPdf {
 
         col.riche(List.of(t.g(NOIR, majuscules(c.nom()))), 20 * e, 24 * e, Aligne.CENTRE);
         if (!vide(cv.titre())) {
-            col.riche(List.of(t.n(NOIR, cv.titre())), 11 * e, 14 * e, Aligne.CENTRE);
+            col.riche(List.of(t.g(BLEU_NUIT, cv.titre())), 11 * e, 14 * e, Aligne.CENTRE);
         }
         List<String> coordonnees = new ArrayList<>();
         coordonnees.add(une(c.adresse()));
         coordonnees.add(c.telephone());
         coordonnees.add(c.email());
         coordonnees.addAll(liste(cv.liens()));
-        col.riche(List.of(t.n(NOIR, joindre(" | ", coordonnees.toArray(String[]::new)))), 9.6f * e, 12.5f * e,
-                Aligne.CENTRE);
+        List<Morceau> ligneContact = new ArrayList<>();
+        for (String element : coordonnees) {
+            if (!vide(element)) {
+                if (!ligneContact.isEmpty()) {
+                    ligneContact.add(t.n(NOIR, " | "));
+                }
+                ligneContact.add(t.contact(element));
+            }
+        }
+        col.riche(ligneContact, 9.6f * e, 12.5f * e, Aligne.CENTRE);
 
         if (!vide(cv.profil())) {
             rubriqueClassique(t, col, "PROFIL");
@@ -269,8 +284,8 @@ public final class CvPdf {
         float taille = 11.5f * e;
         col.place(taille * 4);
         col.espace(9);
-        col.riche(List.of(t.g(NOIR, titre)), taille, taille + 3 * e, Aligne.GAUCHE);
-        col.trait(NOIR, 0.8f);
+        col.riche(List.of(t.g(BLEU_NUIT, titre)), taille, taille + 3 * e, Aligne.GAUCHE);
+        col.trait(BLEU_NUIT, 0.8f);
         col.espace(5);
     }
 
@@ -294,14 +309,14 @@ public final class CvPdf {
         }
         col.riche(List.of(t.g(NOIR, c.nom())), 23 * e, 27 * e, Aligne.GAUCHE);
         if (!vide(cv.titre())) {
-            col.riche(List.of(t.n(NOIR, cv.titre())), 12.5f * e, 16 * e, Aligne.GAUCHE);
+            col.riche(List.of(t.g(PETROLE, cv.titre())), 12.5f * e, 16 * e, Aligne.GAUCHE);
         }
         col.espace(11);
         List<String> coordonnees = new ArrayList<>(List.of(texte(c.email()), texte(c.telephone()), une(c.adresse())));
         coordonnees.addAll(liste(cv.liens()));
         for (String ligne : coordonnees) {
             if (!vide(ligne)) {
-                col.riche(List.of(t.n(NOIR, ligne)), tx, il, Aligne.GAUCHE);
+                col.riche(List.of(t.contact(ligne)), tx, il, Aligne.GAUCHE);
             }
         }
         col.y = Math.min(col.y, basPhoto - 4 * e);
@@ -408,8 +423,8 @@ public final class CvPdf {
         float taille = 10.5f * e;
         col.place(taille * 4);
         col.espace(11);
-        col.riche(List.of(t.g(NOIR, titre)), taille, taille + 3 * e, Aligne.GAUCHE);
-        col.trait(NOIR, 1.4f);
+        col.riche(List.of(t.g(PETROLE, titre)), taille, taille + 3 * e, Aligne.GAUCHE);
+        col.trait(PETROLE, 1.4f);
         col.espace(7);
     }
 
@@ -427,7 +442,7 @@ public final class CvPdf {
         col.riche(List.of(t.g(NOIR, majuscules(c.nom()))), 28 * e, 31 * e, Aligne.GAUCHE);
         if (!vide(cv.titre())) {
             col.espace(2);
-            col.riche(List.of(t.n(NOIR, majuscules(cv.titre()))), 12.5f * e, 16 * e, Aligne.GAUCHE);
+            col.riche(List.of(t.n(BRUN, majuscules(cv.titre()))), 12.5f * e, 16 * e, Aligne.GAUCHE);
         }
         if (!liste(cv.experiences()).isEmpty()) {
             rubriqueElegante(t, col, "EXPÉRIENCES PROFESSIONNELLES", 14.5f);
@@ -496,7 +511,7 @@ public final class CvPdf {
         coordonnees.addAll(liste(cv.liens()));
         for (String ligne : coordonnees) {
             if (!vide(ligne)) {
-                cote.riche(List.of(t.n(NOIR, ligne)), ts, ils, Aligne.GAUCHE);
+                cote.riche(List.of(t.contact(ligne)), ts, ils, Aligne.GAUCHE);
                 cote.espace(2);
             }
         }
@@ -526,7 +541,7 @@ public final class CvPdf {
         float tr = taille * e;
         col.place(tr * 3.5f);
         col.espace(14);
-        col.riche(List.of(t.g(NOIR, titre)), tr, tr + 3 * e, Aligne.GAUCHE);
+        col.riche(List.of(t.g(BRUN, titre)), tr, tr + 3 * e, Aligne.GAUCHE);
         col.espace(6);
     }
 
@@ -549,7 +564,7 @@ public final class CvPdf {
         }
         col.riche(List.of(t.g(NOIR, nomFamilleEnCapitales(c.nom()))), 25 * e, 29 * e, Aligne.GAUCHE);
         if (!vide(cv.titre())) {
-            col.riche(List.of(t.n(NOIR, majuscules(cv.titre()))), 16.5f * e, 21 * e, Aligne.GAUCHE);
+            col.riche(List.of(t.n(BLEU_ROI, majuscules(cv.titre()))), 16.5f * e, 21 * e, Aligne.GAUCHE);
         }
         col.espace(9);
         List<String> coordonnees = new ArrayList<>(List.of(texte(c.email()), texte(c.telephone())));
@@ -557,7 +572,7 @@ public final class CvPdf {
         coordonnees.add(une(c.adresse()));
         for (String ligne : coordonnees) {
             if (!vide(ligne)) {
-                col.riche(List.of(t.n(NOIR, ligne)), tx, tx * 1.3f, Aligne.GAUCHE);
+                col.riche(List.of(t.contact(ligne)), tx, tx * 1.3f, Aligne.GAUCHE);
             }
         }
         if (!vide(cv.profil())) {
@@ -664,7 +679,7 @@ public final class CvPdf {
         float taille = 15 * e;
         col.place(taille * 3.5f);
         col.espace(13);
-        col.riche(List.of(t.g(NOIR, titre)), taille, taille + 4 * e, Aligne.GAUCHE);
+        col.riche(List.of(t.g(BLEU_ROI, titre)), taille, taille + 4 * e, Aligne.GAUCHE);
         col.espace(4);
     }
 
@@ -723,7 +738,39 @@ public final class CvPdf {
     enum Aligne { GAUCHE, CENTRE }
 
     /** Morceau de texte d'une police et d'une couleur donnees. */
-    record Morceau(PDType1Font police, float[] couleur, String texte) {
+    /** lien : adresse ouverte au clic (https:, mailto:, tel:), ou null. */
+    record Morceau(PDType1Font police, float[] couleur, String texte, String lien) {
+
+        Morceau(PDType1Font police, float[] couleur, String texte) {
+            this(police, couleur, texte, null);
+        }
+    }
+
+    private static final java.util.regex.Pattern EMAIL =
+            java.util.regex.Pattern.compile("^[\\w.+-]+@[\\w-]+(\\.[\\w-]+)+$");
+    private static final java.util.regex.Pattern SITE =
+            java.util.regex.Pattern.compile("^(https?://)?(www\\.)?[\\w-]+(\\.[\\w-]+)+(/\\S*)?$",
+                    java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    /** Adresse cliquable d'un email, d'un site ou d'un numero de telephone, ou null. */
+    static String lienDe(String s) {
+        String v = texte(s);
+        if (EMAIL.matcher(v).matches()) {
+            return "mailto:" + v;
+        }
+        if (SITE.matcher(v).matches() && !v.matches("^[\\d.\\s]+$")) {
+            return v.toLowerCase(Locale.ROOT).startsWith("http") ? v : "https://" + v;
+        }
+        String chiffres = v.replaceAll("[\\s.()-]", "");
+        if (chiffres.matches("^\\+?\\d{8,15}$")) {
+            return "tel:" + chiffres;
+        }
+        return null;
+    }
+
+    /** "https://www.github.com/moi/" -> "github.com/moi" : plus lisible sur le CV. */
+    static String affichageLien(String s) {
+        return texte(s).replaceFirst("(?i)^https?://", "").replaceFirst("(?i)^www\\.", "").replaceAll("/+$", "");
     }
 
     /** Dessin de fond de chaque page (bande, colonne de couleur). */
@@ -790,6 +837,38 @@ public final class CvPdf {
 
         Morceau i(float[] c, String s) {
             return new Morceau(italique, c, s == null ? "" : s);
+        }
+
+        /** Element de contact : les emails et les sites sont bleus, soulignes et cliquables ; le telephone est cliquable. */
+        Morceau contact(String s) {
+            String lien = lienDe(s);
+            if (lien == null) {
+                return n(NOIR, s);
+            }
+            if (lien.startsWith("tel:")) {
+                return new Morceau(normal, NOIR, texte(s), lien);
+            }
+            return new Morceau(normal, LIEN, lien.startsWith("mailto:") ? texte(s) : affichageLien(s), lien);
+        }
+
+        /** Zone cliquable sur la page. */
+        void lien(int page, float x, float y, float l, float h, String uri) {
+            org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink a =
+                    new org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink();
+            a.setRectangle(new PDRectangle(x, y, l, h));
+            org.apache.pdfbox.pdmodel.interactive.action.PDActionURI action =
+                    new org.apache.pdfbox.pdmodel.interactive.action.PDActionURI();
+            action.setURI(uri);
+            a.setAction(action);
+            org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary bord =
+                    new org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary();
+            bord.setWidth(0);
+            a.setBorderStyle(bord);
+            try {
+                doc.getPage(page).getAnnotations().add(a);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
 
         /** Photo recadree au centre (sans deformation), carree ou ronde. */
@@ -991,16 +1070,17 @@ public final class CvPdf {
             }
         }
 
+        private record Segment(Morceau style, String texte) {
+        }
+
         private void ecrireLigne(float xLigne, List<Mot> mots, float taille) throws IOException {
-            PDPageContentStream f = t.page(page);
-            f.beginText();
-            f.newLineAtOffset(xLigne, y - taille);
+            List<Segment> segments = new ArrayList<>();
             Morceau style = null;
             StringBuilder tampon = new StringBuilder();
             for (int k = 0; k < mots.size(); k++) {
                 Mot m = mots.get(k);
                 if (style != null && m.style() != style) {
-                    montrer(f, style, tampon.toString(), taille);
+                    segments.add(new Segment(style, tampon.toString()));
                     tampon.setLength(0);
                 }
                 style = m.style();
@@ -1010,9 +1090,36 @@ public final class CvPdf {
                 tampon.append(m.mot());
             }
             if (style != null) {
-                montrer(f, style, tampon.toString(), taille);
+                segments.add(new Segment(style, tampon.toString()));
+            }
+            PDPageContentStream f = t.page(page);
+            f.beginText();
+            f.newLineAtOffset(xLigne, y - taille);
+            for (Segment seg : segments) {
+                montrer(f, seg.style(), seg.texte(), taille);
             }
             f.endText();
+            // Liens : soulignes (sauf le telephone) et cliquables, sans l'espace qui les precede
+            float xCourant = xLigne;
+            for (Segment seg : segments) {
+                float l = largeurDe(seg.texte(), seg.style().police(), taille);
+                if (seg.style().lien() != null) {
+                    float avant = seg.texte().startsWith(" ") ? largeurDe(" ", seg.style().police(), taille) : 0;
+                    float debut = xCourant + avant;
+                    float fin = xCourant + l;
+                    float base = y - taille;
+                    if (!seg.style().lien().startsWith("tel:")) {
+                        float[] c = seg.style().couleur();
+                        f.setStrokingColor(c[0], c[1], c[2]);
+                        f.setLineWidth(Math.max(0.4f, taille * 0.05f));
+                        f.moveTo(debut, base - taille * 0.14f);
+                        f.lineTo(fin, base - taille * 0.14f);
+                        f.stroke();
+                    }
+                    t.lien(page, debut, base - taille * 0.25f, fin - debut, taille * 1.2f, seg.style().lien());
+                }
+                xCourant += l;
+            }
         }
 
         private static void montrer(PDPageContentStream f, Morceau style, String s, float taille) throws IOException {
