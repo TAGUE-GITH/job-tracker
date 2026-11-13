@@ -113,6 +113,7 @@ export const api = {
     return request('/documents', { method: 'POST', body: fd })
   },
   supprimerDocument: (id) => request(`/documents/${id}`, { method: 'DELETE' }),
+  supprimerTousDocuments: () => request('/documents', { method: 'DELETE' }),
   ouvrirDocument: async (id, nomFichier) => {
     // L'onglet est ouvert tout de suite (au clic) : sinon les navigateurs mobiles le bloquent
     const onglet = window.open('', '_blank')

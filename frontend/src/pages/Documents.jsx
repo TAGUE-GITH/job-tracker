@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../api'
 import DocumentActions from '../components/DocumentActions.jsx'
 import { formatDate } from '../labels'
+import { Trash2 } from 'lucide-react'
 
 export default function Documents() {
   const [docs, setDocs] = useState([])
@@ -31,6 +32,20 @@ export default function Documents() {
     setDocs(docs.filter((d) => d.id !== doc.id))
   }
 
+  const toutSupprimer = async () => {
+    const cvs = docs.filter((d) => d.type === 'CV').length
+    const lettres = docs.length - cvs
+    if (!confirm(`Supprimer définitivement tes ${cvs} CV et ${lettres} lettre(s) de motivation ? `
+      + 'Ils seront retirés des candidatures qui les utilisent. Cette action est irréversible.')) return
+    try {
+      await api.supprimerTousDocuments()
+      setDocs([])
+      setErreur('')
+    } catch (err) {
+      setErreur(err.message)
+    }
+  }
+
   return (
     <>
       <div className="page-head">
@@ -44,6 +59,11 @@ export default function Documents() {
             + Importer
             <input type="file" accept=".pdf,.doc,.docx,.odt,.txt" onChange={uploader} />
           </span>
+          {docs.length > 1 && (
+            <button type="button" className="btn danger" onClick={toutSupprimer}>
+              <Trash2 size={16} /> Tout supprimer
+            </button>
+          )}
         </div>
       </div>
 

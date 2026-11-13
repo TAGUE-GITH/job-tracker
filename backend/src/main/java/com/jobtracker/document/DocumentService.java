@@ -125,4 +125,17 @@ public class DocumentService {
         contenuRepository.deleteById(doc.getId());
         documentRepository.delete(doc);
     }
+
+    /** Supprime tous les CV et lettres de l'utilisateur (retires aussi des candidatures). Renvoie leur nombre. */
+    @Transactional
+    public int supprimerTout(Long userId) {
+        List<Document> docs = documentRepository.findByUserIdOrderByDateAjoutDesc(userId);
+        for (Document doc : docs) {
+            candidatureRepository.detacherCv(doc);
+            candidatureRepository.detacherLettre(doc);
+            contenuRepository.deleteById(doc.getId());
+            documentRepository.delete(doc);
+        }
+        return docs.size();
+    }
 }

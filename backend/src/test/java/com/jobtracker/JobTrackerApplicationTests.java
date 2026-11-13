@@ -48,6 +48,34 @@ class JobTrackerApplicationTests {
     }
 
     @Test
+    void toutSupprimerRetireLesCvEtLettresDesCandidatures() throws Exception {
+        String cvId = null;
+        for (String type : new String[] {"CV", "CV", "LETTRE"}) {
+            String id = extraire(mvc.perform(multipart("/api/documents")
+                            .file(new MockMultipartFile("fichier", "doc.pdf", "application/pdf", "x".getBytes()))
+                            .param("type", type).header("Authorization", token))
+                    .andReturn().getResponse().getContentAsString(), "id");
+            cvId = cvId == null ? id : cvId;
+        }
+        String candidature = extraire(mvc.perform(post("/api/candidatures").header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nomEntreprise":"Umbrella","poste":"Dev","dateCandidature":"2026-11-02","cvId":%s}"""
+                                .formatted(cvId)))
+                .andReturn().getResponse().getContentAsString(), "id");
+
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/documents")
+                        .header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.supprimes").value(3));
+        mvc.perform(get("/api/documents").header("Authorization", token))
+                .andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(get("/api/candidatures/" + candidature).header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cv").doesNotExist());
+    }
+
+    @Test
     void refuseLesRequetesSansToken() throws Exception {
         mvc.perform(get("/api/candidatures")).andExpect(status().isUnauthorized());
     }

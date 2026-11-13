@@ -53,6 +53,12 @@ public class DocumentController {
                 .body(documentService.fichier(doc));
     }
 
+    /** Supprime tous les CV et lettres de l'utilisateur en une fois. */
+    @DeleteMapping
+    public java.util.Map<String, Integer> supprimerTout() {
+        return java.util.Map.of("supprimes", documentService.supprimerTout(CurrentUser.id()));
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void supprimer(@PathVariable Long id) {
