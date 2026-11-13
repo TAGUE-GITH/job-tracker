@@ -95,8 +95,8 @@ function ApercuModele({ code, photo }) {
 }
 
 const VIDES = {
-  experiences: { poste: '', entreprise: '', lieu: '', periode: '', missions: '' },
-  projets: { nom: '', description: '', points: '', technologies: '' },
+  experiences: { poste: '', entreprise: '', lieu: '', periode: '', missions: '', lien: '' },
+  projets: { nom: '', description: '', points: '', technologies: '', lien: '' },
   formations: { diplome: '', etablissement: '', lieu: '', periode: '', details: '' },
   autresRubriques: { titre: '', elements: '' },
 }
@@ -222,6 +222,8 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
                   <Champ libelle="Entreprise" valeur={x.entreprise} onChange={(v) => changerElement('experiences', i, 'entreprise', v)} />
                   <Champ libelle="Lieu" valeur={x.lieu} onChange={(v) => changerElement('experiences', i, 'lieu', v)} />
                   <Champ libelle="Période" valeur={x.periode} onChange={(v) => changerElement('experiences', i, 'periode', v)} />
+                  <Champ libelle="Lien (facultatif)" valeur={x.lien} placeholder="ex. site de l'entreprise ou réalisation en ligne"
+                    onChange={(v) => changerElement('experiences', i, 'lien', v)} />
                 </div>
                 <Liste titre="Missions" valeur={x.missions} onChange={(v) => changerElement('experiences', i, 'missions', v)} />
               </Bloc>
@@ -234,6 +236,8 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
                 <div className="grid-2">
                   <Champ libelle="Nom" valeur={p.nom} onChange={(v) => changerElement('projets', i, 'nom', v)} />
                   <Champ libelle="Technologies" valeur={p.technologies} onChange={(v) => changerElement('projets', i, 'technologies', v)} />
+                  <Champ libelle="Lien du projet (facultatif)" valeur={p.lien} placeholder="ex. github.com/moi/projet ou monprojet.vercel.app"
+                    onChange={(v) => changerElement('projets', i, 'lien', v)} />
                 </div>
                 <label>Contexte<textarea rows={2} value={p.description ?? ''} onChange={(e) => changerElement('projets', i, 'description', e.target.value)} /></label>
                 <Liste titre="Réalisations détaillées" valeur={p.points ?? ''} onChange={(v) => changerElement('projets', i, 'points', v)} />
@@ -333,8 +337,8 @@ function Liste({ titre, valeur, onChange }) {
   )
 }
 
-function Champ({ libelle, valeur, onChange }) {
-  return <label>{libelle}<input value={valeur ?? ''} onChange={(e) => onChange(e.target.value)} /></label>
+function Champ({ libelle, valeur, onChange, placeholder }) {
+  return <label>{libelle}<input value={valeur ?? ''} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} /></label>
 }
 
 function Groupe({ titre, onAjouter, children }) {

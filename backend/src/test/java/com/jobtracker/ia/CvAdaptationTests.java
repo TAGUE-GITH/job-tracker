@@ -20,7 +20,7 @@ class CvAdaptationTests {
                {"poste": "Développeur", "entreprise": "Yamo Group", "lieu": "Yaoundé", "periode": "2025",
                 "missions": ["API Flask"]}],
              "projets": [{"nom": "Postulyn", "description": "Suivi de candidatures", "technologies": "Java",
-                          "points": ["API", "Front"]}],
+                          "points": ["API", "Front"], "lien": "postulyn.vercel.app"}],
              "formations": [
                {"diplome": "Cycle ingénieur", "etablissement": "3IL", "lieu": "Limoges", "periode": "2025 - 2028", "details": ""},
                {"diplome": "Licence", "etablissement": "Université de Douala", "lieu": "Douala", "periode": "2022", "details": "Mention bien"},
@@ -68,6 +68,7 @@ class CvAdaptationTests {
         assertEquals(List.of("Spring Data JPA", "Travail en équipe"), cv.competencesAjoutees());
         assertEquals(List.of("Rigueur", "Curiosité"), cv.atouts());
         assertEquals("Certifications", cv.autresRubriques().getFirst().titre());
+        assertEquals("postulyn.vercel.app", cv.projets().getFirst().lien());
         assertEquals("Développeur Java / Spring Boot - Alternance", cv.titre());
     }
 
@@ -90,6 +91,7 @@ class CvAdaptationTests {
                     base.autresRubriques());
             String texte = texte(CvPdf.generer(new CvPdf.Contact("Franck Tague", "f@x.fr", null, "Limoges"), cv));
             assertTrue(texte.contains("CERTIFICATIONS") && texte.contains("AWS Cloud Practitioner"), modele + texte);
+            assertTrue(texte.contains("postulyn.vercel.app"), modele + texte);
             assertTrue(texte.contains("Baccalauréat C") && texte.toUpperCase().contains("DÉCATHLON"), modele + texte);
         }
     }

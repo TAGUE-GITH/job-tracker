@@ -77,4 +77,48 @@ class TexteDocumentTests {
         assertThrows(IllegalArgumentException.class,
                 () -> TexteDocument.extraire("court".getBytes(StandardCharsets.UTF_8), "cv.txt", "text/plain"));
     }
+
+    /** Un lien cache derriere "Voir en ligne" (PDF ou Word) est lu avec son adresse. */
+    @Test
+    void lesLiensCachesSontLus() throws Exception {
+        byte[] pdf;
+        try (var doc = new org.apache.pdfbox.pdmodel.PDDocument(); var sortie = new ByteArrayOutputStream()) {
+            var page = new org.apache.pdfbox.pdmodel.PDPage();
+            doc.addPage(page);
+            var police = new org.apache.pdfbox.pdmodel.font.PDType1Font(
+                    org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA);
+            try (var f = new org.apache.pdfbox.pdmodel.PDPageContentStream(doc, page)) {
+                f.beginText();
+                f.setFont(police, 12);
+                f.newLineAtOffset(50, 700);
+                f.showText("Projet Postulyn, application de suivi de candidatures avec IA - Voir en ligne");
+                f.endText();
+            }
+            float x = 50 + police.getStringWidth("Projet Postulyn, application de suivi de candidatures avec IA - ") / 1000 * 12;
+            var lien = new org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink();
+            lien.setRectangle(new org.apache.pdfbox.pdmodel.common.PDRectangle(x, 696, 80, 16));
+            var action = new org.apache.pdfbox.pdmodel.interactive.action.PDActionURI();
+            action.setURI("https://postulyn.vercel.app");
+            lien.setAction(action);
+            page.getAnnotations().add(lien);
+            doc.save(sortie);
+            pdf = sortie.toByteArray();
+        }
+        String texte = TexteDocument.extraire(pdf, "cv.pdf", "application/pdf");
+        assertTrue(texte.contains("Voir en ligne (https://postulyn.vercel.app)"), texte);
+
+        ByteArrayOutputStream docx = new ByteArrayOutputStream();
+        try (ZipOutputStream zip = new ZipOutputStream(docx)) {
+            zip.putNextEntry(new ZipEntry("word/document.xml"));
+            zip.write(("<w:document><w:body><w:p><w:r><w:t>Projet Postulyn, application de suivi de candidatures "
+                    + "avec IA </w:t></w:r><w:hyperlink r:id=\"rId9\" w:history=\"1\"><w:r><w:t>Voir en ligne</w:t>"
+                    + "</w:r></w:hyperlink></w:p></w:body></w:document>").getBytes(StandardCharsets.UTF_8));
+            zip.putNextEntry(new ZipEntry("word/_rels/document.xml.rels"));
+            zip.write(("<Relationships><Relationship Id=\"rId9\" Type=\"http://x/hyperlink\" "
+                    + "Target=\"https://github.com/TAGUE-GITH/job-tracker\" TargetMode=\"External\"/></Relationships>")
+                    .getBytes(StandardCharsets.UTF_8));
+        }
+        String texteWord = TexteDocument.extraire(docx.toByteArray(), "cv.docx", null);
+        assertTrue(texteWord.contains("Voir en ligne (https://github.com/TAGUE-GITH/job-tracker)"), texteWord);
+    }
 }

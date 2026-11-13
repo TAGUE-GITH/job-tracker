@@ -328,12 +328,16 @@ public class IaService {
                         listes dans le CV ;
                         - autresRubriques : toute autre rubrique du CV (certifications, benevolat, associations, \
                         activites, prix, publications, references...), avec son titre exact et ses elements ;
+                        - liens : une adresse entre parentheses apres un texte comme "Voir en ligne", "Demo" ou \
+                        "GitHub" est le lien cache derriere ce texte ; mets-la dans le champ "lien" du projet ou de \
+                        l'experience concernee (adresse complete, sans le texte "Voir en ligne") ; les liens \
+                        personnels (LinkedIn, GitHub, portfolio) vont dans "liens" ;
                         - champ absent du CV : "" ou [].
                         Reponds UNIQUEMENT avec un objet JSON valide :
                         {"titre": "", "profil": "",
                          "competencesTechniques": [""], "competencesTransverses": [""],
-                         "experiences": [{"poste": "", "entreprise": "", "lieu": "", "periode": "", "missions": [""]}],
-                         "projets": [{"nom": "", "description": "", "points": [""], "technologies": ""}],
+                         "experiences": [{"poste": "", "entreprise": "", "lieu": "", "periode": "", "missions": [""], "lien": ""}],
+                         "projets": [{"nom": "", "description": "", "points": [""], "technologies": "", "lien": ""}],
                          "formations": [{"diplome": "", "etablissement": "", "lieu": "", "periode": "", "details": ""}],
                          "langues": [""], "atouts": [""], "centresInteret": [""], "liens": [""],
                          "autresRubriques": [{"titre": "", "elements": [""]}]}

@@ -75,7 +75,7 @@ final class CvAdaptation {
             CvPdf.Experience x = exO.get(i);
             ExperienceAmelioree m = exps.get(i);
             experiences.add(new CvPdf.Experience(x.poste(), x.entreprise(), x.lieu(), x.periode(),
-                    meilleure(liste(x.missions()), m == null ? null : m.missions())));
+                    meilleure(liste(x.missions()), m == null ? null : m.missions()), x.lien()));
         }
         List<CvPdf.Projet> projets = new ArrayList<>();
         List<CvPdf.Projet> prO = liste(origine.projets());
@@ -84,7 +84,7 @@ final class CvAdaptation {
             ProjetAmeliore m = projs.get(i);
             projets.add(new CvPdf.Projet(p.nom(),
                     m != null && !vide(m.description()) ? m.description() : p.description(),
-                    p.technologies(), meilleure(liste(p.points()), m == null ? null : m.points())));
+                    p.technologies(), meilleure(liste(p.points()), m == null ? null : m.points()), p.lien()));
         }
         List<CvPdf.Formation> formations = new ArrayList<>();
         List<CvPdf.Formation> foO = liste(origine.formations());

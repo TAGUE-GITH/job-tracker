@@ -36,11 +36,21 @@ public final class CvPdf {
         }
     }
 
-    public record Experience(String poste, String entreprise, String lieu, String periode, List<String> missions) {
+    /** lien : adresse facultative (site de l'entreprise, realisation en ligne), affichee a cote du titre. */
+    public record Experience(String poste, String entreprise, String lieu, String periode, List<String> missions,
+            String lien) {
+
+        public Experience(String poste, String entreprise, String lieu, String periode, List<String> missions) {
+            this(poste, entreprise, lieu, periode, missions, null);
+        }
     }
 
     /** points : realisations detaillees (fonctionnalites, architecture, resultats). */
-    public record Projet(String nom, String description, String technologies, List<String> points) {
+    public record Projet(String nom, String description, String technologies, List<String> points, String lien) {
+
+        public Projet(String nom, String description, String technologies, List<String> points) {
+            this(nom, description, technologies, points, null);
+        }
     }
 
     /** lieu : ville de l'etablissement (facultatif). */
@@ -224,9 +234,10 @@ public final class CvPdf {
                 col.place(il * 3);
                 if (!vide(x.entreprise())) {
                     col.ligne(List.of(t.g(NOIR, majuscules(x.entreprise()))), t.n(NOIR, x.lieu()), tx, il);
-                    col.ligne(List.of(t.n(NOIR, x.poste())), t.n(NOIR, x.periode()), tx, il);
+                    col.ligne(avecLien(t, x.lien(), t.n(NOIR, x.poste())), t.n(NOIR, x.periode()), tx, il);
                 } else {
-                    col.ligne(List.of(t.g(NOIR, x.poste())), t.n(NOIR, joindre(" | ", x.lieu(), x.periode())), tx, il);
+                    col.ligne(avecLien(t, x.lien(), t.g(NOIR, x.poste())), t.n(NOIR, joindre(" | ", x.lieu(), x.periode())),
+                            tx, il);
                 }
                 for (String mission : liste(x.missions())) {
                     col.puce(t, mission, tx, il, 6 * e);
@@ -238,7 +249,7 @@ public final class CvPdf {
             rubriqueClassique(t, col, liste(cv.projets()).size() > 1 ? "PROJETS" : "PROJET");
             for (Projet p : liste(cv.projets())) {
                 col.place(il * 3);
-                col.riche(List.of(t.g(NOIR, majuscules(p.nom()))), tx, il, Aligne.GAUCHE);
+                col.riche(avecLien(t, p.lien(), t.g(NOIR, majuscules(p.nom()))), tx, il, Aligne.GAUCHE);
                 if (!vide(p.description())) {
                     col.riche(List.of(t.n(NOIR, p.description())), tx, il, Aligne.GAUCHE);
                 }
@@ -336,7 +347,8 @@ public final class CvPdf {
                 Colonne d = col.sous(decalage, largeur - decalage);
                 g.riche(List.of(t.n(NOIR, x.periode())), tx, il, Aligne.GAUCHE);
                 g.riche(List.of(t.n(GRIS, x.lieu())), tx, il, Aligne.GAUCHE);
-                d.riche(List.of(t.g(NOIR, joindre(" - ", x.poste(), x.entreprise()))), tx, il, Aligne.GAUCHE);
+                d.riche(avecLien(t, x.lien(), t.g(NOIR, joindre(" - ", x.poste(), x.entreprise()))), tx, il,
+                        Aligne.GAUCHE);
                 d.espace(1.5f);
                 for (String mission : liste(x.missions())) {
                     d.puce(t, mission, tx, il, 6 * e);
@@ -352,7 +364,7 @@ public final class CvPdf {
                 Colonne g = col.sous(0, gauche);
                 Colonne d = col.sous(decalage, largeur - decalage);
                 g.riche(List.of(t.n(GRIS, "Projet")), tx, il, Aligne.GAUCHE);
-                d.riche(List.of(t.g(NOIR, p.nom())), tx, il, Aligne.GAUCHE);
+                d.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), tx, il, Aligne.GAUCHE);
                 if (!vide(p.description())) {
                     d.riche(List.of(t.n(NOIR, p.description())), tx, il, Aligne.GAUCHE);
                 }
@@ -448,7 +460,7 @@ public final class CvPdf {
             rubriqueElegante(t, col, "EXPÉRIENCES PROFESSIONNELLES", 14.5f);
             for (Experience x : liste(cv.experiences())) {
                 col.place(il * 3);
-                col.riche(List.of(t.g(NOIR, texte(x.poste()) + (vide(x.periode()) ? "" : ", ")),
+                col.riche(avecLien(t, x.lien(), t.g(NOIR, texte(x.poste()) + (vide(x.periode()) ? "" : ", ")),
                         t.n(OCRE, x.periode())), 10.4f * e, il, Aligne.GAUCHE);
                 col.riche(List.of(t.i(NOIR, x.entreprise()), t.n(NOIR, vide(x.lieu()) ? "" : ", " + x.lieu())),
                         tx, il, Aligne.GAUCHE);
@@ -462,7 +474,7 @@ public final class CvPdf {
             rubriqueElegante(t, col, liste(cv.projets()).size() > 1 ? "PROJETS PERSONNELS" : "PROJET PERSONNEL", 14.5f);
             for (Projet p : liste(cv.projets())) {
                 col.place(il * 3);
-                col.riche(List.of(t.g(NOIR, p.nom())), 10.4f * e, il, Aligne.GAUCHE);
+                col.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), 10.4f * e, il, Aligne.GAUCHE);
                 if (!vide(p.description())) {
                     col.riche(List.of(t.i(NOIR, p.description())), tx, il, Aligne.GAUCHE);
                 }
@@ -586,7 +598,7 @@ public final class CvPdf {
             rubriqueCompacte(t, col, "EXPÉRIENCES PROFESSIONNELLES");
             for (Experience xp : liste(cv.experiences())) {
                 col.place(il * 3);
-                col.riche(List.of(t.g(NOIR, xp.poste())), 10.6f * e, il, Aligne.GAUCHE);
+                col.riche(avecLien(t, xp.lien(), t.g(NOIR, xp.poste())), 10.6f * e, il, Aligne.GAUCHE);
                 col.riche(List.of(t.i(NOIR, xp.entreprise()),
                         t.n(NOIR, vide(xp.lieu()) ? "" : (vide(xp.entreprise()) ? "" : ", ") + xp.lieu()),
                         t.n(GRIS, vide(xp.periode()) ? "" : " | " + xp.periode())), tx, il, Aligne.GAUCHE);
@@ -600,7 +612,7 @@ public final class CvPdf {
             rubriqueCompacte(t, col, liste(cv.projets()).size() > 1 ? "PROJETS PERSONNELS" : "PROJET PERSONNEL");
             for (Projet p : liste(cv.projets())) {
                 col.place(il * 3);
-                col.riche(List.of(t.g(NOIR, p.nom())), 10.6f * e, il, Aligne.GAUCHE);
+                col.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), 10.6f * e, il, Aligne.GAUCHE);
                 if (!vide(p.technologies())) {
                     col.riche(List.of(t.i(NOIR, p.technologies())), tx, il, Aligne.GAUCHE);
                 }
@@ -690,6 +702,17 @@ public final class CvPdf {
                 .filter(Objects::nonNull)
                 .filter(x -> !(x instanceof String s) || !s.isBlank())
                 .toList();
+    }
+
+    /** Titre suivi du lien facultatif, bleu et cliquable : "Postulyn | postulyn.vercel.app". */
+    private static List<Morceau> avecLien(Toile t, String lien, Morceau... titre) {
+        List<Morceau> morceaux = new ArrayList<>(List.of(titre));
+        String uri = vide(lien) ? null : lienDe(lien);
+        if (uri != null && !uri.startsWith("tel:")) {
+            morceaux.add(t.n(GRIS, "  |  "));
+            morceaux.add(new Morceau(t.normal, LIEN, uri.startsWith("mailto:") ? texte(lien) : affichageLien(lien), uri));
+        }
+        return morceaux;
     }
 
     /** Rubriques libres qui ont un titre et au moins un element. */
