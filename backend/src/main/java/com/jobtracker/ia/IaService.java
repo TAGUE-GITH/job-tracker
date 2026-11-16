@@ -413,11 +413,15 @@ public class IaService {
                         "GitHub" est le lien cache derriere ce texte ; mets-la dans le champ "lien" du projet ou de \
                         l'experience concernee (adresse complete, sans le texte "Voir en ligne") ; les liens \
                         personnels (LinkedIn, GitHub, portfolio) vont dans "liens" ;
+                        - experiences : "objectif" = le but de la mission s'il est ecrit dans le CV ; "stack" = les \
+                        technologies, outils ou logiciels cites pour cette experience (ligne "Environnement", \
+                        "Technologies", "Outils"...) ;
                         - champ absent du CV : "" ou [].
                         Reponds UNIQUEMENT avec un objet JSON valide :
                         {"titre": "", "profil": "",
                          "competencesTechniques": [""], "competencesTransverses": [""],
-                         "experiences": [{"poste": "", "entreprise": "", "lieu": "", "periode": "", "missions": [""], "lien": ""}],
+                         "experiences": [{"poste": "", "entreprise": "", "lieu": "", "periode": "", "missions": [""], "lien": "",
+                                          "objectif": "", "stack": ""}],
                          "projets": [{"nom": "", "description": "", "points": [""], "technologies": "", "lien": ""}],
                          "formations": [{"diplome": "", "etablissement": "", "lieu": "", "periode": "", "details": ""}],
                          "langues": [""], "atouts": [""], "centresInteret": [""], "liens": [""],
@@ -440,19 +444,27 @@ public class IaService {
                         l'element dans sa liste du CV, a partir de 0. Reponds UNIQUEMENT avec un objet JSON valide :
                         {"titre": "intitule proche de celui de l'offre et coherent avec le profil",
                          "profil": "3 a 4 phrases percutantes orientees vers l'offre, fondees sur le CV, sans je repete",
-                         "experiences": [{"index": 0, "missions": [""]}],
+                         "experiences": [{"index": 0, "objectif": "", "missions": [""], "stack": ""}],
                          "projets": [{"index": 0, "description": "", "points": [""]}],
                          "formations": [{"index": 0, "details": ""}],
                          "autresRubriques": [{"index": 0, "elements": [""]}],
                          "competencesTechniquesAjoutees": [""], "competencesTransversesAjoutees": [""],
                          "atoutsAjoutes": [""], "motsClesAjoutes": [""]}
                         Regles :
-                        - experiences : une entree pour CHAQUE experience du CV ; reformule et DETAILLE chacune de \
-                        ses missions, dans le meme ordre et en gardant leur sens (au moins autant de missions que \
-                        dans le CV, 3 a 5) : "verbe d'action + quoi + avec quels outils ou methodes + pour quel \
-                        resultat", une ligne et demie maximum, en reprenant le vocabulaire de l'offre quand il \
-                        decrit ce que le candidat a reellement fait ; aucune mission sans rapport avec l'experience, \
-                        aucun chiffre absent du CV ;
+                        - experiences : une entree pour CHAQUE experience du CV, avec :
+                          * "objectif" : UNE phrase (20 mots maximum) qui dit le but de la mission dans l'entreprise \
+                        et son enjeu, tournee vers ce que l'offre recherche (ex. "Moderniser l'application de gestion \
+                        des commandes pour reduire les delais de traitement"), deduite fidelement du CV ;
+                          * "missions" : chaque mission du CV reformulee et DETAILLEE en gardant son sens (au moins \
+                        autant de missions que dans le CV, 3 a 5) : "verbe d'action au passe + quoi + avec quels \
+                        outils ou methodes + pour quel resultat", une ligne et demie maximum ; place EN PREMIER les \
+                        missions qui correspondent le plus aux missions et exigences de l'offre, et reprends les \
+                        termes exacts de l'offre quand ils decrivent ce que le candidat a reellement fait ; aucune \
+                        mission sans rapport avec l'experience, aucun chiffre absent du CV ;
+                          * "stack" : l'environnement technique reellement utilise dans cette experience (langages, \
+                        frameworks, bases de donnees, outils, methodes), d'apres le CV, separe par des virgules, en \
+                        commencant par ce que l'offre demande ; pour un metier non technique, les logiciels et \
+                        outils du metier ; "" si le CV ne permet pas de le savoir ;
                         - projets : une entree pour CHAQUE projet : une phrase de contexte et 2 a 4 points concrets \
                         (fonctionnalites, architecture, outils, resultats) fideles au projet ;
                         - formations : une entree pour CHAQUE formation ; "details" = la ligne existante amelioree \

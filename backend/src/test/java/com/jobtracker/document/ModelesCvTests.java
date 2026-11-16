@@ -37,10 +37,13 @@ class ModelesCvTests {
                                 List.of("Développé une API REST sécurisée (JWT) en Python/Flask pour un site vitrine client",
                                         "Mis en place l'intégration continue GitHub Actions et le déploiement Render/Vercel",
                                         "Rédigé la documentation fonctionnelle et technique pour l'équipe commerciale",
-                                        "Participé aux rituels agiles Scrum avec l'équipe produit")),
+                                        "Participé aux rituels agiles Scrum avec l'équipe produit"), null,
+                                "Livrer un site vitrine sécurisé et déployé en continu pour un client du groupe",
+                                "Python, Flask, React, JWT, GitHub Actions, Render, Vercel"),
                         new CvPdf.Experience("Développeur (stage)", "Yamo Group Sarl", "Yaoundé", "Févr. 2025 - Juil. 2025",
                                 List.of("Conçu une API Flask de recherche documentaire intégrée au middleware interne",
-                                        "Automatisé les tests (pytest) et conteneurisé l'application avec Docker"))),
+                                        "Automatisé les tests (pytest) et conteneurisé l'application avec Docker"), null,
+                                null, "Python, Flask, pytest, Docker")),
                 base.projets(),
                 List.of(new CvPdf.Formation("Cycle Expert en architecture logicielle", "3IL Ingénieurs", "Sept. 2025 - présent",
                                 "Spécialisation architectures SOA et intégration d'APIs", "Limoges"),
@@ -58,6 +61,10 @@ class ModelesCvTests {
             for (boolean avecPhoto : new boolean[] {false, true}) {
                 byte[] pdf = CvPdf.generer(new CvPdf.Contact("Franck Tague", "franck@exemple.fr", "06 12 34 56 78",
                         "Paris", photo), cv(modele, avecPhoto));
+                try (var doc = Loader.loadPDF(pdf)) {
+                    ImageIO.write(new PDFRenderer(doc).renderImageWithDPI(0, 80), "png",
+                            new File("target/cv-" + modele.toLowerCase() + (avecPhoto ? "-photo" : "") + ".png"));
+                }
                 assertEquals(1, CvPdf.pages(pdf), modele);
                 String texte = TexteDocument.extraire(pdf, "cv.pdf", "application/pdf").replace("\r", "")
                         .replaceAll(" +", " ");
@@ -72,6 +79,8 @@ class ModelesCvTests {
                         && texte.contains("Baccalauréat scientifique"), modele + "\n" + texte);
                 assertTrue(texte.toUpperCase().contains("DITS GROUP") && texte.contains("Juin 2026 - Sept. 2026"), modele + "\n" + texte);
                 assertTrue(texte.contains("\n• Développé une API REST"), modele + "\n" + texte);
+                assertTrue(texte.contains("Objectif : Livrer un site vitrine")
+                        && texte.contains("Environnement technique : Python, Flask, React"), modele + "\n" + texte);
                 // Email et liens cliquables
                 try (var doc = Loader.loadPDF(pdf)) {
                     List<String> liens = new java.util.ArrayList<>();

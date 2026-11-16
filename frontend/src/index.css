@@ -713,7 +713,7 @@ button.icon { display: inline-flex; align-items: center; }
 }
 
 /* Modeles de CV */
-.modeles-cv { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; }
+.modeles-cv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
 .modele-cv { display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-start; text-align: left; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; cursor: pointer; }
 .modele-cv:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); }
 .modele-cv.choisi { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 25%, transparent); }
@@ -898,3 +898,20 @@ label.btn { flex-direction: row; margin: 0; font-weight: 550; }
 .espace-code-editeur textarea::placeholder { color: #475569; }
 .bulle pre { overflow-x: auto; background: #0f172a; color: #e2e8f0; padding: 0.7rem 0.8rem; border-radius: 8px; font-size: 0.84rem; }
 .bulle pre code { background: none; color: inherit; padding: 0; }
+
+/* Miniatures des modeles Bandeau et Accent */
+.apercu-bandeau { padding: 0 0 8% 0; }
+.apercu-bandeau > :not(.a-bandeau) { margin-left: 8%; margin-right: 8%; width: auto; }
+.apercu-bandeau .a-bandeau { position: relative; display: flex; flex-direction: column; gap: 10%; background: #172b4f; padding: 9% 8%; height: 19%; margin-bottom: 3%; }
+.apercu-bandeau .a-bandeau .a-nom { background: #eef2f8; width: 50%; height: 22%; }
+.apercu-bandeau .a-bandeau .a-titre { background: #93c5fd; width: 40%; height: 12%; }
+.apercu-bandeau .a-bandeau .a-photo { top: 18%; right: 7%; width: 18%; background: #64748b; }
+.apercu-bandeau .a-rubrique { background: #172b4f; height: 1.8%; }
+.apercu-bandeau .a-ligne { display: flex; justify-content: space-between; }
+.apercu-bandeau .a-ligne i { width: 45%; height: 4px; }
+.apercu-bandeau .a-ligne i + i { width: 22%; background: #172b4f; }
+.apercu-accent { border-top: 4px solid #07786a; }
+.apercu-accent .a-nom { background: linear-gradient(90deg, #111827 55%, #07786a 55%); }
+.apercu-accent .a-rubrique { width: 55%; height: 2.6%; border-left: 6px solid #07786a; }
+.apercu-accent .a-pastilles { display: flex; flex-wrap: wrap; gap: 3px; }
+.apercu-accent .a-pastilles i { width: 26%; height: 6px; border-radius: 6px; background: #d1f0e7; }

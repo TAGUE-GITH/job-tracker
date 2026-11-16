@@ -44,6 +44,8 @@ const MODELES = [
   { code: 'MODERNE', nom: 'Chronologique', detail: 'Dates dans une colonne à gauche, photo carrée à droite.', photo: true },
   { code: 'ELEGANT', nom: 'Colonne beige', detail: 'Contact, profil et compétences dans une colonne beige.', photo: true },
   { code: 'COMPACT', nom: 'Épuré', detail: 'Bande grise, photo ronde, grands titres en gras.', photo: true },
+  { code: 'BANDEAU', nom: 'Bandeau', detail: 'En-tête bleu marine, dates à droite, rubriques aérées.', photo: true },
+  { code: 'ACCENT', nom: 'Accent', detail: 'Touches de vert, compétences clés en pastilles en tête.', photo: true },
 ]
 
 /** Miniature du modele de CV (forme generale de la page). */
@@ -75,6 +77,25 @@ function ApercuModele({ code, photo }) {
       </span>
     )
   }
+  if (code === 'BANDEAU') {
+    return (
+      <span className="apercu-modele apercu-bandeau" aria-hidden="true">
+        <span className="a-bandeau">{photo && <b className="a-photo rond" />}<b className="a-nom" /><i className="a-titre" /></span>
+        <b className="a-rubrique" />{[0, 1].map((k) => <span key={k} className="a-ligne"><i /><i /></span>)}{lignes(3, 'e')}
+        <b className="a-rubrique" />{lignes(3, 'f')}
+      </span>
+    )
+  }
+  if (code === 'ACCENT') {
+    return (
+      <span className="apercu-modele apercu-accent" aria-hidden="true">
+        {photo && <b className="a-photo rond" />}
+        <b className="a-nom" /><i className="a-titre" />
+        <b className="a-rubrique" /><span className="a-pastilles">{lignes(6, 'p')}</span>
+        <b className="a-rubrique" />{lignes(4, 'e')}<b className="a-rubrique" />{lignes(2, 'f')}
+      </span>
+    )
+  }
   if (code === 'COMPACT') {
     return (
       <span className="apercu-modele apercu-compact" aria-hidden="true">
@@ -95,7 +116,7 @@ function ApercuModele({ code, photo }) {
 }
 
 const VIDES = {
-  experiences: { poste: '', entreprise: '', lieu: '', periode: '', missions: '', lien: '' },
+  experiences: { poste: '', entreprise: '', lieu: '', periode: '', missions: '', lien: '', objectif: '', stack: '' },
   projets: { nom: '', description: '', points: '', technologies: '', lien: '' },
   formations: { diplome: '', etablissement: '', lieu: '', periode: '', details: '' },
   autresRubriques: { titre: '', elements: '' },
@@ -224,6 +245,10 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
                   <Champ libelle="Période" valeur={x.periode} onChange={(v) => changerElement('experiences', i, 'periode', v)} />
                   <Champ libelle="Lien (facultatif)" valeur={x.lien} placeholder="ex. site de l'entreprise ou réalisation en ligne"
                     onChange={(v) => changerElement('experiences', i, 'lien', v)} />
+                  <Champ libelle="Objectif de la mission" valeur={x.objectif} placeholder="ex. Moderniser l'outil de suivi des commandes"
+                    onChange={(v) => changerElement('experiences', i, 'objectif', v)} />
+                  <Champ libelle="Environnement technique" valeur={x.stack} placeholder="ex. Java, Spring Boot, PostgreSQL, Docker"
+                    onChange={(v) => changerElement('experiences', i, 'stack', v)} />
                 </div>
                 <Liste titre="Missions" valeur={x.missions} onChange={(v) => changerElement('experiences', i, 'missions', v)} />
               </Bloc>

@@ -36,12 +36,20 @@ public final class CvPdf {
         }
     }
 
-    /** lien : adresse facultative (site de l'entreprise, realisation en ligne), affichee a cote du titre. */
+    /**
+     * lien : adresse facultative (site de l'entreprise, realisation en ligne), affichee a cote du titre.
+     * objectif : le but de la mission en une phrase ; stack : environnement technique (outils, langages).
+     */
     public record Experience(String poste, String entreprise, String lieu, String periode, List<String> missions,
-            String lien) {
+            String lien, String objectif, String stack) {
 
         public Experience(String poste, String entreprise, String lieu, String periode, List<String> missions) {
-            this(poste, entreprise, lieu, periode, missions, null);
+            this(poste, entreprise, lieu, periode, missions, null, null, null);
+        }
+
+        public Experience(String poste, String entreprise, String lieu, String periode, List<String> missions,
+                String lien) {
+            this(poste, entreprise, lieu, periode, missions, lien, null, null);
         }
     }
 
@@ -100,7 +108,8 @@ public final class CvPdf {
         }
     }
 
-    public static final List<String> MODELES = List.of("CLASSIQUE", "MODERNE", "ELEGANT", "COMPACT");
+    public static final List<String> MODELES = List.of("CLASSIQUE", "MODERNE", "ELEGANT", "COMPACT", "BANDEAU",
+            "ACCENT");
 
     static final float[] NOIR = {0.09f, 0.09f, 0.1f};
     static final float[] GRIS = {0.45f, 0.46f, 0.49f};
@@ -114,6 +123,18 @@ public final class CvPdf {
     static final float[] PETROLE = {0.03f, 0.38f, 0.45f};
     static final float[] BRUN = {0.5f, 0.31f, 0.13f};
     static final float[] BLEU_ROI = {0.12f, 0.31f, 0.66f};
+    /** Texte secondaire fonce (objectif d'une experience), plus lisible que le gris. */
+    static final float[] ARDOISE = {0.27f, 0.3f, 0.36f};
+    /** Modele BANDEAU : bandeau bleu marine, texte clair. */
+    static final float[] MARINE = {0.09f, 0.17f, 0.31f};
+    static final float[] CLAIR = {0.93f, 0.95f, 0.98f};
+    static final float[] BLEU_CIEL = {0.6f, 0.8f, 1f};
+    /** Modele ACCENT : vert emeraude et sa teinte pale pour les pastilles. */
+    static final float[] EMERAUDE = {0.02f, 0.47f, 0.4f};
+    static final float[] EMERAUDE_PALE = {0.88f, 0.96f, 0.93f};
+    /** Taille du texte et des titres de rubrique (lisibilite) avant tout resserrement. */
+    static final float TEXTE = 10;
+    static final float TITRE = 12;
 
     private static final float LARGEUR_PAGE = PDRectangle.A4.getWidth();
     private static final float HAUTEUR_PAGE = PDRectangle.A4.getHeight();
@@ -121,7 +142,7 @@ public final class CvPdf {
     private static final float LARGEUR_COTE = 200;
 
     /** Facteurs de resserrement essayes dans l'ordre jusqu'a tenir sur une page. */
-    private static final float[] ECHELLES = {1f, 0.95f, 0.9f, 0.86f, 0.82f, 0.78f, 0.74f, 0.7f, 0.66f};
+    private static final float[] ECHELLES = {1f, 0.97f, 0.94f, 0.91f};
 
     private CvPdf() {
     }
@@ -134,6 +155,10 @@ public final class CvPdf {
             if (rendu.pages() == 1) {
                 break;
             }
+        }
+        // Trop long pour une page meme resserre : 2 pages en taille normale, plus lisibles qu'une page minuscule
+        if (pages(pdf) > 1) {
+            pdf = rendre(contact, cv, 1f).pdf();
         }
         return pdf;
     }
@@ -161,6 +186,7 @@ public final class CvPdf {
             Toile t = new Toile(doc, echelle, switch (modele) {
                 case "ELEGANT" -> f -> rectangle(f, 0, 0, LARGEUR_COTE, HAUTEUR_PAGE, BEIGE);
                 case "COMPACT" -> f -> rectangle(f, 0, 0, 20, HAUTEUR_PAGE, GRIS_BANDE);
+                case "ACCENT" -> f -> rectangle(f, 0, HAUTEUR_PAGE - 6, LARGEUR_PAGE, 6, EMERAUDE);
                 default -> f -> { };
             });
             byte[] photo = Boolean.TRUE.equals(cv.avecPhoto()) ? contact.photo() : null;
@@ -168,6 +194,8 @@ public final class CvPdf {
                 case "MODERNE" -> moderne(t, contact, cv, photo);
                 case "ELEGANT" -> elegant(t, contact, cv, photo);
                 case "COMPACT" -> compact(t, contact, cv, photo);
+                case "BANDEAU" -> bandeau(t, contact, cv, photo);
+                case "ACCENT" -> accent(t, contact, cv, photo);
                 default -> classique(t, contact, cv);
             }
             t.fermer();
@@ -185,8 +213,8 @@ public final class CvPdf {
         float e = t.echelle;
         float marge = t.marge(46);
         Colonne col = t.colonne(marge, LARGEUR_PAGE - 2 * marge, t.haut(40));
-        float tx = 10.2f * e;
-        float il = tx * 1.3f;
+        float tx = TEXTE * e;
+        float il = tx * 1.32f;
 
         col.riche(List.of(t.g(NOIR, majuscules(c.nom()))), 20 * e, 24 * e, Aligne.CENTRE);
         if (!vide(cv.titre())) {
@@ -239,9 +267,7 @@ public final class CvPdf {
                     col.ligne(avecLien(t, x.lien(), t.g(NOIR, x.poste())), t.n(NOIR, joindre(" | ", x.lieu(), x.periode())),
                             tx, il);
                 }
-                for (String mission : liste(x.missions())) {
-                    col.puce(t, mission, tx, il, 6 * e);
-                }
+                detailsExperience(t, col, x, tx, il, 6 * e);
                 col.espace(5);
             }
         }
@@ -292,7 +318,7 @@ public final class CvPdf {
 
     private static void rubriqueClassique(Toile t, Colonne col, String titre) throws IOException {
         float e = t.echelle;
-        float taille = 11.5f * e;
+        float taille = TITRE * e;
         col.place(taille * 4);
         col.espace(9);
         col.riche(List.of(t.g(BLEU_NUIT, titre)), taille, taille + 3 * e, Aligne.GAUCHE);
@@ -308,12 +334,12 @@ public final class CvPdf {
         float marge = t.marge(42);
         float largeur = LARGEUR_PAGE - 2 * marge;
         Colonne col = t.colonne(marge, largeur, t.haut(40));
-        float tx = 10 * e;
-        float il = tx * 1.38f;
+        float tx = TEXTE * e;
+        float il = tx * 1.33f;
 
         float basPhoto = col.y;
         if (photo != null) {
-            float cote = 118 * e;
+            float cote = 104 * e;
             t.image(col.page, photo, marge + largeur - cote, col.y - cote, cote, cote, false);
             col.retrait(cote + 18 * e, col.y - cote);
             basPhoto = col.y - cote;
@@ -322,7 +348,7 @@ public final class CvPdf {
         if (!vide(cv.titre())) {
             col.riche(List.of(t.g(PETROLE, cv.titre())), 12.5f * e, 16 * e, Aligne.GAUCHE);
         }
-        col.espace(11);
+        col.espace(8);
         List<String> coordonnees = new ArrayList<>(List.of(texte(c.email()), texte(c.telephone()), une(c.adresse())));
         coordonnees.addAll(liste(cv.liens()));
         for (String ligne : coordonnees) {
@@ -350,11 +376,9 @@ public final class CvPdf {
                 d.riche(avecLien(t, x.lien(), t.g(NOIR, joindre(" - ", x.poste(), x.entreprise()))), tx, il,
                         Aligne.GAUCHE);
                 d.espace(1.5f);
-                for (String mission : liste(x.missions())) {
-                    d.puce(t, mission, tx, il, 6 * e);
-                }
+                detailsExperience(t, d, x, tx, il, 6 * e);
                 col.apres(g, d);
-                col.espace(9);
+                col.espace(6);
             }
         }
         if (!liste(cv.projets()).isEmpty()) {
@@ -375,7 +399,7 @@ public final class CvPdf {
                     d.riche(List.of(t.g(NOIR, "Technologies : "), t.n(NOIR, p.technologies())), tx, il, Aligne.GAUCHE);
                 }
                 col.apres(g, d);
-                col.espace(9);
+                col.espace(6);
             }
         }
         if (!liste(cv.formations()).isEmpty()) {
@@ -392,7 +416,7 @@ public final class CvPdf {
                     d.riche(List.of(t.n(NOIR, f.details())), tx, il, Aligne.GAUCHE);
                 }
                 col.apres(g, d);
-                col.espace(8);
+                col.espace(5);
             }
         }
         for (Rubrique r : rubriques(cv)) {
@@ -404,9 +428,17 @@ public final class CvPdf {
         List<String> competences = new ArrayList<>(liste(cv.competencesTechniques()));
         competences.addAll(liste(cv.competencesTransverses()));
         grille(t, col, "COMPÉTENCES", competences, tx, il);
-        grille(t, col, "LANGUES", liste(cv.langues()).stream().map(l -> l.replace(" : ", " | ")).toList(), tx, il);
-        grille(t, col, "ATOUTS", liste(cv.atouts()), tx, il);
-        grille(t, col, "CENTRES D'INTÉRÊT", liste(cv.centresInteret()), tx, il);
+        // Langues, atouts et centres d'interet : une rubrique compacte, une ligne chacun
+        List<List<Morceau>> autres = new ArrayList<>();
+        ajouterLibelle(t, autres, "Langues : ", cv.langues(), " | ");
+        ajouterLibelle(t, autres, "Atouts : ", cv.atouts(), ", ");
+        ajouterLibelle(t, autres, "Centres d'intérêt : ", cv.centresInteret(), ", ");
+        if (!autres.isEmpty()) {
+            rubriqueModerne(t, col, "LANGUES, ATOUTS ET INTÉRÊTS");
+            for (List<Morceau> l : autres) {
+                col.riche(l, tx, il, Aligne.GAUCHE);
+            }
+        }
     }
 
     /** Elements ranges sur 3 colonnes. */
@@ -432,12 +464,12 @@ public final class CvPdf {
 
     private static void rubriqueModerne(Toile t, Colonne col, String titre) throws IOException {
         float e = t.echelle;
-        float taille = 10.5f * e;
+        float taille = TITRE * e;
         col.place(taille * 4);
-        col.espace(11);
+        col.espace(9);
         col.riche(List.of(t.g(PETROLE, titre)), taille, taille + 3 * e, Aligne.GAUCHE);
         col.trait(PETROLE, 1.4f);
-        col.espace(7);
+        col.espace(5);
     }
 
     // ------------------------------------------------------------------ ELEGANT
@@ -447,8 +479,8 @@ public final class CvPdf {
         float e = t.echelle;
         float xPrincipal = LARGEUR_COTE + 26;
         Colonne col = t.colonne(xPrincipal, LARGEUR_PAGE - xPrincipal - 32, t.haut(42));
-        float tx = 9.6f * e;
-        float il = tx * 1.36f;
+        float tx = TEXTE * e;
+        float il = tx * 1.34f;
 
         // Colonne principale d'abord : les logiciels de tri lisent le nom et les experiences en premier
         col.riche(List.of(t.g(NOIR, majuscules(c.nom()))), 28 * e, 31 * e, Aligne.GAUCHE);
@@ -457,21 +489,19 @@ public final class CvPdf {
             col.riche(List.of(t.n(BRUN, majuscules(cv.titre()))), 12.5f * e, 16 * e, Aligne.GAUCHE);
         }
         if (!liste(cv.experiences()).isEmpty()) {
-            rubriqueElegante(t, col, "EXPÉRIENCES PROFESSIONNELLES", 14.5f);
+            rubriqueElegante(t, col, "EXPÉRIENCES PROFESSIONNELLES", TITRE + 1);
             for (Experience x : liste(cv.experiences())) {
                 col.place(il * 3);
                 col.riche(avecLien(t, x.lien(), t.g(NOIR, texte(x.poste()) + (vide(x.periode()) ? "" : ", ")),
                         t.n(OCRE, x.periode())), 10.4f * e, il, Aligne.GAUCHE);
                 col.riche(List.of(t.i(NOIR, x.entreprise()), t.n(NOIR, vide(x.lieu()) ? "" : ", " + x.lieu())),
                         tx, il, Aligne.GAUCHE);
-                for (String mission : liste(x.missions())) {
-                    col.puce(t, mission, tx, il, 0);
-                }
+                detailsExperience(t, col, x, tx, il, 0);
                 col.espace(8);
             }
         }
         if (!liste(cv.projets()).isEmpty()) {
-            rubriqueElegante(t, col, liste(cv.projets()).size() > 1 ? "PROJETS PERSONNELS" : "PROJET PERSONNEL", 14.5f);
+            rubriqueElegante(t, col, liste(cv.projets()).size() > 1 ? "PROJETS PERSONNELS" : "PROJET PERSONNEL", TITRE + 1);
             for (Projet p : liste(cv.projets())) {
                 col.place(il * 3);
                 col.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), 10.4f * e, il, Aligne.GAUCHE);
@@ -488,7 +518,7 @@ public final class CvPdf {
             }
         }
         if (!liste(cv.formations()).isEmpty()) {
-            rubriqueElegante(t, col, "FORMATION", 14.5f);
+            rubriqueElegante(t, col, "FORMATION", TITRE + 1);
             for (Formation f : liste(cv.formations())) {
                 col.place(il * 2);
                 col.riche(List.of(t.g(NOIR, texte(f.diplome()) + (vide(f.periode()) ? "" : ", ")),
@@ -503,7 +533,7 @@ public final class CvPdf {
         }
 
         for (Rubrique r : rubriques(cv)) {
-            rubriqueElegante(t, col, majuscules(r.titre()), 14.5f);
+            rubriqueElegante(t, col, majuscules(r.titre()), TITRE + 1);
             for (String element : liste(r.elements())) {
                 col.puce(t, element, tx, il, 0);
             }
@@ -516,9 +546,9 @@ public final class CvPdf {
             t.image(0, photo, (LARGEUR_COTE - d) / 2, cote.y - d, d, d, true);
             cote.y -= d + 4 * e;
         }
-        float ts = 9.3f * e;
+        float ts = TEXTE * e;
         float ils = ts * 1.4f;
-        rubriqueElegante(t, cote, "CONTACT", 13);
+        rubriqueElegante(t, cote, "CONTACT", TITRE);
         List<String> coordonnees = new ArrayList<>(List.of(texte(c.telephone()), une(c.adresse()), texte(c.email())));
         coordonnees.addAll(liste(cv.liens()));
         for (String ligne : coordonnees) {
@@ -528,7 +558,7 @@ public final class CvPdf {
             }
         }
         if (!vide(cv.profil())) {
-            rubriqueElegante(t, cote, "PROFIL", 13);
+            rubriqueElegante(t, cote, "PROFIL", TITRE);
             cote.riche(List.of(t.n(NOIR, cv.profil())), ts, ils, Aligne.GAUCHE);
         }
         listeCote(t, cote, "COMPÉTENCES", cv.competencesTechniques(), ts, ils);
@@ -541,7 +571,7 @@ public final class CvPdf {
     private static void listeCote(Toile t, Colonne col, String titre, List<String> elements, float ts, float ils)
             throws IOException {
         if (!liste(elements).isEmpty()) {
-            rubriqueElegante(t, col, titre, 13);
+            rubriqueElegante(t, col, titre, TITRE);
             for (String element : liste(elements)) {
                 col.puce(t, element, ts, ils, 0);
             }
@@ -564,7 +594,7 @@ public final class CvPdf {
         float e = t.echelle;
         float x = 52;
         Colonne col = t.colonne(x, LARGEUR_PAGE - x - t.marge(40), t.haut(38));
-        float tx = 10 * e;
+        float tx = TEXTE * e;
         float il = tx * 1.36f;
 
         float basPhoto = col.y;
@@ -602,9 +632,7 @@ public final class CvPdf {
                 col.riche(List.of(t.i(NOIR, xp.entreprise()),
                         t.n(NOIR, vide(xp.lieu()) ? "" : (vide(xp.entreprise()) ? "" : ", ") + xp.lieu()),
                         t.n(GRIS, vide(xp.periode()) ? "" : " | " + xp.periode())), tx, il, Aligne.GAUCHE);
-                for (String mission : liste(xp.missions())) {
-                    col.puce(t, mission, tx, il, 2 * e);
-                }
+                detailsExperience(t, col, xp, tx, il, 2 * e);
                 col.espace(7);
             }
         }
@@ -688,11 +716,324 @@ public final class CvPdf {
 
     private static void rubriqueCompacte(Toile t, Colonne col, String titre) throws IOException {
         float e = t.echelle;
-        float taille = 15 * e;
+        float taille = (TITRE + 1) * e;
         col.place(taille * 3.5f);
         col.espace(13);
         col.riche(List.of(t.g(BLEU_ROI, titre)), taille, taille + 4 * e, Aligne.GAUCHE);
         col.espace(4);
+    }
+
+    /** Objectif de la mission (italique), missions a puces, puis environnement technique. */
+    private static void detailsExperience(Toile t, Colonne col, Experience x, float tx, float il, float decalage)
+            throws IOException {
+        if (!vide(x.objectif())) {
+            col.riche(List.of(t.g(ARDOISE, "Objectif : "), t.i(ARDOISE, x.objectif())), tx, il, Aligne.GAUCHE);
+        }
+        for (String mission : liste(x.missions())) {
+            col.puce(t, mission, tx, il, decalage);
+        }
+        if (!vide(x.stack())) {
+            col.riche(List.of(t.g(NOIR, "Environnement technique : "), t.n(ARDOISE, x.stack())), tx, il,
+                    Aligne.GAUCHE);
+        }
+    }
+
+    // ------------------------------------------------------------------ BANDEAU
+
+    /** Bandeau bleu marine en haut (nom, poste, coordonnees en clair), puis une colonne aeree. */
+    private static void bandeau(Toile t, Contact c, Cv cv, byte[] photo) throws IOException {
+        float e = t.echelle;
+        float marge = t.marge(44);
+        float largeur = LARGEUR_PAGE - 2 * marge;
+        float hauteurBandeau = 122 * e;
+        rectangle(t.page(0), 0, HAUTEUR_PAGE - hauteurBandeau, LARGEUR_PAGE, hauteurBandeau, MARINE);
+        Colonne col = t.colonne(marge, largeur, HAUTEUR_PAGE - 26 * e);
+        float tx = TEXTE * e;
+        float il = tx * 1.36f;
+
+        if (photo != null) {
+            float d = 86 * e;
+            t.image(0, photo, marge + largeur - d, HAUTEUR_PAGE - (hauteurBandeau + d) / 2, d, d, true);
+            col.retrait(d + 18 * e, HAUTEUR_PAGE - hauteurBandeau);
+        }
+        col.riche(List.of(t.g(CLAIR, majuscules(c.nom()))), 24 * e, 28 * e, Aligne.GAUCHE);
+        if (!vide(cv.titre())) {
+            col.riche(List.of(t.n(BLEU_CIEL, cv.titre())), 12.5f * e, 17 * e, Aligne.GAUCHE);
+        }
+        col.espace(5);
+        List<String> coordonnees = new ArrayList<>(List.of(texte(c.telephone()), texte(c.email()), une(c.adresse())));
+        coordonnees.addAll(liste(cv.liens()));
+        float[] lienAvant = t.couleurLien;
+        t.couleurLien = BLEU_CIEL;
+        List<Morceau> ligne = new ArrayList<>();
+        for (String element : coordonnees) {
+            if (!vide(element)) {
+                if (!ligne.isEmpty()) {
+                    ligne.add(t.n(BLEU_CIEL, "  |  "));
+                }
+                Morceau m = t.contact(element);
+                ligne.add(m.lien() == null ? t.n(CLAIR, element) : m);
+            }
+        }
+        col.riche(ligne, 9.5f * e, 12.5f * e, Aligne.GAUCHE);
+        t.couleurLien = lienAvant;
+        col.retrait(0, 0);
+        col.y = Math.min(col.y, HAUTEUR_PAGE - hauteurBandeau) - 8 * e;
+
+        if (!vide(cv.profil())) {
+            rubriqueBandeau(t, col, "PROFIL");
+            col.riche(List.of(t.n(NOIR, cv.profil())), tx, il, Aligne.GAUCHE);
+        }
+        if (!liste(cv.experiences()).isEmpty()) {
+            rubriqueBandeau(t, col, "EXPÉRIENCES PROFESSIONNELLES");
+            for (Experience x : liste(cv.experiences())) {
+                col.place(il * 4);
+                col.ligne(avecLien(t, x.lien(), t.g(MARINE, x.poste()),
+                        t.n(NOIR, vide(x.entreprise()) ? "" : "  ·  " + x.entreprise())), t.g(MARINE, x.periode()),
+                        10.5f * e, il);
+                if (!vide(x.lieu())) {
+                    col.riche(List.of(t.i(GRIS, x.lieu())), tx, il, Aligne.GAUCHE);
+                }
+                detailsExperience(t, col, x, tx, il, 4 * e);
+                col.espace(7);
+            }
+        }
+        if (!liste(cv.projets()).isEmpty()) {
+            rubriqueBandeau(t, col, liste(cv.projets()).size() > 1 ? "PROJETS" : "PROJET");
+            for (Projet p : liste(cv.projets())) {
+                col.place(il * 3);
+                col.riche(avecLien(t, p.lien(), t.g(MARINE, p.nom())), 10.5f * e, il, Aligne.GAUCHE);
+                if (!vide(p.description())) {
+                    col.riche(List.of(t.i(ARDOISE, p.description())), tx, il, Aligne.GAUCHE);
+                }
+                for (String point : liste(p.points())) {
+                    col.puce(t, point, tx, il, 4 * e);
+                }
+                if (!vide(p.technologies())) {
+                    col.riche(List.of(t.g(NOIR, "Environnement technique : "), t.n(ARDOISE, p.technologies())), tx, il,
+                            Aligne.GAUCHE);
+                }
+                col.espace(7);
+            }
+        }
+        if (!liste(cv.formations()).isEmpty()) {
+            rubriqueBandeau(t, col, "FORMATION");
+            for (Formation f : liste(cv.formations())) {
+                col.place(il * 2);
+                col.ligne(List.of(t.g(MARINE, f.diplome())), t.g(MARINE, f.periode()), 10.5f * e, il);
+                col.riche(List.of(t.n(NOIR, f.etablissement()), t.i(GRIS, vide(f.lieu()) ? "" : ", " + f.lieu())), tx, il,
+                        Aligne.GAUCHE);
+                if (!vide(f.details())) {
+                    col.riche(List.of(t.n(ARDOISE, f.details())), tx, il, Aligne.GAUCHE);
+                }
+                col.espace(6);
+            }
+        }
+        for (Rubrique r : rubriques(cv)) {
+            rubriqueBandeau(t, col, majuscules(r.titre()));
+            for (String element : liste(r.elements())) {
+                col.puce(t, element, tx, il, 4 * e);
+            }
+        }
+        List<List<Morceau>> infos = new ArrayList<>();
+        ajouterLibelle(t, infos, "Techniques : ", cv.competencesTechniques(), ", ");
+        ajouterLibelle(t, infos, "Transverses : ", cv.competencesTransverses(), ", ");
+        if (!infos.isEmpty()) {
+            rubriqueBandeau(t, col, "COMPÉTENCES");
+            for (List<Morceau> l : infos) {
+                col.riche(l, tx, il, Aligne.GAUCHE);
+            }
+        }
+        List<List<Morceau>> autres = new ArrayList<>();
+        ajouterLibelle(t, autres, "Langues : ", cv.langues(), " | ");
+        ajouterLibelle(t, autres, "Atouts : ", cv.atouts(), ", ");
+        ajouterLibelle(t, autres, "Centres d'intérêt : ", cv.centresInteret(), ", ");
+        if (!autres.isEmpty()) {
+            rubriqueBandeau(t, col, "INFORMATIONS COMPLÉMENTAIRES");
+            for (List<Morceau> l : autres) {
+                col.riche(l, tx, il, Aligne.GAUCHE);
+            }
+        }
+    }
+
+    private static void rubriqueBandeau(Toile t, Colonne col, String titre) throws IOException {
+        float e = t.echelle;
+        float taille = TITRE * e;
+        col.place(taille * 4);
+        col.espace(12);
+        col.riche(List.of(t.g(MARINE, titre)), taille, taille + 3 * e, Aligne.GAUCHE);
+        col.trait(new float[] {0.8f, 0.84f, 0.9f}, 0.8f);
+        col.espace(6);
+    }
+
+    // ------------------------------------------------------------------ ACCENT
+
+    /** Filet vert en haut, titres precedes d'un carre de couleur, competences en pastilles. */
+    private static void accent(Toile t, Contact c, Cv cv, byte[] photo) throws IOException {
+        float e = t.echelle;
+        float marge = t.marge(46);
+        float largeur = LARGEUR_PAGE - 2 * marge;
+        Colonne col = t.colonne(marge, largeur, t.haut(42));
+        float tx = TEXTE * e;
+        float il = tx * 1.36f;
+
+        float basPhoto = col.y;
+        if (photo != null) {
+            float d = 96 * e;
+            t.image(col.page, photo, marge + largeur - d, col.y - d, d, d, true);
+            col.retrait(d + 18 * e, col.y - d);
+            basPhoto = col.y - d;
+        }
+        String nom = texte(c.nom());
+        int espace = nom.lastIndexOf(' ');
+        col.riche(espace < 0 ? List.of(t.g(NOIR, nom))
+                : List.of(t.g(NOIR, nom.substring(0, espace + 1)), t.g(EMERAUDE, nom.substring(espace + 1))),
+                26 * e, 30 * e, Aligne.GAUCHE);
+        if (!vide(cv.titre())) {
+            col.riche(List.of(t.g(ARDOISE, cv.titre())), 12.5f * e, 17 * e, Aligne.GAUCHE);
+        }
+        col.espace(4);
+        List<String> coordonnees = new ArrayList<>(List.of(texte(c.telephone()), texte(c.email()), une(c.adresse())));
+        coordonnees.addAll(liste(cv.liens()));
+        List<Morceau> ligne = new ArrayList<>();
+        for (String element : coordonnees) {
+            if (!vide(element)) {
+                if (!ligne.isEmpty()) {
+                    ligne.add(t.n(EMERAUDE, "   •   "));
+                }
+                ligne.add(t.contact(element));
+            }
+        }
+        col.riche(ligne, 9.5f * e, 12.5f * e, Aligne.GAUCHE);
+        if (!vide(cv.profil())) {
+            col.espace(6);
+            col.riche(List.of(t.n(NOIR, cv.profil())), tx, il, Aligne.GAUCHE);
+        }
+        col.y = Math.min(col.y, basPhoto - 2 * e);
+        col.retrait(0, 0);
+
+        List<String> competences = new ArrayList<>(liste(cv.competencesTechniques()));
+        competences.addAll(liste(cv.competencesTransverses()));
+        if (!competences.isEmpty()) {
+            rubriqueAccent(t, col, "COMPÉTENCES CLÉS");
+            pastilles(t, col, competences, 9.5f * e);
+        }
+        if (!liste(cv.experiences()).isEmpty()) {
+            rubriqueAccent(t, col, "EXPÉRIENCES PROFESSIONNELLES");
+            for (Experience x : liste(cv.experiences())) {
+                col.place(il * 4);
+                col.ligne(avecLien(t, x.lien(), t.g(NOIR, x.poste())), t.g(EMERAUDE, x.periode()), 10.5f * e, il);
+                col.riche(List.of(t.g(EMERAUDE, x.entreprise()), t.n(GRIS, vide(x.lieu()) ? "" : "  ·  " + x.lieu())), tx,
+                        il, Aligne.GAUCHE);
+                detailsExperience(t, col, x, tx, il, 4 * e);
+                col.espace(7);
+            }
+        }
+        if (!liste(cv.projets()).isEmpty()) {
+            rubriqueAccent(t, col, liste(cv.projets()).size() > 1 ? "PROJETS" : "PROJET");
+            for (Projet p : liste(cv.projets())) {
+                col.place(il * 3);
+                col.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), 10.5f * e, il, Aligne.GAUCHE);
+                if (!vide(p.description())) {
+                    col.riche(List.of(t.i(ARDOISE, p.description())), tx, il, Aligne.GAUCHE);
+                }
+                for (String point : liste(p.points())) {
+                    col.puce(t, point, tx, il, 4 * e);
+                }
+                if (!vide(p.technologies())) {
+                    col.riche(List.of(t.g(NOIR, "Environnement technique : "), t.n(ARDOISE, p.technologies())), tx, il,
+                            Aligne.GAUCHE);
+                }
+                col.espace(7);
+            }
+        }
+        if (!liste(cv.formations()).isEmpty()) {
+            rubriqueAccent(t, col, "FORMATION");
+            for (Formation f : liste(cv.formations())) {
+                col.place(il * 2);
+                col.ligne(List.of(t.g(NOIR, f.diplome())), t.g(EMERAUDE, f.periode()), 10.5f * e, il);
+                col.riche(List.of(t.n(EMERAUDE, f.etablissement()), t.n(GRIS, vide(f.lieu()) ? "" : "  ·  " + f.lieu())),
+                        tx, il, Aligne.GAUCHE);
+                if (!vide(f.details())) {
+                    col.riche(List.of(t.n(ARDOISE, f.details())), tx, il, Aligne.GAUCHE);
+                }
+                col.espace(6);
+            }
+        }
+        for (Rubrique r : rubriques(cv)) {
+            rubriqueAccent(t, col, majuscules(r.titre()));
+            for (String element : liste(r.elements())) {
+                col.puce(t, element, tx, il, 4 * e);
+            }
+        }
+        List<List<Morceau>> autres = new ArrayList<>();
+        ajouterLibelle(t, autres, "Langues : ", cv.langues(), " | ");
+        ajouterLibelle(t, autres, "Atouts : ", cv.atouts(), ", ");
+        ajouterLibelle(t, autres, "Centres d'intérêt : ", cv.centresInteret(), ", ");
+        if (!autres.isEmpty()) {
+            rubriqueAccent(t, col, "LANGUES ET INTÉRÊTS");
+            for (List<Morceau> l : autres) {
+                col.riche(l, tx, il, Aligne.GAUCHE);
+            }
+        }
+    }
+
+    private static void rubriqueAccent(Toile t, Colonne col, String titre) throws IOException {
+        float e = t.echelle;
+        float taille = TITRE * e;
+        col.place(taille * 4);
+        col.espace(13);
+        float cote = taille * 0.62f;
+        rectangle(t.page(col.page), col.x, col.y - taille * 0.86f, cote, cote, EMERAUDE);
+        Colonne texte = col.sous(cote + 7 * e, col.largeur - cote - 7 * e);
+        texte.riche(List.of(t.g(NOIR, titre)), taille, taille + 3 * e, Aligne.GAUCHE);
+        col.apres(texte);
+        col.espace(6);
+    }
+
+    /** Competences en pastilles teintees, sur plusieurs lignes. */
+    private static void pastilles(Toile t, Colonne col, List<String> elements, float taille) throws IOException {
+        float e = t.echelle;
+        float h = taille * 1.75f;
+        float ecart = 5 * e;
+        float x = 0;
+        col.place(h + ecart);
+        for (String element : elements) {
+            String s = LettrePdf.nettoyer(element, t.normal).strip();
+            float l = t.normal.getStringWidth(s) / 1000 * taille + taille * 1.3f;
+            if (x > 0 && x + l > col.largeur) {
+                x = 0;
+                col.y -= h + ecart;
+                col.place(h + ecart);
+            }
+            PDPageContentStream f = t.page(col.page);
+            rectangleArrondi(f, col.x + x, col.y - h, Math.min(l, col.largeur), h, h / 2, EMERAUDE_PALE);
+            f.beginText();
+            f.setNonStrokingColor(EMERAUDE[0], EMERAUDE[1], EMERAUDE[2]);
+            f.setFont(t.normal, taille);
+            f.newLineAtOffset(col.x + x + taille * 0.65f, col.y - h + (h - taille * 0.72f) / 2);
+            f.showText(s);
+            f.endText();
+            x += l + ecart;
+        }
+        col.y -= h + ecart;
+    }
+
+    private static void rectangleArrondi(PDPageContentStream f, float x, float y, float l, float h, float r, float[] c)
+            throws IOException {
+        float k = 0.5523f * r;
+        f.setNonStrokingColor(c[0], c[1], c[2]);
+        f.moveTo(x + r, y);
+        f.lineTo(x + l - r, y);
+        f.curveTo(x + l - r + k, y, x + l, y + r - k, x + l, y + r);
+        f.lineTo(x + l, y + h - r);
+        f.curveTo(x + l, y + h - r + k, x + l - r + k, y + h, x + l - r, y + h);
+        f.lineTo(x + r, y + h);
+        f.curveTo(x + r - k, y + h, x, y + h - r + k, x, y + h - r);
+        f.lineTo(x, y + r);
+        f.curveTo(x, y + r - k, x + r - k, y, x + r, y);
+        f.closePath();
+        f.fill();
     }
 
     // ------------------------------------------------------------------ Outils
@@ -834,6 +1175,8 @@ public final class CvPdf {
         final PDType1Font normal = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
         final PDType1Font gras = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
         final PDType1Font italique = new PDType1Font(Standard14Fonts.FontName.HELVETICA_OBLIQUE);
+        /** Couleur des liens (plus claire sur un fond sombre). */
+        float[] couleurLien = LIEN;
         private final Decor decor;
         private final List<PDPageContentStream> flux = new ArrayList<>();
         private float basPage;
@@ -893,9 +1236,9 @@ public final class CvPdf {
                 return n(NOIR, s);
             }
             if (lien.startsWith("tel:")) {
-                return new Morceau(normal, LIEN, texte(s), lien);
+                return new Morceau(normal, couleurLien, texte(s), lien);
             }
-            return new Morceau(normal, LIEN, lien.startsWith("mailto:") ? texte(s) : affichageLien(s), lien);
+            return new Morceau(normal, couleurLien, lien.startsWith("mailto:") ? texte(s) : affichageLien(s), lien);
         }
 
         /** Zone cliquable sur la page. */
@@ -1055,7 +1398,7 @@ public final class CvPdf {
          * Ajoute un mot ; s'il s'agit d'un lien (site, email) ecrit dans le texte, il devient bleu, souligne et
          * cliquable, la ponctuation qui le suit restant en dehors du lien.
          */
-        private static void ajouterMot(List<Mot> mots, Morceau m, String mot, boolean espace) {
+        private void ajouterMot(List<Mot> mots, Morceau m, String mot, boolean espace) {
             if (m.lien() == null) {
                 java.util.regex.Matcher r = MOT_LIEN.matcher(mot);
                 if (r.matches()) {
@@ -1066,7 +1409,7 @@ public final class CvPdf {
                             espace = false;
                         }
                         String affiche = lien.startsWith("mailto:") ? r.group(2) : affichageLien(r.group(2));
-                        mots.add(new Mot(new Morceau(m.police(), LIEN, affiche, lien), affiche, espace));
+                        mots.add(new Mot(new Morceau(m.police(), t.couleurLien, affiche, lien), affiche, espace));
                         if (!r.group(3).isEmpty()) {
                             mots.add(new Mot(m, r.group(3), false));
                         }
@@ -1181,7 +1524,8 @@ public final class CvPdf {
                     float debut = xCourant + avant;
                     float fin = xCourant + l;
                     float base = y - taille;
-                    f.setStrokingColor(LIEN[0], LIEN[1], LIEN[2]);
+                    float[] cl = seg.style().couleur();
+                    f.setStrokingColor(cl[0], cl[1], cl[2]);
                     f.setLineWidth(Math.max(0.4f, taille * 0.05f));
                     f.moveTo(debut, base - taille * 0.14f);
                     f.lineTo(fin, base - taille * 0.14f);

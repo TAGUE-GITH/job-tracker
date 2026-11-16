@@ -22,7 +22,7 @@ final class CvAdaptation {
     static final JsonMapper JSON = JsonMapper.builder()
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
-    record ExperienceAmelioree(Integer index, List<String> missions) {
+    record ExperienceAmelioree(Integer index, List<String> missions, String objectif, String stack) {
     }
 
     record ProjetAmeliore(Integer index, String description, List<String> points) {
@@ -75,7 +75,9 @@ final class CvAdaptation {
             CvPdf.Experience x = exO.get(i);
             ExperienceAmelioree m = exps.get(i);
             experiences.add(new CvPdf.Experience(x.poste(), x.entreprise(), x.lieu(), x.periode(),
-                    meilleure(liste(x.missions()), m == null ? null : m.missions()), x.lien()));
+                    meilleure(liste(x.missions()), m == null ? null : m.missions()), x.lien(),
+                    m != null && !vide(m.objectif()) ? m.objectif() : x.objectif(),
+                    m != null && !vide(m.stack()) ? m.stack() : x.stack()));
         }
         List<CvPdf.Projet> projets = new ArrayList<>();
         List<CvPdf.Projet> prO = liste(origine.projets());
