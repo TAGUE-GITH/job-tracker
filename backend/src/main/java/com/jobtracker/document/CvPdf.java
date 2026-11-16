@@ -22,9 +22,11 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
  * <li>CLASSIQUE : nom centre, formation en tete, entreprise et lieu / poste et dates aux extremites des lignes ;</li>
  * <li>MODERNE : dates et lieux dans une colonne a gauche, photo carree a droite, titres soulignes ;</li>
  * <li>ELEGANT : colonne laterale beige (contact, profil, competences), nom en grandes capitales ;</li>
- * <li>COMPACT : bande grise a gauche, photo ronde, titres en gras, rubriques en paragraphes.</li>
+ * <li>COMPACT : bande grise a gauche, photo ronde, titres en gras, rubriques en paragraphes ;</li>
+ * <li>BANDEAU, ACCENT, SOMBRE (colonne laterale foncee), FRISE (experiences sur une frise chronologique),
+ * SOBRE (titres de rubrique dans une marge a gauche).</li>
  * </ul>
- * Le CV tient sur une page : si le contenu deborde, la mise en page est resserree progressivement.
+ * Le CV tient toujours sur une seule page : si le contenu deborde, la mise en page est resserree progressivement.
  */
 public final class CvPdf {
 
@@ -109,7 +111,7 @@ public final class CvPdf {
     }
 
     public static final List<String> MODELES = List.of("CLASSIQUE", "MODERNE", "ELEGANT", "COMPACT", "BANDEAU",
-            "ACCENT");
+            "ACCENT", "SOMBRE", "FRISE", "SOBRE");
 
     static final float[] NOIR = {0.09f, 0.09f, 0.1f};
     static final float[] GRIS = {0.45f, 0.46f, 0.49f};
@@ -132,9 +134,23 @@ public final class CvPdf {
     /** Modele ACCENT : vert emeraude et sa teinte pale pour les pastilles. */
     static final float[] EMERAUDE = {0.02f, 0.47f, 0.4f};
     static final float[] EMERAUDE_PALE = {0.88f, 0.96f, 0.93f};
-    /** Taille du texte et des titres de rubrique (lisibilite) avant tout resserrement. */
-    static final float TEXTE = 10;
-    static final float TITRE = 12;
+    /** Modele SOMBRE : colonne laterale bleu ardoise fonce, titres turquoise clair. */
+    static final float[] ANTHRACITE = {0.13f, 0.18f, 0.25f};
+    static final float[] TURQUOISE = {0.55f, 0.82f, 0.86f};
+    static final float[] SARCELLE = {0.04f, 0.45f, 0.5f};
+    /** Modele FRISE : bordeaux et sa teinte pale (trait de la frise). */
+    static final float[] BORDEAUX = {0.55f, 0.13f, 0.22f};
+    static final float[] BORDEAUX_PALE = {0.9f, 0.78f, 0.8f};
+    /** Modele SOBRE : terre cuite, filets gris clair. */
+    static final float[] TERRE = {0.7f, 0.3f, 0.12f};
+    static final float[] FILET = {0.85f, 0.85f, 0.87f};
+    /** Taille du texte, des intitules (poste, diplome), des coordonnees et des titres de rubrique. */
+    static final float TEXTE = 8;
+    static final float SOUS_TITRE = 9;
+    static final float CONTACT = 8;
+    static final float TITRE = 11;
+    /** Interligne genereux : un CV aere se lit mieux. */
+    static final float INTERLIGNE = 1.5f;
 
     private static final float LARGEUR_PAGE = PDRectangle.A4.getWidth();
     private static final float HAUTEUR_PAGE = PDRectangle.A4.getHeight();
@@ -142,7 +158,7 @@ public final class CvPdf {
     private static final float LARGEUR_COTE = 200;
 
     /** Facteurs de resserrement essayes dans l'ordre jusqu'a tenir sur une page. */
-    private static final float[] ECHELLES = {1f, 0.97f, 0.94f, 0.91f};
+    private static final float[] ECHELLES = {1f, 0.96f, 0.92f, 0.88f, 0.84f, 0.8f, 0.76f, 0.72f, 0.68f, 0.64f, 0.6f};
 
     private CvPdf() {
     }
@@ -156,11 +172,21 @@ public final class CvPdf {
                 break;
             }
         }
-        // Trop long pour une page meme resserre : 2 pages en taille normale, plus lisibles qu'une page minuscule
-        if (pages(pdf) > 1) {
-            pdf = rendre(contact, cv, 1f).pdf();
+        // Cas extreme (CV tres long) : on ne garde que la premiere page, le CV doit tenir sur une page
+        return pages(pdf) > 1 ? premierePage(pdf) : pdf;
+    }
+
+    private static byte[] premierePage(byte[] pdf) {
+        try (PDDocument doc = org.apache.pdfbox.Loader.loadPDF(pdf);
+                ByteArrayOutputStream sortie = new ByteArrayOutputStream()) {
+            while (doc.getNumberOfPages() > 1) {
+                doc.removePage(doc.getNumberOfPages() - 1);
+            }
+            doc.save(sortie);
+            return sortie.toByteArray();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
-        return pdf;
     }
 
     /** Nombre de pages d'un CV deja genere (utile pour verifier qu'il tient sur une page). */
@@ -185,6 +211,7 @@ public final class CvPdf {
         try (PDDocument doc = new PDDocument(); ByteArrayOutputStream sortie = new ByteArrayOutputStream()) {
             Toile t = new Toile(doc, echelle, switch (modele) {
                 case "ELEGANT" -> f -> rectangle(f, 0, 0, LARGEUR_COTE, HAUTEUR_PAGE, BEIGE);
+                case "SOMBRE" -> f -> rectangle(f, 0, 0, LARGEUR_COTE, HAUTEUR_PAGE, ANTHRACITE);
                 case "COMPACT" -> f -> rectangle(f, 0, 0, 20, HAUTEUR_PAGE, GRIS_BANDE);
                 case "ACCENT" -> f -> rectangle(f, 0, HAUTEUR_PAGE - 6, LARGEUR_PAGE, 6, EMERAUDE);
                 default -> f -> { };
@@ -192,7 +219,10 @@ public final class CvPdf {
             byte[] photo = Boolean.TRUE.equals(cv.avecPhoto()) ? contact.photo() : null;
             switch (modele) {
                 case "MODERNE" -> moderne(t, contact, cv, photo);
-                case "ELEGANT" -> elegant(t, contact, cv, photo);
+                case "ELEGANT" -> lateral(t, contact, cv, photo, Theme.ELEGANT);
+                case "SOMBRE" -> lateral(t, contact, cv, photo, Theme.SOMBRE);
+                case "FRISE" -> frise(t, contact, cv, photo);
+                case "SOBRE" -> sobre(t, contact, cv, photo);
                 case "COMPACT" -> compact(t, contact, cv, photo);
                 case "BANDEAU" -> bandeau(t, contact, cv, photo);
                 case "ACCENT" -> accent(t, contact, cv, photo);
@@ -214,7 +244,7 @@ public final class CvPdf {
         float marge = t.marge(46);
         Colonne col = t.colonne(marge, LARGEUR_PAGE - 2 * marge, t.haut(40));
         float tx = TEXTE * e;
-        float il = tx * 1.32f;
+        float il = tx * INTERLIGNE;
 
         col.riche(List.of(t.g(NOIR, majuscules(c.nom()))), 20 * e, 24 * e, Aligne.CENTRE);
         if (!vide(cv.titre())) {
@@ -234,7 +264,7 @@ public final class CvPdf {
                 ligneContact.add(t.contact(element));
             }
         }
-        col.riche(ligneContact, 9.6f * e, 12.5f * e, Aligne.CENTRE);
+        col.riche(ligneContact, CONTACT * e, CONTACT * 1.5f * e, Aligne.CENTRE);
 
         if (!vide(cv.profil())) {
             rubriqueClassique(t, col, "PROFIL");
@@ -335,7 +365,7 @@ public final class CvPdf {
         float largeur = LARGEUR_PAGE - 2 * marge;
         Colonne col = t.colonne(marge, largeur, t.haut(40));
         float tx = TEXTE * e;
-        float il = tx * 1.33f;
+        float il = tx * INTERLIGNE;
 
         float basPhoto = col.y;
         if (photo != null) {
@@ -346,7 +376,7 @@ public final class CvPdf {
         }
         col.riche(List.of(t.g(NOIR, c.nom())), 23 * e, 27 * e, Aligne.GAUCHE);
         if (!vide(cv.titre())) {
-            col.riche(List.of(t.g(PETROLE, cv.titre())), 12.5f * e, 16 * e, Aligne.GAUCHE);
+            col.riche(List.of(t.g(PETROLE, cv.titre())), TITRE * e, 15 * e, Aligne.GAUCHE);
         }
         col.espace(8);
         List<String> coordonnees = new ArrayList<>(List.of(texte(c.email()), texte(c.telephone()), une(c.adresse())));
@@ -474,26 +504,33 @@ public final class CvPdf {
 
     // ------------------------------------------------------------------ ELEGANT
 
-    /** Colonne laterale beige (contact, profil, competences...) et colonne principale (experiences, formation). */
-    private static void elegant(Toile t, Contact c, Cv cv, byte[] photo) throws IOException {
+    /** Couleurs d'un modele a colonne laterale : fond et textes de la colonne, titres, dates, liens de la colonne. */
+    private record Theme(float[] fond, float[] texteCote, float[] titreCote, float[] titre, float[] dates,
+            float[] lienCote) {
+        static final Theme ELEGANT = new Theme(BEIGE, NOIR, BRUN, BRUN, OCRE, LIEN);
+        static final Theme SOMBRE = new Theme(ANTHRACITE, CLAIR, TURQUOISE, SARCELLE, SARCELLE, BLEU_CIEL);
+    }
+
+    /** Colonne laterale de couleur (contact, profil, competences...) et colonne principale (experiences, formation). */
+    private static void lateral(Toile t, Contact c, Cv cv, byte[] photo, Theme th) throws IOException {
         float e = t.echelle;
         float xPrincipal = LARGEUR_COTE + 26;
         Colonne col = t.colonne(xPrincipal, LARGEUR_PAGE - xPrincipal - 32, t.haut(42));
         float tx = TEXTE * e;
-        float il = tx * 1.34f;
+        float il = tx * INTERLIGNE;
 
         // Colonne principale d'abord : les logiciels de tri lisent le nom et les experiences en premier
-        col.riche(List.of(t.g(NOIR, majuscules(c.nom()))), 28 * e, 31 * e, Aligne.GAUCHE);
+        col.riche(List.of(t.g(NOIR, majuscules(c.nom()))), 25 * e, 29 * e, Aligne.GAUCHE);
         if (!vide(cv.titre())) {
             col.espace(2);
-            col.riche(List.of(t.n(BRUN, majuscules(cv.titre()))), 12.5f * e, 16 * e, Aligne.GAUCHE);
+            col.riche(List.of(t.n(th.titre(), majuscules(cv.titre()))), TITRE * e, 15 * e, Aligne.GAUCHE);
         }
         if (!liste(cv.experiences()).isEmpty()) {
-            rubriqueElegante(t, col, "EXPÉRIENCES PROFESSIONNELLES", TITRE + 1);
+            rubriqueElegante(t, col, th.titre(), "EXPÉRIENCES PROFESSIONNELLES", TITRE);
             for (Experience x : liste(cv.experiences())) {
                 col.place(il * 3);
                 col.riche(avecLien(t, x.lien(), t.g(NOIR, texte(x.poste()) + (vide(x.periode()) ? "" : ", ")),
-                        t.n(OCRE, x.periode())), 10.4f * e, il, Aligne.GAUCHE);
+                        t.n(th.dates(), x.periode())), SOUS_TITRE * e, il, Aligne.GAUCHE);
                 col.riche(List.of(t.i(NOIR, x.entreprise()), t.n(NOIR, vide(x.lieu()) ? "" : ", " + x.lieu())),
                         tx, il, Aligne.GAUCHE);
                 detailsExperience(t, col, x, tx, il, 0);
@@ -501,10 +538,10 @@ public final class CvPdf {
             }
         }
         if (!liste(cv.projets()).isEmpty()) {
-            rubriqueElegante(t, col, liste(cv.projets()).size() > 1 ? "PROJETS PERSONNELS" : "PROJET PERSONNEL", TITRE + 1);
+            rubriqueElegante(t, col, th.titre(), liste(cv.projets()).size() > 1 ? "PROJETS PERSONNELS" : "PROJET PERSONNEL", TITRE);
             for (Projet p : liste(cv.projets())) {
                 col.place(il * 3);
-                col.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), 10.4f * e, il, Aligne.GAUCHE);
+                col.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), SOUS_TITRE * e, il, Aligne.GAUCHE);
                 if (!vide(p.description())) {
                     col.riche(List.of(t.i(NOIR, p.description())), tx, il, Aligne.GAUCHE);
                 }
@@ -518,11 +555,11 @@ public final class CvPdf {
             }
         }
         if (!liste(cv.formations()).isEmpty()) {
-            rubriqueElegante(t, col, "FORMATION", TITRE + 1);
+            rubriqueElegante(t, col, th.titre(), "FORMATION", TITRE);
             for (Formation f : liste(cv.formations())) {
                 col.place(il * 2);
                 col.riche(List.of(t.g(NOIR, texte(f.diplome()) + (vide(f.periode()) ? "" : ", ")),
-                        t.n(OCRE, f.periode())), 10.4f * e, il, Aligne.GAUCHE);
+                        t.n(th.dates(), f.periode())), SOUS_TITRE * e, il, Aligne.GAUCHE);
                 col.riche(List.of(t.i(NOIR, f.etablissement()), t.n(NOIR, vide(f.lieu()) ? "" : ", " + f.lieu())),
                         tx, il, Aligne.GAUCHE);
                 if (!vide(f.details())) {
@@ -533,7 +570,7 @@ public final class CvPdf {
         }
 
         for (Rubrique r : rubriques(cv)) {
-            rubriqueElegante(t, col, majuscules(r.titre()), TITRE + 1);
+            rubriqueElegante(t, col, th.titre(), majuscules(r.titre()), TITRE);
             for (String element : liste(r.elements())) {
                 col.puce(t, element, tx, il, 0);
             }
@@ -548,42 +585,47 @@ public final class CvPdf {
         }
         float ts = TEXTE * e;
         float ils = ts * 1.4f;
-        rubriqueElegante(t, cote, "CONTACT", TITRE);
+        rubriqueElegante(t, cote, th.titreCote(), "CONTACT", TITRE);
         List<String> coordonnees = new ArrayList<>(List.of(texte(c.telephone()), une(c.adresse()), texte(c.email())));
         coordonnees.addAll(liste(cv.liens()));
+        float[] lienAvant = t.couleurLien;
+        t.couleurLien = th.lienCote();
         for (String ligne : coordonnees) {
             if (!vide(ligne)) {
-                cote.riche(List.of(t.contact(ligne)), ts, ils, Aligne.GAUCHE);
+                Morceau m = t.contact(ligne);
+                cote.riche(List.of(m.lien() == null ? t.n(th.texteCote(), ligne) : m), ts, ils, Aligne.GAUCHE);
                 cote.espace(2);
             }
         }
+        t.couleurLien = lienAvant;
         if (!vide(cv.profil())) {
-            rubriqueElegante(t, cote, "PROFIL", TITRE);
-            cote.riche(List.of(t.n(NOIR, cv.profil())), ts, ils, Aligne.GAUCHE);
+            rubriqueElegante(t, cote, th.titreCote(), "PROFIL", TITRE);
+            cote.riche(List.of(t.n(th.texteCote(), cv.profil())), ts, ils, Aligne.GAUCHE);
         }
-        listeCote(t, cote, "COMPÉTENCES", cv.competencesTechniques(), ts, ils);
-        listeCote(t, cote, "SAVOIR-ÊTRE", cv.competencesTransverses(), ts, ils);
-        listeCote(t, cote, "LANGUES", cv.langues(), ts, ils);
-        listeCote(t, cote, "ATOUTS", cv.atouts(), ts, ils);
-        listeCote(t, cote, "CENTRES D'INTÉRÊT", cv.centresInteret(), ts, ils);
+        listeCote(t, cote, th, "COMPÉTENCES", cv.competencesTechniques(), ts, ils);
+        listeCote(t, cote, th, "SAVOIR-ÊTRE", cv.competencesTransverses(), ts, ils);
+        listeCote(t, cote, th, "LANGUES", cv.langues(), ts, ils);
+        listeCote(t, cote, th, "ATOUTS", cv.atouts(), ts, ils);
+        listeCote(t, cote, th, "CENTRES D'INTÉRÊT", cv.centresInteret(), ts, ils);
     }
 
-    private static void listeCote(Toile t, Colonne col, String titre, List<String> elements, float ts, float ils)
-            throws IOException {
+    private static void listeCote(Toile t, Colonne col, Theme th, String titre, List<String> elements, float ts,
+            float ils) throws IOException {
         if (!liste(elements).isEmpty()) {
-            rubriqueElegante(t, col, titre, TITRE);
+            rubriqueElegante(t, col, th.titreCote(), titre, TITRE);
             for (String element : liste(elements)) {
-                col.puce(t, element, ts, ils, 0);
+                col.puce(t, element, ts, ils, 0, th.texteCote());
             }
         }
     }
 
-    private static void rubriqueElegante(Toile t, Colonne col, String titre, float taille) throws IOException {
+    private static void rubriqueElegante(Toile t, Colonne col, float[] couleur, String titre, float taille)
+            throws IOException {
         float e = t.echelle;
         float tr = taille * e;
         col.place(tr * 3.5f);
         col.espace(14);
-        col.riche(List.of(t.g(BRUN, titre)), tr, tr + 3 * e, Aligne.GAUCHE);
+        col.riche(List.of(t.g(couleur, titre)), tr, tr + 3 * e, Aligne.GAUCHE);
         col.espace(6);
     }
 
@@ -595,7 +637,7 @@ public final class CvPdf {
         float x = 52;
         Colonne col = t.colonne(x, LARGEUR_PAGE - x - t.marge(40), t.haut(38));
         float tx = TEXTE * e;
-        float il = tx * 1.36f;
+        float il = tx * INTERLIGNE;
 
         float basPhoto = col.y;
         if (photo != null) {
@@ -606,7 +648,7 @@ public final class CvPdf {
         }
         col.riche(List.of(t.g(NOIR, nomFamilleEnCapitales(c.nom()))), 25 * e, 29 * e, Aligne.GAUCHE);
         if (!vide(cv.titre())) {
-            col.riche(List.of(t.n(BLEU_ROI, majuscules(cv.titre()))), 16.5f * e, 21 * e, Aligne.GAUCHE);
+            col.riche(List.of(t.n(BLEU_ROI, majuscules(cv.titre()))), 13 * e, 17 * e, Aligne.GAUCHE);
         }
         col.espace(9);
         List<String> coordonnees = new ArrayList<>(List.of(texte(c.email()), texte(c.telephone())));
@@ -614,7 +656,7 @@ public final class CvPdf {
         coordonnees.add(une(c.adresse()));
         for (String ligne : coordonnees) {
             if (!vide(ligne)) {
-                col.riche(List.of(t.contact(ligne)), tx, tx * 1.3f, Aligne.GAUCHE);
+                col.riche(List.of(t.contact(ligne)), tx, tx * 1.45f, Aligne.GAUCHE);
             }
         }
         if (!vide(cv.profil())) {
@@ -628,7 +670,7 @@ public final class CvPdf {
             rubriqueCompacte(t, col, "EXPÉRIENCES PROFESSIONNELLES");
             for (Experience xp : liste(cv.experiences())) {
                 col.place(il * 3);
-                col.riche(avecLien(t, xp.lien(), t.g(NOIR, xp.poste())), 10.6f * e, il, Aligne.GAUCHE);
+                col.riche(avecLien(t, xp.lien(), t.g(NOIR, xp.poste())), SOUS_TITRE * e, il, Aligne.GAUCHE);
                 col.riche(List.of(t.i(NOIR, xp.entreprise()),
                         t.n(NOIR, vide(xp.lieu()) ? "" : (vide(xp.entreprise()) ? "" : ", ") + xp.lieu()),
                         t.n(GRIS, vide(xp.periode()) ? "" : " | " + xp.periode())), tx, il, Aligne.GAUCHE);
@@ -640,7 +682,7 @@ public final class CvPdf {
             rubriqueCompacte(t, col, liste(cv.projets()).size() > 1 ? "PROJETS PERSONNELS" : "PROJET PERSONNEL");
             for (Projet p : liste(cv.projets())) {
                 col.place(il * 3);
-                col.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), 10.6f * e, il, Aligne.GAUCHE);
+                col.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), SOUS_TITRE * e, il, Aligne.GAUCHE);
                 if (!vide(p.technologies())) {
                     col.riche(List.of(t.i(NOIR, p.technologies())), tx, il, Aligne.GAUCHE);
                 }
@@ -716,7 +758,7 @@ public final class CvPdf {
 
     private static void rubriqueCompacte(Toile t, Colonne col, String titre) throws IOException {
         float e = t.echelle;
-        float taille = (TITRE + 1) * e;
+        float taille = TITRE * e;
         col.place(taille * 3.5f);
         col.espace(13);
         col.riche(List.of(t.g(BLEU_ROI, titre)), taille, taille + 4 * e, Aligne.GAUCHE);
@@ -749,7 +791,7 @@ public final class CvPdf {
         rectangle(t.page(0), 0, HAUTEUR_PAGE - hauteurBandeau, LARGEUR_PAGE, hauteurBandeau, MARINE);
         Colonne col = t.colonne(marge, largeur, HAUTEUR_PAGE - 26 * e);
         float tx = TEXTE * e;
-        float il = tx * 1.36f;
+        float il = tx * INTERLIGNE;
 
         if (photo != null) {
             float d = 86 * e;
@@ -758,7 +800,7 @@ public final class CvPdf {
         }
         col.riche(List.of(t.g(CLAIR, majuscules(c.nom()))), 24 * e, 28 * e, Aligne.GAUCHE);
         if (!vide(cv.titre())) {
-            col.riche(List.of(t.n(BLEU_CIEL, cv.titre())), 12.5f * e, 17 * e, Aligne.GAUCHE);
+            col.riche(List.of(t.n(BLEU_CIEL, cv.titre())), TITRE * e, 15 * e, Aligne.GAUCHE);
         }
         col.espace(5);
         List<String> coordonnees = new ArrayList<>(List.of(texte(c.telephone()), texte(c.email()), une(c.adresse())));
@@ -775,7 +817,7 @@ public final class CvPdf {
                 ligne.add(m.lien() == null ? t.n(CLAIR, element) : m);
             }
         }
-        col.riche(ligne, 9.5f * e, 12.5f * e, Aligne.GAUCHE);
+        col.riche(ligne, CONTACT * e, CONTACT * 1.5f * e, Aligne.GAUCHE);
         t.couleurLien = lienAvant;
         col.retrait(0, 0);
         col.y = Math.min(col.y, HAUTEUR_PAGE - hauteurBandeau) - 8 * e;
@@ -790,7 +832,7 @@ public final class CvPdf {
                 col.place(il * 4);
                 col.ligne(avecLien(t, x.lien(), t.g(MARINE, x.poste()),
                         t.n(NOIR, vide(x.entreprise()) ? "" : "  ·  " + x.entreprise())), t.g(MARINE, x.periode()),
-                        10.5f * e, il);
+                        SOUS_TITRE * e, il);
                 if (!vide(x.lieu())) {
                     col.riche(List.of(t.i(GRIS, x.lieu())), tx, il, Aligne.GAUCHE);
                 }
@@ -802,7 +844,7 @@ public final class CvPdf {
             rubriqueBandeau(t, col, liste(cv.projets()).size() > 1 ? "PROJETS" : "PROJET");
             for (Projet p : liste(cv.projets())) {
                 col.place(il * 3);
-                col.riche(avecLien(t, p.lien(), t.g(MARINE, p.nom())), 10.5f * e, il, Aligne.GAUCHE);
+                col.riche(avecLien(t, p.lien(), t.g(MARINE, p.nom())), SOUS_TITRE * e, il, Aligne.GAUCHE);
                 if (!vide(p.description())) {
                     col.riche(List.of(t.i(ARDOISE, p.description())), tx, il, Aligne.GAUCHE);
                 }
@@ -820,7 +862,7 @@ public final class CvPdf {
             rubriqueBandeau(t, col, "FORMATION");
             for (Formation f : liste(cv.formations())) {
                 col.place(il * 2);
-                col.ligne(List.of(t.g(MARINE, f.diplome())), t.g(MARINE, f.periode()), 10.5f * e, il);
+                col.ligne(List.of(t.g(MARINE, f.diplome())), t.g(MARINE, f.periode()), SOUS_TITRE * e, il);
                 col.riche(List.of(t.n(NOIR, f.etablissement()), t.i(GRIS, vide(f.lieu()) ? "" : ", " + f.lieu())), tx, il,
                         Aligne.GAUCHE);
                 if (!vide(f.details())) {
@@ -875,7 +917,7 @@ public final class CvPdf {
         float largeur = LARGEUR_PAGE - 2 * marge;
         Colonne col = t.colonne(marge, largeur, t.haut(42));
         float tx = TEXTE * e;
-        float il = tx * 1.36f;
+        float il = tx * INTERLIGNE;
 
         float basPhoto = col.y;
         if (photo != null) {
@@ -890,7 +932,7 @@ public final class CvPdf {
                 : List.of(t.g(NOIR, nom.substring(0, espace + 1)), t.g(EMERAUDE, nom.substring(espace + 1))),
                 26 * e, 30 * e, Aligne.GAUCHE);
         if (!vide(cv.titre())) {
-            col.riche(List.of(t.g(ARDOISE, cv.titre())), 12.5f * e, 17 * e, Aligne.GAUCHE);
+            col.riche(List.of(t.g(ARDOISE, cv.titre())), TITRE * e, 15 * e, Aligne.GAUCHE);
         }
         col.espace(4);
         List<String> coordonnees = new ArrayList<>(List.of(texte(c.telephone()), texte(c.email()), une(c.adresse())));
@@ -904,7 +946,7 @@ public final class CvPdf {
                 ligne.add(t.contact(element));
             }
         }
-        col.riche(ligne, 9.5f * e, 12.5f * e, Aligne.GAUCHE);
+        col.riche(ligne, CONTACT * e, CONTACT * 1.5f * e, Aligne.GAUCHE);
         if (!vide(cv.profil())) {
             col.espace(6);
             col.riche(List.of(t.n(NOIR, cv.profil())), tx, il, Aligne.GAUCHE);
@@ -916,13 +958,13 @@ public final class CvPdf {
         competences.addAll(liste(cv.competencesTransverses()));
         if (!competences.isEmpty()) {
             rubriqueAccent(t, col, "COMPÉTENCES CLÉS");
-            pastilles(t, col, competences, 9.5f * e);
+            pastilles(t, col, competences, CONTACT * e);
         }
         if (!liste(cv.experiences()).isEmpty()) {
             rubriqueAccent(t, col, "EXPÉRIENCES PROFESSIONNELLES");
             for (Experience x : liste(cv.experiences())) {
                 col.place(il * 4);
-                col.ligne(avecLien(t, x.lien(), t.g(NOIR, x.poste())), t.g(EMERAUDE, x.periode()), 10.5f * e, il);
+                col.ligne(avecLien(t, x.lien(), t.g(NOIR, x.poste())), t.g(EMERAUDE, x.periode()), SOUS_TITRE * e, il);
                 col.riche(List.of(t.g(EMERAUDE, x.entreprise()), t.n(GRIS, vide(x.lieu()) ? "" : "  ·  " + x.lieu())), tx,
                         il, Aligne.GAUCHE);
                 detailsExperience(t, col, x, tx, il, 4 * e);
@@ -933,7 +975,7 @@ public final class CvPdf {
             rubriqueAccent(t, col, liste(cv.projets()).size() > 1 ? "PROJETS" : "PROJET");
             for (Projet p : liste(cv.projets())) {
                 col.place(il * 3);
-                col.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), 10.5f * e, il, Aligne.GAUCHE);
+                col.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), SOUS_TITRE * e, il, Aligne.GAUCHE);
                 if (!vide(p.description())) {
                     col.riche(List.of(t.i(ARDOISE, p.description())), tx, il, Aligne.GAUCHE);
                 }
@@ -951,7 +993,7 @@ public final class CvPdf {
             rubriqueAccent(t, col, "FORMATION");
             for (Formation f : liste(cv.formations())) {
                 col.place(il * 2);
-                col.ligne(List.of(t.g(NOIR, f.diplome())), t.g(EMERAUDE, f.periode()), 10.5f * e, il);
+                col.ligne(List.of(t.g(NOIR, f.diplome())), t.g(EMERAUDE, f.periode()), SOUS_TITRE * e, il);
                 col.riche(List.of(t.n(EMERAUDE, f.etablissement()), t.n(GRIS, vide(f.lieu()) ? "" : "  ·  " + f.lieu())),
                         tx, il, Aligne.GAUCHE);
                 if (!vide(f.details())) {
@@ -1035,6 +1077,309 @@ public final class CvPdf {
         f.closePath();
         f.fill();
     }
+
+    // ------------------------------------------------------------------ Outils communs aux nouveaux modeles
+
+    /** Telephone, email, adresse et liens sur une ligne, separes par un signe de couleur. */
+    private static List<Morceau> ligneContacts(Toile t, Contact c, Cv cv, String separateur, float[] couleur) {
+        List<String> coordonnees = new ArrayList<>(List.of(texte(c.telephone()), texte(c.email()), une(c.adresse())));
+        coordonnees.addAll(liste(cv.liens()));
+        List<Morceau> ligne = new ArrayList<>();
+        for (String element : coordonnees) {
+            if (!vide(element)) {
+                if (!ligne.isEmpty()) {
+                    ligne.add(t.n(couleur, separateur));
+                }
+                ligne.add(t.contact(element));
+            }
+        }
+        return ligne;
+    }
+
+    /** Competences, langues, atouts et centres d'interet en lignes "Libelle : a, b, c". */
+    private static List<List<Morceau>> lignesInfos(Toile t, Cv cv) {
+        List<List<Morceau>> infos = new ArrayList<>();
+        ajouterLibelle(t, infos, "Techniques : ", cv.competencesTechniques(), ", ");
+        ajouterLibelle(t, infos, "Savoir-être : ", cv.competencesTransverses(), ", ");
+        ajouterLibelle(t, infos, "Langues : ", cv.langues(), " | ");
+        ajouterLibelle(t, infos, "Atouts : ", cv.atouts(), ", ");
+        ajouterLibelle(t, infos, "Centres d'intérêt : ", cv.centresInteret(), ", ");
+        return infos;
+    }
+
+    private static void cercle(PDPageContentStream f, float cx, float cy, float r, float[] c) throws IOException {
+        float k = 0.5523f * r;
+        f.setNonStrokingColor(c[0], c[1], c[2]);
+        f.moveTo(cx + r, cy);
+        f.curveTo(cx + r, cy + k, cx + k, cy + r, cx, cy + r);
+        f.curveTo(cx - k, cy + r, cx - r, cy + k, cx - r, cy);
+        f.curveTo(cx - r, cy - k, cx - k, cy - r, cx, cy - r);
+        f.curveTo(cx + k, cy - r, cx + r, cy - k, cx + r, cy);
+        f.closePath();
+        f.fill();
+    }
+
+    // ------------------------------------------------------------------ FRISE
+
+    /** Experiences, projets et formations sur une frise verticale a points bordeaux, dates a droite. */
+    private static void frise(Toile t, Contact c, Cv cv, byte[] photo) throws IOException {
+        float e = t.echelle;
+        float marge = t.marge(46);
+        float largeur = LARGEUR_PAGE - 2 * marge;
+        Colonne col = t.colonne(marge, largeur, t.haut(42));
+        float tx = TEXTE * e;
+        float il = tx * INTERLIGNE;
+
+        float basPhoto = col.y;
+        if (photo != null) {
+            float d = 92 * e;
+            t.image(col.page, photo, marge + largeur - d, col.y - d, d, d, true);
+            col.retrait(d + 18 * e, col.y - d);
+            basPhoto = col.y - d;
+        }
+        col.riche(List.of(t.g(NOIR, nomFamilleEnCapitales(c.nom()))), 24 * e, 28 * e, Aligne.GAUCHE);
+        if (!vide(cv.titre())) {
+            col.riche(List.of(t.g(BORDEAUX, cv.titre())), TITRE * e, 15 * e, Aligne.GAUCHE);
+        }
+        col.espace(5);
+        col.riche(ligneContacts(t, c, cv, "  ·  ", BORDEAUX), CONTACT * e, CONTACT * 1.5f * e, Aligne.GAUCHE);
+        if (!vide(cv.profil())) {
+            col.espace(7);
+            col.riche(List.of(t.n(NOIR, cv.profil())), tx, il, Aligne.GAUCHE);
+        }
+        col.y = Math.min(col.y, basPhoto - 2 * e);
+        col.retrait(0, 0);
+
+        if (!liste(cv.experiences()).isEmpty()) {
+            rubriqueFrise(t, col, "EXPÉRIENCES PROFESSIONNELLES");
+            Frise frise = new Frise();
+            for (Experience x : liste(cv.experiences())) {
+                Colonne d = frise.element(t, col, il);
+                d.ligne(avecLien(t, x.lien(), t.g(NOIR, x.poste())), t.g(BORDEAUX, x.periode()), SOUS_TITRE * e, il);
+                d.riche(List.of(t.g(ARDOISE, x.entreprise()), t.i(GRIS, vide(x.lieu()) ? "" : "  ·  " + x.lieu())), tx,
+                        il, Aligne.GAUCHE);
+                detailsExperience(t, d, x, tx, il, 0);
+                col.apres(d);
+                col.espace(8);
+            }
+            frise.dessiner(t);
+        }
+        if (!liste(cv.projets()).isEmpty()) {
+            rubriqueFrise(t, col, liste(cv.projets()).size() > 1 ? "PROJETS" : "PROJET");
+            Frise frise = new Frise();
+            for (Projet p : liste(cv.projets())) {
+                Colonne d = frise.element(t, col, il);
+                d.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), SOUS_TITRE * e, il, Aligne.GAUCHE);
+                if (!vide(p.description())) {
+                    d.riche(List.of(t.i(ARDOISE, p.description())), tx, il, Aligne.GAUCHE);
+                }
+                for (String point : liste(p.points())) {
+                    d.puce(t, point, tx, il, 0);
+                }
+                if (!vide(p.technologies())) {
+                    d.riche(List.of(t.g(NOIR, "Environnement technique : "), t.n(ARDOISE, p.technologies())), tx, il,
+                            Aligne.GAUCHE);
+                }
+                col.apres(d);
+                col.espace(8);
+            }
+            frise.dessiner(t);
+        }
+        if (!liste(cv.formations()).isEmpty()) {
+            rubriqueFrise(t, col, "FORMATION");
+            Frise frise = new Frise();
+            for (Formation f : liste(cv.formations())) {
+                Colonne d = frise.element(t, col, il);
+                d.ligne(List.of(t.g(NOIR, f.diplome())), t.g(BORDEAUX, f.periode()), SOUS_TITRE * e, il);
+                d.riche(List.of(t.g(ARDOISE, f.etablissement()), t.i(GRIS, vide(f.lieu()) ? "" : "  ·  " + f.lieu())),
+                        tx, il, Aligne.GAUCHE);
+                if (!vide(f.details())) {
+                    d.riche(List.of(t.n(ARDOISE, f.details())), tx, il, Aligne.GAUCHE);
+                }
+                col.apres(d);
+                col.espace(7);
+            }
+            frise.dessiner(t);
+        }
+        for (Rubrique r : rubriques(cv)) {
+            rubriqueFrise(t, col, majuscules(r.titre()));
+            for (String element : liste(r.elements())) {
+                col.puce(t, element, tx, il, 0);
+            }
+        }
+        List<List<Morceau>> infos = lignesInfos(t, cv);
+        if (!infos.isEmpty()) {
+            rubriqueFrise(t, col, "COMPÉTENCES ET LANGUES");
+            for (List<Morceau> l : infos) {
+                col.riche(l, tx, il, Aligne.GAUCHE);
+                col.espace(1.5f);
+            }
+        }
+    }
+
+    private static void rubriqueFrise(Toile t, Colonne col, String titre) throws IOException {
+        float e = t.echelle;
+        float taille = TITRE * e;
+        col.place(taille * 4);
+        col.espace(13);
+        col.riche(List.of(t.g(BORDEAUX, titre)), taille, taille + 3 * e, Aligne.GAUCHE);
+        rectangle(t.page(col.page), col.x, col.y - 2 * e, 34 * e, 2 * e, BORDEAUX);
+        col.espace(9);
+    }
+
+    /** Points et trait vertical d'une frise, dessines une fois la rubrique ecrite. */
+    private static final class Frise {
+
+        /** page, x et y du centre de chaque point. */
+        private final List<float[]> points = new ArrayList<>();
+
+        /** Reserve la marge de la frise et renvoie la colonne ou ecrire l'element. */
+        Colonne element(Toile t, Colonne col, float il) {
+            col.place(il * 3);
+            float decalage = 16 * t.echelle;
+            points.add(new float[] {col.page, col.x + 4.5f * t.echelle, col.y - SOUS_TITRE * t.echelle * 0.64f});
+            return col.sous(decalage, col.largeur - decalage);
+        }
+
+        void dessiner(Toile t) throws IOException {
+            float e = t.echelle;
+            for (int i = 0; i + 1 < points.size(); i++) {
+                float[] a = points.get(i);
+                float[] b = points.get(i + 1);
+                if (a[0] == b[0]) {
+                    PDPageContentStream f = t.page((int) a[0]);
+                    f.setStrokingColor(BORDEAUX_PALE[0], BORDEAUX_PALE[1], BORDEAUX_PALE[2]);
+                    f.setLineWidth(1.3f * e);
+                    f.moveTo(a[1], a[2]);
+                    f.lineTo(b[1], b[2]);
+                    f.stroke();
+                }
+            }
+            for (float[] p : points) {
+                PDPageContentStream f = t.page((int) p[0]);
+                cercle(f, p[1], p[2], 3.4f * e, BORDEAUX);
+                cercle(f, p[1], p[2], 1.4f * e, new float[] {1, 1, 1});
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ SOBRE
+
+    /** Ecriture dans la colonne de droite d'une rubrique du modele SOBRE. */
+    @FunctionalInterface
+    private interface Contenu {
+        void ecrire(Colonne d) throws IOException;
+    }
+
+    /** Style suisse : filets fins, titres de rubrique dans une marge a gauche, une seule couleur (terre cuite). */
+    private static void sobre(Toile t, Contact c, Cv cv, byte[] photo) throws IOException {
+        float e = t.echelle;
+        float marge = t.marge(48);
+        float largeur = LARGEUR_PAGE - 2 * marge;
+        Colonne col = t.colonne(marge, largeur, t.haut(44));
+        float tx = TEXTE * e;
+        float il = tx * INTERLIGNE;
+
+        float basPhoto = col.y;
+        if (photo != null) {
+            float d = 84 * e;
+            t.image(col.page, photo, marge + largeur - d, col.y - d, d, d, false);
+            col.retrait(d + 18 * e, col.y - d);
+            basPhoto = col.y - d;
+        }
+        String nom = texte(c.nom());
+        int espace = nom.lastIndexOf(' ');
+        col.riche(espace < 0 ? List.of(t.g(NOIR, nom))
+                : List.of(t.n(NOIR, nom.substring(0, espace + 1)), t.g(NOIR, majuscules(nom.substring(espace + 1)))),
+                26 * e, 30 * e, Aligne.GAUCHE);
+        if (!vide(cv.titre())) {
+            col.riche(List.of(t.n(TERRE, cv.titre())), TITRE * e, 15 * e, Aligne.GAUCHE);
+        }
+        col.espace(6);
+        col.riche(ligneContacts(t, c, cv, "   /   ", FILET), CONTACT * e, CONTACT * 1.5f * e, Aligne.GAUCHE);
+        col.y = Math.min(col.y, basPhoto - 2 * e);
+        col.retrait(0, 0);
+
+        if (!vide(cv.profil())) {
+            rubriqueSobre(t, col, "PROFIL", il, d -> d.riche(List.of(t.n(NOIR, cv.profil())), tx, il, Aligne.GAUCHE));
+        }
+        if (!liste(cv.experiences()).isEmpty()) {
+            rubriqueSobre(t, col, "EXPÉRIENCES", il, d -> {
+                for (Experience x : liste(cv.experiences())) {
+                    d.place(il * 3);
+                    d.ligne(avecLien(t, x.lien(), t.g(NOIR, x.poste())), t.n(GRIS, x.periode()), SOUS_TITRE * e, il);
+                    d.riche(List.of(t.i(ARDOISE, joindre(", ", x.entreprise(), x.lieu()))), tx, il, Aligne.GAUCHE);
+                    detailsExperience(t, d, x, tx, il, 0);
+                    d.espace(8);
+                }
+            });
+        }
+        if (!liste(cv.projets()).isEmpty()) {
+            rubriqueSobre(t, col, liste(cv.projets()).size() > 1 ? "PROJETS" : "PROJET", il, d -> {
+                for (Projet p : liste(cv.projets())) {
+                    d.place(il * 3);
+                    d.riche(avecLien(t, p.lien(), t.g(NOIR, p.nom())), SOUS_TITRE * e, il, Aligne.GAUCHE);
+                    if (!vide(p.description())) {
+                        d.riche(List.of(t.i(ARDOISE, p.description())), tx, il, Aligne.GAUCHE);
+                    }
+                    for (String point : liste(p.points())) {
+                        d.puce(t, point, tx, il, 0);
+                    }
+                    if (!vide(p.technologies())) {
+                        d.riche(List.of(t.g(NOIR, "Environnement technique : "), t.n(ARDOISE, p.technologies())), tx,
+                                il, Aligne.GAUCHE);
+                    }
+                    d.espace(8);
+                }
+            });
+        }
+        if (!liste(cv.formations()).isEmpty()) {
+            rubriqueSobre(t, col, "FORMATION", il, d -> {
+                for (Formation f : liste(cv.formations())) {
+                    d.place(il * 2);
+                    d.ligne(List.of(t.g(NOIR, f.diplome())), t.n(GRIS, f.periode()), SOUS_TITRE * e, il);
+                    d.riche(List.of(t.i(ARDOISE, joindre(", ", f.etablissement(), f.lieu()))), tx, il, Aligne.GAUCHE);
+                    if (!vide(f.details())) {
+                        d.riche(List.of(t.n(NOIR, f.details())), tx, il, Aligne.GAUCHE);
+                    }
+                    d.espace(6);
+                }
+            });
+        }
+        for (Rubrique r : rubriques(cv)) {
+            rubriqueSobre(t, col, majuscules(r.titre()), il, d -> {
+                for (String element : liste(r.elements())) {
+                    d.puce(t, element, tx, il, 0);
+                }
+            });
+        }
+        List<List<Morceau>> infos = lignesInfos(t, cv);
+        if (!infos.isEmpty()) {
+            rubriqueSobre(t, col, "COMPÉTENCES", il, d -> {
+                for (List<Morceau> l : infos) {
+                    d.riche(l, tx, il, Aligne.GAUCHE);
+                    d.espace(1.5f);
+                }
+            });
+        }
+    }
+
+    private static void rubriqueSobre(Toile t, Colonne col, String titre, float il, Contenu contenu)
+            throws IOException {
+        float e = t.echelle;
+        col.place(il * 4);
+        col.espace(9);
+        col.trait(FILET, 0.7f);
+        col.espace(9);
+        float gauche = col.largeur * 0.22f;
+        Colonne g = col.sous(0, gauche - 10 * e);
+        g.riche(List.of(t.g(TERRE, titre)), TITRE * e, (TITRE + 3) * e, Aligne.GAUCHE);
+        Colonne d = col.sous(gauche, col.largeur - gauche);
+        d.y -= 1.5f * e;
+        contenu.ecrire(d);
+        col.apres(g, d);
+    }
+
 
     // ------------------------------------------------------------------ Outils
 
@@ -1376,9 +1721,14 @@ public final class CvPdf {
 
         /** Puce "•" et texte dans le meme bloc : chaque element reste une ligne a part pour les ATS. */
         void puce(Toile t, String texte, float taille, float interligne, float decalage) throws IOException {
+            puce(t, texte, taille, interligne, decalage, NOIR);
+        }
+
+        void puce(Toile t, String texte, float taille, float interligne, float decalage, float[] couleur)
+                throws IOException {
             String puce = "•";
             float retraitTexte = decalage + (t.normal.getStringWidth(puce + "  ") / 1000) * taille;
-            riche(List.of(t.n(NOIR, puce + "  "), t.n(NOIR, texte)), taille, interligne, decalage, retraitTexte,
+            riche(List.of(t.n(couleur, puce + "  "), t.n(couleur, texte)), taille, interligne, decalage, retraitTexte,
                     Aligne.GAUCHE, null);
         }
 

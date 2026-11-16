@@ -73,6 +73,10 @@ class ModelesCvTests {
                 if (experience < 0) {
                     experience = texte.indexOf("EXPÉRIENCE PROFESSIONNELLE");
                 }
+                if (experience < 0) {
+                    // Modele SOBRE : titre court dans la marge
+                    experience = texte.indexOf("EXPÉRIENCES ");
+                }
                 assertTrue(nom >= 0 && nom < experience && texte.contains("FORMATION"), modele + "\n" + texte);
                 // Toutes les formations sont gardees
                 assertTrue(texte.contains("Cycle Expert") && texte.contains("génie informatique")

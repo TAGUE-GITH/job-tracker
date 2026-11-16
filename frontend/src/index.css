@@ -915,3 +915,22 @@ label.btn { flex-direction: row; margin: 0; font-weight: 550; }
 .apercu-accent .a-rubrique { width: 55%; height: 2.6%; border-left: 6px solid #07786a; }
 .apercu-accent .a-pastilles { display: flex; flex-wrap: wrap; gap: 3px; }
 .apercu-accent .a-pastilles i { width: 26%; height: 6px; border-radius: 6px; background: #d1f0e7; }
+
+/* Miniatures des modeles Colonne sombre, Frise et Sobre */
+.apercu-sombre .a-cote { background: #212e40; }
+.apercu-sombre .a-cote i { background: #64748b; }
+.apercu-sombre .a-cote .a-rubrique { background: #8cd1db; }
+.apercu-sombre .a-corps .a-rubrique, .apercu-sombre .a-ocre, .apercu-sombre .a-titre { background: #0b737f; }
+.apercu-frise .a-titre { background: #8c2138; }
+.apercu-frise .a-section { display: flex; flex-direction: column; gap: 3%; }
+.apercu-frise .a-rubrique { width: 45%; background: #8c2138; }
+.apercu-frise .a-frise { display: flex; flex-direction: column; gap: 6px; border-left: 2px solid #e6c7cc; margin-left: 3px; }
+.apercu-frise .a-etape { display: flex; gap: 6%; align-items: flex-start; }
+.apercu-frise .a-etape > span { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.apercu-frise .a-etape > span i { height: 3px; width: 92%; }
+.apercu-frise .a-point { width: 6px; height: 6px; min-height: 6px; border-radius: 50%; background: #8c2138; margin-left: -4px; }
+.apercu-sobre .a-titre { background: #b34d1f; }
+.apercu-sobre .a-deux { display: flex; gap: 6%; border-top: 1px solid #e5e7eb; padding-top: 5%; margin-top: 3%; }
+.apercu-sobre .a-deux .a-rubrique { width: 22%; height: 4px; margin-top: 0; background: #b34d1f; }
+.apercu-sobre .a-deux > span { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.apercu-sobre .a-deux > span i { height: 3px; }

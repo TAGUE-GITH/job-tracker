@@ -46,14 +46,40 @@ const MODELES = [
   { code: 'COMPACT', nom: 'Épuré', detail: 'Bande grise, photo ronde, grands titres en gras.', photo: true },
   { code: 'BANDEAU', nom: 'Bandeau', detail: 'En-tête bleu marine, dates à droite, rubriques aérées.', photo: true },
   { code: 'ACCENT', nom: 'Accent', detail: 'Touches de vert, compétences clés en pastilles en tête.', photo: true },
+  { code: 'SOMBRE', nom: 'Colonne sombre', detail: 'Colonne bleu ardoise, titres turquoise, très contrasté.', photo: true },
+  { code: 'FRISE', nom: 'Frise', detail: 'Parcours sur une frise chronologique, touches bordeaux.', photo: true },
+  { code: 'SOBRE', nom: 'Sobre', detail: 'Style suisse : titres dans la marge, filets fins.', photo: true },
 ]
 
 /** Miniature du modele de CV (forme generale de la page). */
 function ApercuModele({ code, photo }) {
   const lignes = (n, cle) => Array.from({ length: n }, (_, i) => <i key={`${cle}${i}`} />)
-  if (code === 'ELEGANT') {
+  if (code === 'FRISE') {
     return (
-      <span className="apercu-modele apercu-elegant" aria-hidden="true">
+      <span className="apercu-modele apercu-frise" aria-hidden="true">
+        {photo && <b className="a-photo rond" />}
+        <b className="a-nom" /><i className="a-titre" />
+        {[0, 1].map((r) => (
+          <span key={r} className="a-section">
+            <b className="a-rubrique" />
+            <span className="a-frise">{[0, 1].map((k) => <span key={k} className="a-etape"><i className="a-point" /><span>{lignes(3, `f${r}${k}`)}</span></span>)}</span>
+          </span>
+        ))}
+      </span>
+    )
+  }
+  if (code === 'SOBRE') {
+    return (
+      <span className="apercu-modele apercu-sobre" aria-hidden="true">
+        {photo && <b className="a-photo" />}
+        <b className="a-nom" /><i className="a-titre" />
+        {[4, 3, 2].map((n, k) => <span key={k} className="a-deux"><b className="a-rubrique" /><span>{lignes(n, `s${k}`)}</span></span>)}
+      </span>
+    )
+  }
+  if (code === 'ELEGANT' || code === 'SOMBRE') {
+    return (
+      <span className={`apercu-modele apercu-elegant${code === 'SOMBRE' ? ' apercu-sombre' : ''}`} aria-hidden="true">
         <span className="a-cote">
           {photo && <b className="a-photo rond" />}
           <b className="a-rubrique" />{lignes(3, 'c')}<b className="a-rubrique" />{lignes(4, 'p')}<b className="a-rubrique" />{lignes(3, 's')}

@@ -116,6 +116,21 @@ class CvPdfTests {
     }
 
     @Test
+    void unCvTresLongTientToujoursSurUnePage() {
+        List<CvPdf.Experience> experiences = new java.util.ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            experiences.add(new CvPdf.Experience("Développeur " + i, "Entreprise " + i, "Paris", "2020 - 2021",
+                    java.util.Collections.nCopies(6, "Mission détaillée avec beaucoup de mots pour remplir la ligne entière du CV"),
+                    null, "Objectif de la mission numéro " + i, "Java, Spring Boot, React"));
+        }
+        for (String modele : CvPdf.MODELES) {
+            assertEquals(1, CvPdf.pages(CvPdf.generer(new CvPdf.Contact("Franck Tague", "f@exemple.fr", null, null),
+                    new CvPdf.Cv("Titre", "Profil", null, null, experiences, null, null, null, null, null, null, modele,
+                            false))), modele);
+        }
+    }
+
+    @Test
     void cvPresqueVideNePlantePas() {
         byte[] pdf = CvPdf.generer(new CvPdf.Contact("Franck", null, null, null),
                 new CvPdf.Cv(null, "Profil court mais suffisant pour etre lu par un logiciel.", null, null, null,
