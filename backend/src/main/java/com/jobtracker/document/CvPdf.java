@@ -145,10 +145,10 @@ public final class CvPdf {
     static final float[] TERRE = {0.7f, 0.3f, 0.12f};
     static final float[] FILET = {0.85f, 0.85f, 0.87f};
     /** Taille du texte, des intitules (poste, diplome), des coordonnees et des titres de rubrique. */
-    static final float TEXTE = 8;
-    static final float SOUS_TITRE = 9;
-    static final float CONTACT = 8;
-    static final float TITRE = 11;
+    static final float TEXTE = 9.5f;
+    static final float SOUS_TITRE = 10.5f;
+    static final float CONTACT = 9;
+    static final float TITRE = 12;
     /** Interligne genereux : un CV aere se lit mieux. */
     static final float INTERLIGNE = 1.5f;
 
@@ -157,16 +157,20 @@ public final class CvPdf {
     /** Largeur de la colonne beige du modele ELEGANT. */
     private static final float LARGEUR_COTE = 200;
 
-    /** Facteurs de resserrement essayes dans l'ordre jusqu'a tenir sur une page. */
-    private static final float[] ECHELLES = {1f, 0.96f, 0.92f, 0.88f, 0.84f, 0.8f, 0.76f, 0.72f, 0.68f, 0.64f, 0.6f};
+    /**
+     * Reglages essayes dans l'ordre jusqu'a tenir sur une page : {echelle des polices, aeration}. On resserre
+     * d'abord les espaces et l'interligne ; la police ne descend jamais sous 84 % (texte a 8 points au minimum).
+     */
+    private static final float[][] REGLAGES = {{1f, 1f}, {1f, 0.85f}, {1f, 0.7f}, {1f, 0.55f}, {0.96f, 0.5f},
+        {0.92f, 0.45f}, {0.88f, 0.4f}, {0.84f, 0.35f}};
 
     private CvPdf() {
     }
 
     public static byte[] generer(Contact contact, Cv cv) {
         byte[] pdf = null;
-        for (float echelle : ECHELLES) {
-            Rendu rendu = rendre(contact, cv, echelle);
+        for (float[] reglage : REGLAGES) {
+            Rendu rendu = rendre(contact, cv, reglage[0], reglage[1]);
             pdf = rendu.pdf();
             if (rendu.pages() == 1) {
                 break;
@@ -206,10 +210,10 @@ public final class CvPdf {
     private record Rendu(byte[] pdf, int pages) {
     }
 
-    private static Rendu rendre(Contact contact, Cv cv, float echelle) {
+    private static Rendu rendre(Contact contact, Cv cv, float echelle, float aeration) {
         String modele = modele(cv.modele());
         try (PDDocument doc = new PDDocument(); ByteArrayOutputStream sortie = new ByteArrayOutputStream()) {
-            Toile t = new Toile(doc, echelle, switch (modele) {
+            Toile t = new Toile(doc, echelle, aeration, switch (modele) {
                 case "ELEGANT" -> f -> rectangle(f, 0, 0, LARGEUR_COTE, HAUTEUR_PAGE, BEIGE);
                 case "SOMBRE" -> f -> rectangle(f, 0, 0, LARGEUR_COTE, HAUTEUR_PAGE, ANTHRACITE);
                 case "COMPACT" -> f -> rectangle(f, 0, 0, 20, HAUTEUR_PAGE, GRIS_BANDE);
@@ -244,7 +248,7 @@ public final class CvPdf {
         float marge = t.marge(46);
         Colonne col = t.colonne(marge, LARGEUR_PAGE - 2 * marge, t.haut(40));
         float tx = TEXTE * e;
-        float il = tx * INTERLIGNE;
+        float il = tx * t.interligne;
 
         col.riche(List.of(t.g(NOIR, majuscules(c.nom()))), 20 * e, 24 * e, Aligne.CENTRE);
         if (!vide(cv.titre())) {
@@ -365,7 +369,7 @@ public final class CvPdf {
         float largeur = LARGEUR_PAGE - 2 * marge;
         Colonne col = t.colonne(marge, largeur, t.haut(40));
         float tx = TEXTE * e;
-        float il = tx * INTERLIGNE;
+        float il = tx * t.interligne;
 
         float basPhoto = col.y;
         if (photo != null) {
@@ -517,7 +521,7 @@ public final class CvPdf {
         float xPrincipal = LARGEUR_COTE + 26;
         Colonne col = t.colonne(xPrincipal, LARGEUR_PAGE - xPrincipal - 32, t.haut(42));
         float tx = TEXTE * e;
-        float il = tx * INTERLIGNE;
+        float il = tx * t.interligne;
 
         // Colonne principale d'abord : les logiciels de tri lisent le nom et les experiences en premier
         col.riche(List.of(t.g(NOIR, majuscules(c.nom()))), 25 * e, 29 * e, Aligne.GAUCHE);
@@ -637,7 +641,7 @@ public final class CvPdf {
         float x = 52;
         Colonne col = t.colonne(x, LARGEUR_PAGE - x - t.marge(40), t.haut(38));
         float tx = TEXTE * e;
-        float il = tx * INTERLIGNE;
+        float il = tx * t.interligne;
 
         float basPhoto = col.y;
         if (photo != null) {
@@ -791,7 +795,7 @@ public final class CvPdf {
         rectangle(t.page(0), 0, HAUTEUR_PAGE - hauteurBandeau, LARGEUR_PAGE, hauteurBandeau, MARINE);
         Colonne col = t.colonne(marge, largeur, HAUTEUR_PAGE - 26 * e);
         float tx = TEXTE * e;
-        float il = tx * INTERLIGNE;
+        float il = tx * t.interligne;
 
         if (photo != null) {
             float d = 86 * e;
@@ -917,7 +921,7 @@ public final class CvPdf {
         float largeur = LARGEUR_PAGE - 2 * marge;
         Colonne col = t.colonne(marge, largeur, t.haut(42));
         float tx = TEXTE * e;
-        float il = tx * INTERLIGNE;
+        float il = tx * t.interligne;
 
         float basPhoto = col.y;
         if (photo != null) {
@@ -1128,7 +1132,7 @@ public final class CvPdf {
         float largeur = LARGEUR_PAGE - 2 * marge;
         Colonne col = t.colonne(marge, largeur, t.haut(42));
         float tx = TEXTE * e;
-        float il = tx * INTERLIGNE;
+        float il = tx * t.interligne;
 
         float basPhoto = col.y;
         if (photo != null) {
@@ -1278,7 +1282,7 @@ public final class CvPdf {
         float largeur = LARGEUR_PAGE - 2 * marge;
         Colonne col = t.colonne(marge, largeur, t.haut(44));
         float tx = TEXTE * e;
-        float il = tx * INTERLIGNE;
+        float il = tx * t.interligne;
 
         float basPhoto = col.y;
         if (photo != null) {
@@ -1517,6 +1521,9 @@ public final class CvPdf {
 
         final PDDocument doc;
         final float echelle;
+        /** 1 = espaces normaux ; plus petit = espaces et interligne resserres. */
+        final float aeration;
+        final float interligne;
         final PDType1Font normal = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
         final PDType1Font gras = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
         final PDType1Font italique = new PDType1Font(Standard14Fonts.FontName.HELVETICA_OBLIQUE);
@@ -1527,9 +1534,11 @@ public final class CvPdf {
         private float basPage;
         private float hautPage;
 
-        Toile(PDDocument doc, float echelle, Decor decor) throws IOException {
+        Toile(PDDocument doc, float echelle, float aeration, Decor decor) throws IOException {
             this.doc = doc;
             this.echelle = echelle;
+            this.aeration = aeration;
+            this.interligne = 1.2f + (INTERLIGNE - 1.2f) * aeration;
             this.decor = decor;
             this.basPage = marge(38);
             this.hautPage = HAUTEUR_PAGE - marge(40);
@@ -1699,7 +1708,7 @@ public final class CvPdf {
         }
 
         void espace(float points) {
-            y -= points * t.echelle;
+            y -= points * t.echelle * t.aeration;
         }
 
         void place(float hauteur) {
