@@ -449,6 +449,7 @@ public class IaService {
                          "formations": [{"index": 0, "details": ""}],
                          "autresRubriques": [{"index": 0, "elements": [""]}],
                          "competencesTechniquesAjoutees": [""], "competencesTransversesAjoutees": [""],
+                         "competencesTechniquesClassees": [{"categorie": "", "elements": [""]}],
                          "atoutsAjoutes": [""], "motsClesAjoutes": [""]}
                         Regles :
                         - experiences : une entree pour CHAQUE experience du CV, avec :
@@ -461,10 +462,11 @@ public class IaService {
                         missions qui correspondent le plus aux missions et exigences de l'offre, et reprends les \
                         termes exacts de l'offre quand ils decrivent ce que le candidat a reellement fait ; aucune \
                         mission sans rapport avec l'experience, aucun chiffre absent du CV ;
-                          * "stack" : l'environnement technique reellement utilise dans cette experience (langages, \
-                        frameworks, bases de donnees, outils, methodes), d'apres le CV, separe par des virgules, en \
-                        commencant par ce que l'offre demande ; pour un metier non technique, les logiciels et \
-                        outils du metier ; "" si le CV ne permet pas de le savoir ;
+                          * "stack" : l'environnement technique ESSENTIEL de cette experience, 4 a 7 elements \
+                        reellement utilises d'apres le CV, separes par des virgules : d'abord ceux que l'offre \
+                        demande, puis ceux qui sont un vrai plus pour ce poste ; pas d'outil secondaire ou sans \
+                        rapport avec l'offre ; pour un metier non technique, les logiciels et outils du metier ; "" \
+                        si le CV ne permet pas de le savoir ;
                         - projets : une entree pour CHAQUE projet : une phrase de contexte et 2 a 4 points concrets \
                         (fonctionnalites, architecture, outils, resultats) fideles au projet ;
                         - formations : une entree pour CHAQUE formation ; "details" = la ligne existante amelioree \
@@ -473,6 +475,15 @@ public class IaService {
                         - competencesTechniquesAjoutees : competences demandees par l'offre, ABSENTES du CV, mais \
                         proches de celles du candidat (meme famille, outil voisin : Spring Boot -> Spring Data JPA, \
                         React -> TypeScript, SQL -> PostgreSQL) ; jamais de competence trop eloignee de son profil ;
+                        - competencesTechniquesClassees : la rubrique Competences du CV, CLASSEE et TRIEE pour \
+                        l'offre. 3 a 6 categories adaptees au metier (developpement : "Back-end", "Front-end", \
+                        "Bases de donnees", "Tests et qualite", "DevOps et cloud", "Conception et methodes" ; autre \
+                        metier : ses familles d'outils et savoir-faire, ex. "Logiciels", "Comptabilite", "Gestion"). \
+                        Ne garde QUE les competences du CV (ou de competencesTechniquesAjoutees) que l'offre demande, \
+                        plus quelques-unes qui sont un vrai plus pour ce poste ; retire celles qui n'apportent rien \
+                        pour cette offre. 12 a 20 elements au total, chacun un nom court (ex. "Java 21", "Spring \
+                        Boot", "PostgreSQL"), sans phrase ni parenthese inutile ; categorie la plus demandee par \
+                        l'offre en premier, et dans chaque categorie les elements demandes par l'offre en premier ;
                         - competencesTransversesAjoutees et atoutsAjoutes : savoir-etre et qualites que l'offre \
                         demande, ABSENTS du CV, et credibles au vu de son parcours ; formules avec les mots de l'offre ;
                         - motsClesAjoutes : mots-cles de l'offre que tu as integres.
@@ -485,7 +496,7 @@ public class IaService {
             a = CvAdaptation.lireAmeliorations(ameliorations);
         } catch (RuntimeException e) {
             // Ameliorations illisibles : on renvoie le CV importe tel quel plutot que de perdre son contenu
-            a = new CvAdaptation.Ameliorations(null, null, null, null, null, null, null, null, null, null);
+            a = new CvAdaptation.Ameliorations(null, null, null, null, null, null, null, null, null, null, null);
         }
         return new IaResponse(CvAdaptation.versJson(CvAdaptation.fusionner(origine, a)));
     }

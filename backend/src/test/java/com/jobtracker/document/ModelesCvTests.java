@@ -109,6 +109,29 @@ class ModelesCvTests {
     }
 
     @Test
+    void competencesParCategorieDansChaqueModele() throws Exception {
+        CvPdf.Cv base = cv("CLASSIQUE", false);
+        List<String> classees = List.of("Back-end : Java 21, Spring Boot, Spring Security",
+                "Front-end : React, TypeScript", "DevOps et cloud : Docker, GitHub Actions");
+        for (String modele : CvPdf.MODELES) {
+            CvPdf.Cv c = new CvPdf.Cv(base.titre(), base.profil(), classees, base.competencesTransverses(),
+                    base.experiences(), base.projets(), base.formations(), base.langues(), base.atouts(),
+                    base.centresInteret(), base.liens(), modele, true);
+            byte[] pdf = CvPdf.generer(new CvPdf.Contact("Franck Tague", "franck@exemple.fr", "06 12 34 56 78",
+                    "Paris", photo()), c);
+            try (var doc = Loader.loadPDF(pdf)) {
+                ImageIO.write(new PDFRenderer(doc).renderImageWithDPI(0, 80), "png",
+                        new File("target/cv-" + modele.toLowerCase() + "-categories.png"));
+            }
+            assertEquals(1, CvPdf.pages(pdf), modele);
+            String texte = TexteDocument.extraire(pdf, "cv.pdf", "application/pdf").replace("\r", "")
+                    .replaceAll(" +", " ");
+            assertTrue(texte.contains("Back-end") && texte.contains("Spring Security")
+                    && texte.contains("Front-end") && texte.contains("GitHub Actions"), modele + "\n" + texte);
+        }
+    }
+
+    @Test
     void lettreJustifieeSurUnePageSansSignature() throws Exception {
         String corps = """
                 Objet : Candidature au poste de développeur Java en alternance

@@ -329,7 +329,7 @@ public final class CvPdf {
             }
         }
         List<List<Morceau>> infos = new ArrayList<>();
-        ajouterLibelle(t, infos, "Compétences techniques : ", cv.competencesTechniques(), ", ");
+        infos.addAll(lignesTechniques(t, cv.competencesTechniques(), "Compétences techniques", NOIR));
         ajouterLibelle(t, infos, "Compétences transverses : ", cv.competencesTransverses(), ", ");
         ajouterLibelle(t, infos, "Langues : ", cv.langues(), " ; ");
         ajouterLibelle(t, infos, "Atouts : ", cv.atouts(), ", ");
@@ -459,9 +459,19 @@ public final class CvPdf {
                 col.puce(t, element, tx, il, 0);
             }
         }
-        List<String> competences = new ArrayList<>(liste(cv.competencesTechniques()));
-        competences.addAll(liste(cv.competencesTransverses()));
-        grille(t, col, "COMPÉTENCES", competences, tx, il);
+        if (categories(cv.competencesTechniques()) != null) {
+            rubriqueModerne(t, col, "COMPÉTENCES");
+            List<List<Morceau>> lignes = lignesTechniques(t, cv.competencesTechniques(), "Techniques", PETROLE);
+            ajouterLibelle(t, lignes, "Savoir-être : ", cv.competencesTransverses(), ", ");
+            for (List<Morceau> l : lignes) {
+                col.riche(l, tx, il, Aligne.GAUCHE);
+                col.espace(1.5f);
+            }
+        } else {
+            List<String> competences = new ArrayList<>(liste(cv.competencesTechniques()));
+            competences.addAll(liste(cv.competencesTransverses()));
+            grille(t, col, "COMPÉTENCES", competences, tx, il);
+        }
         // Langues, atouts et centres d'interet : une rubrique compacte, une ligne chacun
         List<List<Morceau>> autres = new ArrayList<>();
         ajouterLibelle(t, autres, "Langues : ", cv.langues(), " | ");
@@ -606,7 +616,17 @@ public final class CvPdf {
             rubriqueElegante(t, cote, th.titreCote(), "PROFIL", TITRE);
             cote.riche(List.of(t.n(th.texteCote(), cv.profil())), ts, ils, Aligne.GAUCHE);
         }
-        listeCote(t, cote, th, "COMPÉTENCES", cv.competencesTechniques(), ts, ils);
+        List<Categorie> cats = categories(cv.competencesTechniques());
+        if (cats != null) {
+            rubriqueElegante(t, cote, th.titreCote(), "COMPÉTENCES", TITRE);
+            for (Categorie cat : cats) {
+                cote.riche(List.of(t.g(th.texteCote(), cat.libelle())), ts, ils, Aligne.GAUCHE);
+                cote.riche(List.of(t.n(th.texteCote(), cat.elements())), ts, ils, Aligne.GAUCHE);
+                cote.espace(4);
+            }
+        } else {
+            listeCote(t, cote, th, "COMPÉTENCES", cv.competencesTechniques(), ts, ils);
+        }
         listeCote(t, cote, th, "SAVOIR-ÊTRE", cv.competencesTransverses(), ts, ils);
         listeCote(t, cote, th, "LANGUES", cv.langues(), ts, ils);
         listeCote(t, cote, th, "ATOUTS", cv.atouts(), ts, ils);
@@ -728,9 +748,18 @@ public final class CvPdf {
                 col.puce(t, element, tx, il, 2 * e);
             }
         }
-        List<String> competences = new ArrayList<>(liste(cv.competencesTechniques()));
-        competences.addAll(liste(cv.competencesTransverses()));
-        paragrapheCompact(t, col, "COMPÉTENCES", competences, tx, il);
+        if (categories(cv.competencesTechniques()) != null) {
+            rubriqueCompacte(t, col, "COMPÉTENCES");
+            List<List<Morceau>> lignes = lignesTechniques(t, cv.competencesTechniques(), "Techniques", NOIR);
+            ajouterLibelle(t, lignes, "Savoir-être : ", cv.competencesTransverses(), ", ");
+            for (List<Morceau> l : lignes) {
+                col.riche(l, tx, il, Aligne.GAUCHE);
+            }
+        } else {
+            List<String> competences = new ArrayList<>(liste(cv.competencesTechniques()));
+            competences.addAll(liste(cv.competencesTransverses()));
+            paragrapheCompact(t, col, "COMPÉTENCES", competences, tx, il);
+        }
         if (!liste(cv.langues()).isEmpty()) {
             rubriqueCompacte(t, col, "LANGUES");
             List<Morceau> ligne = new ArrayList<>();
@@ -882,7 +911,7 @@ public final class CvPdf {
             }
         }
         List<List<Morceau>> infos = new ArrayList<>();
-        ajouterLibelle(t, infos, "Techniques : ", cv.competencesTechniques(), ", ");
+        infos.addAll(lignesTechniques(t, cv.competencesTechniques(), "Techniques", MARINE));
         ajouterLibelle(t, infos, "Transverses : ", cv.competencesTransverses(), ", ");
         if (!infos.isEmpty()) {
             rubriqueBandeau(t, col, "COMPÉTENCES");
@@ -958,11 +987,28 @@ public final class CvPdf {
         col.y = Math.min(col.y, basPhoto - 2 * e);
         col.retrait(0, 0);
 
-        List<String> competences = new ArrayList<>(liste(cv.competencesTechniques()));
-        competences.addAll(liste(cv.competencesTransverses()));
-        if (!competences.isEmpty()) {
+        List<Categorie> cats = categories(cv.competencesTechniques());
+        if (cats != null) {
             rubriqueAccent(t, col, "COMPÉTENCES CLÉS");
-            pastilles(t, col, competences, CONTACT * e);
+            for (Categorie cat : cats) {
+                col.riche(List.of(t.g(EMERAUDE, cat.libelle())), tx, il, Aligne.GAUCHE);
+                col.espace(2);
+                pastilles(t, col, Arrays.stream(cat.elements().split(",")).map(String::strip)
+                        .filter(x -> !x.isEmpty()).toList(), CONTACT * e);
+                col.espace(3);
+            }
+            if (!liste(cv.competencesTransverses()).isEmpty()) {
+                col.riche(List.of(t.g(EMERAUDE, "Savoir-être")), tx, il, Aligne.GAUCHE);
+                col.espace(2);
+                pastilles(t, col, liste(cv.competencesTransverses()), CONTACT * e);
+            }
+        } else {
+            List<String> competences = new ArrayList<>(liste(cv.competencesTechniques()));
+            competences.addAll(liste(cv.competencesTransverses()));
+            if (!competences.isEmpty()) {
+                rubriqueAccent(t, col, "COMPÉTENCES CLÉS");
+                pastilles(t, col, competences, CONTACT * e);
+            }
         }
         if (!liste(cv.experiences()).isEmpty()) {
             rubriqueAccent(t, col, "EXPÉRIENCES PROFESSIONNELLES");
@@ -1103,7 +1149,7 @@ public final class CvPdf {
     /** Competences, langues, atouts et centres d'interet en lignes "Libelle : a, b, c". */
     private static List<List<Morceau>> lignesInfos(Toile t, Cv cv) {
         List<List<Morceau>> infos = new ArrayList<>();
-        ajouterLibelle(t, infos, "Techniques : ", cv.competencesTechniques(), ", ");
+        infos.addAll(lignesTechniques(t, cv.competencesTechniques(), "Techniques", NOIR));
         ajouterLibelle(t, infos, "Savoir-être : ", cv.competencesTransverses(), ", ");
         ajouterLibelle(t, infos, "Langues : ", cv.langues(), " | ");
         ajouterLibelle(t, infos, "Atouts : ", cv.atouts(), ", ");
@@ -1386,6 +1432,48 @@ public final class CvPdf {
 
 
     // ------------------------------------------------------------------ Outils
+
+    /** Competences techniques d'une categorie : "Back-end" et "Java 21, Spring Boot". */
+    public record Categorie(String libelle, String elements) {
+    }
+
+    private static final java.util.regex.Pattern CATEGORIE =
+            java.util.regex.Pattern.compile("^([^:,]{2,40}?)\\s*:\\s*(.+)$");
+
+    /**
+     * Competences classees par categorie, une par ligne ("Back-end : Java 21, Spring Boot"), ou null si la liste
+     * n'est pas classee (simple liste de competences).
+     */
+    public static List<Categorie> categories(List<String> competences) {
+        List<String> l = liste(competences);
+        if (l.isEmpty()) {
+            return null;
+        }
+        List<Categorie> cats = new ArrayList<>();
+        for (String c : l) {
+            java.util.regex.Matcher m = CATEGORIE.matcher(c.strip());
+            if (!m.matches()) {
+                return null;
+            }
+            cats.add(new Categorie(m.group(1).strip(), m.group(2).strip()));
+        }
+        return cats;
+    }
+
+    /** Competences techniques en lignes "Categorie : a, b" (libelle en gras et en couleur), ou une seule ligne. */
+    private static List<List<Morceau>> lignesTechniques(Toile t, List<String> competences, String libelle,
+            float[] couleur) {
+        List<List<Morceau>> lignes = new ArrayList<>();
+        List<Categorie> cats = categories(competences);
+        if (cats == null) {
+            ajouterLibelle(t, lignes, libelle + " : ", competences, ", ");
+        } else {
+            for (Categorie c : cats) {
+                lignes.add(List.of(t.g(couleur, c.libelle() + " : "), t.n(NOIR, c.elements())));
+            }
+        }
+        return lignes;
+    }
 
     private static <T> List<T> liste(List<T> l) {
         return l == null ? List.of() : l.stream()

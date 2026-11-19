@@ -184,7 +184,14 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
 
   // Retire une competence ajoutee par ORVYNA, de la liste des ajouts et des listes de competences
   const retirerCompetence = (competence) => setForm((f) => {
-    const sans = (texte) => enListe(texte).filter((c) => c.toLowerCase() !== competence.toLowerCase()).join('\n')
+    const cible = competence.toLowerCase()
+    // Ligne simple ("Docker") ou ligne classee ("DevOps : Docker, GitHub Actions") : on retire l'element
+    const sans = (texte) => enListe(texte).map((ligne) => {
+      const i = ligne.indexOf(' : ')
+      if (i < 0) return ligne.toLowerCase() === cible ? '' : ligne
+      const reste = ligne.slice(i + 3).split(',').map((c) => c.trim()).filter((c) => c && c.toLowerCase() !== cible)
+      return reste.length ? `${ligne.slice(0, i)} : ${reste.join(', ')}` : ''
+    }).filter(Boolean).join('\n')
     return {
       ...f,
       competencesAjoutees: f.competencesAjoutees.filter((c) => c !== competence),
@@ -216,9 +223,10 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
         <p className="muted small">
           ORVYNA part de ton CV importé et l'améliore pour cette offre, sans rien supprimer : tes expériences
           (postes, entreprises, dates) restent les mêmes, leurs missions sont reformulées et détaillées avec les mots
-          de l'offre. Toutes tes formations, tes projets et tes autres rubriques sont gardés. Tes compétences et tes
-          atouts restent, ORVYNA ajoute seulement ceux que l'offre demande et qui te correspondent. Tu peux tout
-          modifier et ajouter des rubriques, puis choisir parmi 4 mises en forme lisibles par les logiciels de tri (ATS).
+          de l'offre. Toutes tes formations, tes projets et tes autres rubriques sont gardés. Tes compétences techniques
+          sont classées par catégorie (Back-end, Front-end…) : ORVYNA garde celles que l'offre demande et celles qui
+          sont un vrai plus, sans rien inventer. Tu peux tout modifier et ajouter des rubriques, puis choisir parmi 9
+          mises en forme lisibles par les logiciels de tri (ATS).
         </p>
       )}
       <button className="btn primary" onClick={adapter} disabled={chargement}>
@@ -257,7 +265,8 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
           <label>Titre du CV<input value={form.titre} onChange={(e) => changer('titre', e.target.value)} /></label>
           <label>Profil<textarea rows={4} value={form.profil} onChange={(e) => changer('profil', e.target.value)} /></label>
           <div className="grid-2">
-            <Liste titre="Compétences techniques" valeur={form.competencesTechniques} onChange={(v) => changer('competencesTechniques', v)} />
+            <Liste titre="Compétences techniques" aide="une catégorie par ligne, ex. Back-end : Java, Spring Boot"
+              valeur={form.competencesTechniques} onChange={(v) => changer('competencesTechniques', v)} />
             <Liste titre="Compétences transverses" valeur={form.competencesTransverses} onChange={(v) => changer('competencesTransverses', v)} />
           </div>
 
@@ -379,10 +388,10 @@ export default function CvAdapte({ candidature, cvId, onChange, Score }) {
   )
 }
 
-function Liste({ titre, valeur, onChange }) {
+function Liste({ titre, valeur, onChange, aide = 'une par ligne' }) {
   return (
     <label>
-      {titre} <span className="muted small">(une par ligne)</span>
+      {titre} <span className="muted small">({aide})</span>
       <textarea rows={Math.min(8, Math.max(3, valeur.split('\n').length + 1))} value={valeur} onChange={(e) => onChange(e.target.value)} />
     </label>
   )

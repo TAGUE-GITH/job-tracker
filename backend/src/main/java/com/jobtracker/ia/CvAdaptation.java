@@ -34,10 +34,23 @@ final class CvAdaptation {
     record RubriqueAmelioree(Integer index, List<String> elements) {
     }
 
+    /** Competences techniques d'une categorie (Back-end, Front-end, Bases de donnees...). */
+    record GroupeCompetences(String categorie, List<String> elements) {
+    }
+
     record Ameliorations(String titre, String profil, List<ExperienceAmelioree> experiences,
             List<ProjetAmeliore> projets, List<FormationAmelioree> formations,
             List<RubriqueAmelioree> autresRubriques, List<String> competencesTechniquesAjoutees,
-            List<String> competencesTransversesAjoutees, List<String> atoutsAjoutes, List<String> motsClesAjoutes) {
+            List<String> competencesTransversesAjoutees, List<String> atoutsAjoutes, List<String> motsClesAjoutes,
+            List<GroupeCompetences> competencesTechniquesClassees) {
+
+        Ameliorations(String titre, String profil, List<ExperienceAmelioree> experiences,
+                List<ProjetAmeliore> projets, List<FormationAmelioree> formations,
+                List<RubriqueAmelioree> autresRubriques, List<String> competencesTechniquesAjoutees,
+                List<String> competencesTransversesAjoutees, List<String> atoutsAjoutes, List<String> motsClesAjoutes) {
+            this(titre, profil, experiences, projets, formations, autresRubriques, competencesTechniquesAjoutees,
+                    competencesTransversesAjoutees, atoutsAjoutes, motsClesAjoutes, null);
+        }
     }
 
     /** CV adapte envoye au formulaire de l'application (champs du CV + ajouts a signaler). */
@@ -119,6 +132,15 @@ final class CvAdaptation {
                 ajoutees.add(c.strip());
             }
         }
+        // Competences techniques classees par categorie et triees pour l'offre : elles remplacent la liste du CV
+        List<String> classees = classer(origine, a);
+        if (!classees.isEmpty()) {
+            List<String> texte = classees.stream().map(String::toLowerCase).toList();
+            ajoutees.removeIf(c -> techniques.contains(c)
+                    && texte.stream().noneMatch(l -> l.contains(c.toLowerCase(Locale.ROOT))));
+            techniques.clear();
+            techniques.addAll(classees);
+        }
         List<String> atouts = new ArrayList<>(liste(origine.atouts()));
         for (String c : liste(a.atoutsAjoutes())) {
             if (absente(c, atouts, transverses)) {
@@ -131,6 +153,51 @@ final class CvAdaptation {
                 techniques, transverses, experiences, projets, formations,
                 liste(origine.langues()), atouts, liste(origine.centresInteret()), liste(origine.liens()), rubriques,
                 liste(a.motsClesAjoutes()), ajoutees);
+    }
+
+    /**
+     * Lignes "Categorie : a, b, c" proposees par l'IA, en ne gardant que des competences presentes dans le CV
+     * (competences, environnements, technologies des projets, missions) ou ajoutees d'apres l'offre : rien d'invente.
+     */
+    static List<String> classer(CvPdf.Cv origine, Ameliorations a) {
+        StringBuilder cv = new StringBuilder();
+        liste(origine.competencesTechniques()).forEach(c -> cv.append(c).append('\n'));
+        liste(origine.competencesTransverses()).forEach(c -> cv.append(c).append('\n'));
+        for (CvPdf.Experience x : liste(origine.experiences())) {
+            cv.append(x.stack()).append('\n').append(x.poste()).append('\n');
+            liste(x.missions()).forEach(m -> cv.append(m).append('\n'));
+        }
+        for (CvPdf.Projet p : liste(origine.projets())) {
+            cv.append(p.technologies()).append('\n').append(p.description()).append('\n');
+            liste(p.points()).forEach(m -> cv.append(m).append('\n'));
+        }
+        for (CvPdf.Formation f : liste(origine.formations())) {
+            cv.append(f.diplome()).append('\n').append(f.details()).append('\n');
+        }
+        String texteCv = cv.toString().toLowerCase(Locale.ROOT);
+        List<String> ajoutees = liste(a.competencesTechniquesAjoutees()).stream()
+                .map(c -> c.strip().toLowerCase(Locale.ROOT)).toList();
+        List<String> vues = new ArrayList<>();
+        List<String> lignes = new ArrayList<>();
+        for (GroupeCompetences g : liste(a.competencesTechniquesClassees())) {
+            if (vide(g.categorie())) {
+                continue;
+            }
+            List<String> gardees = new ArrayList<>();
+            for (String el : liste(g.elements())) {
+                String c = el.strip().replace(",", " ").replaceAll("\\s+", " ");
+                String cle = c.toLowerCase(Locale.ROOT);
+                if (vues.contains(cle) || !(texteCv.contains(cle) || ajoutees.contains(cle))) {
+                    continue;
+                }
+                vues.add(cle);
+                gardees.add(c);
+            }
+            if (!gardees.isEmpty()) {
+                lignes.add(g.categorie().strip().replace(":", "") + " : " + String.join(", ", gardees));
+            }
+        }
+        return lignes;
     }
 
     /**

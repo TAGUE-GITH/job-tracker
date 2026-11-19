@@ -73,6 +73,23 @@ class CvAdaptationTests {
     }
 
     @Test
+    void competencesClasseesParCategorieSansRienInventer() {
+        // L'IA classe les competences pour l'offre ; "Kubernetes" n'est ni dans le CV ni ajoute : il est retire
+        String ameliorations = """
+                {"competencesTechniquesAjoutees": ["Spring Data JPA"],
+                 "competencesTechniquesClassees": [
+                   {"categorie": "Back-end", "elements": ["Spring Boot", "Java", "Spring Data JPA", "Kubernetes"]},
+                   {"categorie": "DevOps", "elements": ["Kubernetes"]},
+                   {"categorie": "Langages", "elements": ["java"]}]}
+                """;
+        CvAdaptation.CvAdapte cv = CvAdaptation.fusionner(CvAdaptation.lireExtraction(EXTRACTION),
+                CvAdaptation.lireAmeliorations(ameliorations));
+        assertEquals(List.of("Back-end : Spring Boot, Java, Spring Data JPA"), cv.competencesTechniques());
+        assertEquals(List.of("Spring Data JPA"), cv.competencesAjoutees());
+        assertEquals(1, CvPdf.categories(cv.competencesTechniques()).size());
+    }
+
+    @Test
     void ameliorationsVidesRendentLeCvImporte() {
         CvAdaptation.CvAdapte cv = CvAdaptation.fusionner(CvAdaptation.lireExtraction(EXTRACTION),
                 new CvAdaptation.Ameliorations(null, null, null, null, null, null, null, null, null, null));
