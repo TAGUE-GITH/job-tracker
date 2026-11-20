@@ -194,10 +194,23 @@ final class CvAdaptation {
                 gardees.add(c);
             }
             if (!gardees.isEmpty()) {
-                lignes.add(g.categorie().strip().replace(":", "") + " : " + String.join(", ", gardees));
+                lignes.add(libelleCategorie(g.categorie()) + " : " + String.join(", ", gardees));
             }
         }
         return lignes;
+    }
+
+    /**
+     * Nom de categorie lisible par CvPdf.categories : sans ":" ni ",", de 2 a 60 caracteres (coupe a un mot),
+     * sinon toute la rubrique Competences s'afficherait en un seul bloc.
+     */
+    static String libelleCategorie(String categorie) {
+        String l = categorie.replaceAll("[:,]", " ").replaceAll("\\s+", " ").strip();
+        if (l.length() > 60) {
+            int coupe = l.lastIndexOf(' ', 60);
+            l = l.substring(0, coupe > 1 ? coupe : 60).strip();
+        }
+        return l.length() < 2 ? "Autres" : l;
     }
 
     /**

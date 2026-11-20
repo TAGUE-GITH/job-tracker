@@ -90,6 +90,24 @@ class CvAdaptationTests {
     }
 
     @Test
+    void lesNomsDeCategorieLongsOuAvecVirguleRestentClasses() {
+        // Noms longs, virgule, deux-points : la rubrique doit rester classee par categorie
+        String ameliorations = """
+                {"competencesTechniquesClassees": [
+                   {"categorie": "Recherche d'information et bases de données", "elements": ["Java"]},
+                   {"categorie": "Frameworks, API : back-end", "elements": ["Spring Boot"]},
+                   {"categorie": "Une catégorie beaucoup trop longue pour tenir sur une seule ligne du CV", "elements": ["API REST"]}]}
+                """;
+        CvAdaptation.CvAdapte cv = CvAdaptation.fusionner(CvAdaptation.lireExtraction(EXTRACTION),
+                CvAdaptation.lireAmeliorations(ameliorations));
+        List<CvPdf.Categorie> cats = CvPdf.categories(cv.competencesTechniques());
+        assertEquals(3, cats.size(), cv.competencesTechniques().toString());
+        assertEquals("Recherche d'information et bases de données", cats.get(0).libelle());
+        assertEquals("Frameworks API back-end", cats.get(1).libelle());
+        assertTrue(cats.get(2).libelle().length() <= 60 && cats.get(2).elements().equals("API REST"));
+    }
+
+    @Test
     void ameliorationsVidesRendentLeCvImporte() {
         CvAdaptation.CvAdapte cv = CvAdaptation.fusionner(CvAdaptation.lireExtraction(EXTRACTION),
                 new CvAdaptation.Ameliorations(null, null, null, null, null, null, null, null, null, null));

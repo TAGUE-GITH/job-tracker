@@ -1438,7 +1438,7 @@ public final class CvPdf {
     }
 
     private static final java.util.regex.Pattern CATEGORIE =
-            java.util.regex.Pattern.compile("^([^:,]{2,40}?)\\s*:\\s*(.+)$");
+            java.util.regex.Pattern.compile("^([^:,]{2,60}?)\\s*:\\s*(.+)$");
 
     /**
      * Competences classees par categorie, une par ligne ("Back-end : Java 21, Spring Boot"), ou null si la liste
