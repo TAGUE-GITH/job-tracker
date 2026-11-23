@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -170,13 +172,23 @@ public class IaService {
         this.model = model;
     }
 
-    record ChatRequest(String model, List<Message> messages, double temperature) {
+    /**
+     * response_format : {"type": "json_object"} pour forcer une reponse JSON, sinon absent.
+     * reasoning_effort : "low" pour les modeles qui raisonnent (gpt-oss) afin de repondre plus vite et
+     * de consommer moins de jetons ; absent pour les autres fournisseurs.
+     */
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    record ChatRequest(String model, List<Message> messages, double temperature,
+            Map<String, String> response_format, String reasoning_effort) {
     }
 
-    /** Variante qui force une reponse JSON (mode "json_object" des API compatibles OpenAI). */
-    record ChatRequestJson(String model, List<Message> messages, double temperature,
-            Map<String, String> response_format) {
-    }
+    private static final Logger LOG = LoggerFactory.getLogger(IaService.class);
+
+    /** Nombre maximum d'appels pour une meme demande (le premier + les nouvelles tentatives). */
+    static final int MAX_ESSAIS = 3;
+
+    /** Au-dela de cette attente demandee par le fournisseur (limite journaliere), on ne reessaie pas. */
+    private static final long ATTENTE_MAX_SECONDES = 25;
 
     record ChatResponse(List<Choice> choices) {
     }
@@ -711,27 +723,100 @@ public class IaService {
             throw new IaIndisponibleException(
                     "IA non configuree : definis la variable AI_API_KEY (cle gratuite sur https://console.groq.com)");
         }
-        try {
-            Object corps = json
-                    ? new ChatRequestJson(model, messages, 0.3, Map.of("type", "json_object"))
-                    : new ChatRequest(model, messages, 0.7);
-            ChatResponse res = restClient.post()
-                    .uri("/chat/completions")
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-                    .body(corps)
-                    .retrieve()
-                    .body(ChatResponse.class);
-            if (res == null || res.choices() == null || res.choices().isEmpty()) {
-                throw new IaIndisponibleException("Reponse vide du service d'IA");
+        ChatRequest corps = new ChatRequest(model, messages, json ? 0.3 : 0.7,
+                json ? Map.of("type", "json_object") : null,
+                model != null && model.contains("gpt-oss") ? "low" : null);
+        for (int essai = 1; ; essai++) {
+            try {
+                ChatResponse res = restClient.post()
+                        .uri("/chat/completions")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+                        .body(corps)
+                        .retrieve()
+                        .body(ChatResponse.class);
+                if (res == null || res.choices() == null || res.choices().isEmpty()
+                        || res.choices().get(0).message() == null
+                        || res.choices().get(0).message().content() == null
+                        || res.choices().get(0).message().content().isBlank()) {
+                    LOG.warn("IA : reponse vide (essai {}/{})", essai, MAX_ESSAIS);
+                    if (essai < MAX_ESSAIS) {
+                        continue;
+                    }
+                    throw new IaIndisponibleException("ORVYNA n'a rien renvoye. Reessaie dans un instant.");
+                }
+                return res.choices().get(0).message().content();
+            } catch (RestClientResponseException e) {
+                int statut = e.getStatusCode().value();
+                String detail = e.getResponseBodyAsString();
+                LOG.warn("IA : erreur {} (essai {}/{}) : {}", statut, essai, MAX_ESSAIS,
+                        detail.length() > 400 ? detail.substring(0, 400) : detail);
+                Duration attente = attenteAvantNouvelEssai(statut, detail,
+                        e.getResponseHeaders() != null ? e.getResponseHeaders().getFirst("retry-after") : null);
+                if (attente == null || essai >= MAX_ESSAIS) {
+                    throw new IaIndisponibleException(messageErreur(statut, detail));
+                }
+                patienter(attente);
+            } catch (ResourceAccessException e) {
+                LOG.warn("IA : pas de reponse a temps : {}", e.getMessage());
+                throw new IaIndisponibleException("ORVYNA met trop de temps a repondre. Reessaie dans un instant.");
+            } catch (RestClientException e) {
+                LOG.warn("IA : reponse illisible : {}", e.getMessage());
+                throw new IaIndisponibleException("Le service d'IA ne repond pas : " + e.getMessage());
             }
-            return res.choices().get(0).message().content();
-        } catch (RestClientResponseException e) {
-            throw new IaIndisponibleException(messageErreur(e.getStatusCode().value()));
-        } catch (ResourceAccessException e) {
-            throw new IaIndisponibleException("ORVYNA met trop de temps a repondre. Reessaie dans un instant.");
-        } catch (RestClientException e) {
-            throw new IaIndisponibleException("Le service d'IA ne repond pas : " + e.getMessage());
         }
+    }
+
+    /**
+     * Attente avant de renvoyer la meme demande, ou null s'il ne sert a rien de reessayer :
+     * - 429 (trop de demandes par minute) : le delai indique par le fournisseur (Retry-After), 6 s par defaut,
+     *   sauf s'il depasse 25 s (limite journaliere atteinte) ;
+     * - 400 "json_validate_failed" : le modele a produit un JSON invalide, une nouvelle generation suffit souvent ;
+     * - 5xx : panne passagere du fournisseur.
+     */
+    static Duration attenteAvantNouvelEssai(int statut, String detail, String retryAfter) {
+        if (statut == 429) {
+            long secondes = 6;
+            if (retryAfter != null) {
+                try {
+                    secondes = (long) Math.ceil(Double.parseDouble(retryAfter.strip()));
+                } catch (NumberFormatException e) {
+                    // date HTTP ou valeur inattendue : on garde le delai par defaut
+                }
+            }
+            return secondes > ATTENTE_MAX_SECONDES ? null : Duration.ofSeconds(Math.max(1, secondes));
+        }
+        if (statut == 400 && detail != null && detail.contains("json_validate_failed")) {
+            return Duration.ZERO;
+        }
+        if (statut >= 500) {
+            return Duration.ofSeconds(2);
+        }
+        return null;
+    }
+
+    private static void patienter(Duration attente) {
+        try {
+            Thread.sleep(attente.toMillis());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IaIndisponibleException("Demande interrompue, reessaie.");
+        }
+    }
+
+    /** Message comprehensible, en tenant compte du detail renvoye par le fournisseur. */
+    static String messageErreur(int statut, String detail) {
+        String d = detail == null ? "" : detail.toLowerCase();
+        if (statut == 400 && d.contains("json_validate_failed")) {
+            return "ORVYNA a produit une reponse mal formee plusieurs fois de suite. Reessaie dans un instant.";
+        }
+        if ((statut == 413 || statut == 429) && d.contains("tokens per minute")) {
+            return "Ce CV et cette offre sont trop longs pour l'IA gratuite en une seule fois. "
+                    + "Raccourcis un peu le texte de l'offre (garde les missions et le profil recherche) puis reessaie.";
+        }
+        if (statut == 429 && (d.contains("per day") || d.contains("tokens per day") || d.contains("requests per day"))) {
+            return "La limite quotidienne de l'IA gratuite est atteinte. Reessaie dans quelques heures.";
+        }
+        return messageErreur(statut);
     }
 
     /** Message comprehensible pour les erreurs les plus courantes de l'API d'IA. */
